@@ -19,7 +19,8 @@ class Codebook(nn.Module, ABC):
     a tuple ``(quantized, probs)`` where ``quantized`` has the same shape as
     the input and ``probs`` is a routing distribution of shape ``(B, K)``.
 
-    Attributes:
+    Attributes
+    ----------
         size: Number of codebook entries.
     """
 

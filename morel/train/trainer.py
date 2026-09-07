@@ -20,7 +20,8 @@ from morel.train.monitor import Monitor
 class Trainer(ABC):
     """Abstract training loop.
 
-    Attributes:
+    Attributes
+    ----------
         model: PyTorch model being trained.
         optimizer: Optimizer for parameter updates.
         scheduler: Learning rate scheduler (optional).

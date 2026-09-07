@@ -86,7 +86,8 @@ def synthetic(
 class Experiment:
     """Top-level experiment orchestration.
 
-    Attributes:
+    Attributes
+    ----------
         config: Configuration object.
         dir: Run directory path.
         items: Number of items to use.

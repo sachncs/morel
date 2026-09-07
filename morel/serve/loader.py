@@ -14,7 +14,8 @@ class Loader:
 
     The loader is safe to share across request threads.
 
-    Attributes:
+    Attributes
+    ----------
         capacity: Maximum number of cached pipelines.
         cache: LRU-ordered dict of cached pipelines.
         lock: Threading lock for safe concurrent access.

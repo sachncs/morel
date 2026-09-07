@@ -81,7 +81,8 @@ class Default:
 class Updater:
     """Background updater that calls :meth:`tick` periodically.
 
-    Attributes:
+    Attributes
+    ----------
         pipeline: The live Pipeline being updated.
         lock: RWLock guarding model state.
         buffer_lock: Lock guarding feedback/replay buffers.
