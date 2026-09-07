@@ -148,12 +148,11 @@ class Fixed(Router):
 
     The fixed router has no learnable parameters. Without an explicit
     index input it falls back to a uniform distribution over the
+    ``k`` codebook entries, which is the maximum-entropy default and
+    makes the downstream codebook's behaviour visible end-to-end.
 
     Attributes:
         k: Number of routing entries.
-    """
-    ``k`` codebook entries, which is the maximum-entropy default and
-    makes the downstream codebook's behaviour visible end-to-end.
     """
 
     def __init__(self, k: int) -> None:
