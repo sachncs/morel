@@ -98,6 +98,20 @@ def create(loader: Loader | None = None) -> FastAPI:
     app = FastAPI(title="morel inference", version="0.1.0")
     app.state.loader = loader or Loader()
     app.state.updater_enabled = True
+    app.state.request_count = 0
+
+    @app.middleware("http")
+    async def count_requests(
+        request: Any, call_next: Any
+    ) -> Any:
+        """Increment the request counter on every HTTP call.
+
+        The middleware runs once per HTTP request, so the counter tracks
+        every endpoint uniformly without sprinkling bookkeeping across the
+        individual route handlers.
+        """
+        app.state.request_count = int(app.state.request_count) + 1
+        return await call_next(request)
 
     @app.get("/health", response_model=Health)
     def health() -> Health:
@@ -117,7 +131,7 @@ def create(loader: Loader | None = None) -> FastAPI:
         -------
             dict[str, float]: Current request count.
         """
-        return {"requests": float(count(app))}
+        return {"requests": float(int(getattr(app.state, "request_count", 0)))}
 
     @app.post("/v1/complete", response_model=Done)
     def complete(payload: Fill, _: None = Depends(auth.dependency("read"))) -> Done:
@@ -288,7 +302,7 @@ def count(app: FastAPI) -> int:
     -------
         int: Number of requests served.
     """
-    return int(getattr(app.state, "count", 0))
+    return int(getattr(app.state, "request_count", 0))
 
 
 # (Dependencies are installed directly via Depends(_require_read).)
