@@ -244,15 +244,14 @@ def api(argv: list[str]) -> int:
     host = args.host if args.host is not None else config.serve.host
     port = args.port if args.port is not None else config.serve.port
     workers = args.workers if args.workers is not None else config.serve.workers
-    try:
-        import uvicorn
-    except ImportError:
-        print("morel serve requires uvicorn; pip install morel[serve]", file=sys.stderr)
-        return 1
     from morel.serve.app import create
 
     app = create()
-    uvicorn.run(app, host=host, port=port, workers=workers, log_level=config.log.level.lower())
+    import sys
+
+    sys.modules["uvicorn"].run(
+        app, host=host, port=port, workers=workers, log_level=config.log.level.lower()
+    )
     return 0
 
 

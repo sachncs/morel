@@ -22,12 +22,9 @@ from morel.data.manifest import Manifest
 from morel.pipeline import Output, Pipeline
 
 __version__ = "0.0.0+unknown"
-try:
-    from morel.version import __version__ as _scm_version
-except ImportError:  # pragma: no cover - only when built without setuptools_scm
-    pass
-else:
-    __version__ = _scm_version
+from morel.version import __version__ as _scm_version
+
+__version__ = _scm_version
 if not logging.getLogger("morel").handlers:
     logging.getLogger("morel").addHandler(logging.NullHandler())
 
