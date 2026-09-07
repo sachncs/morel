@@ -263,6 +263,11 @@ class Laplace(nn.Module):
     Cache key is a content-derived SHA256 so that re-binding a different
     adjacency cannot return a stale tensor (the original bug used ``id()``
     which recycles with GC).
+
+    Attributes:
+        k: Number of eigenvectors.
+        capacity: LRU cache size.
+        cache: LRU-ordered dict of cached tensors.
     """
 
     def __init__(self, k: int = 20, *, capacity: int = 8) -> None:

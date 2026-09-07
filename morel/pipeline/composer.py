@@ -72,7 +72,15 @@ def mode(module: nn.Module, training: bool) -> Iterator[None]:
 
 
 class Pipeline(nn.Module):
-    """End-to-end GRE-MC pipeline."""
+    """End-to-end GRE-MC pipeline.
+
+    Attributes:
+        encode: Joint encoder module.
+        route: Router module.
+        codebook: Codebook module.
+        complete: Completion module.
+        recommend: Recommender module.
+    """
 
     def __init__(
         self,

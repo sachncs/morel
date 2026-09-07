@@ -22,6 +22,13 @@ class Corpus(Dataset[dict[str, Any]]):
 
     Each item returns ``{index, features, mask, adjacency}`` shaped for the
     completion trainer's collate function.
+
+    Attributes:
+        features: Per-modality feature arrays.
+        mask: Modality availability mask.
+        adjacency: Item-item adjacency matrix.
+        n: Number of samples.
+    """
     """
 
     def __init__(
@@ -148,6 +155,11 @@ class BPR(Dataset[dict[str, Any]]):
     Indexing is a pure function of the index and the seed, so the epoch a
     sample belongs to does not change it and the dataset is reproducible
     across processes and workers.
+
+    Attributes:
+        ui_graph: User-item interaction matrix.
+        length: Number of triples per epoch.
+        seed: Random seed.
     """
 
     def __init__(self, ui_graph: sp.csr_matrix, *, length: int, seed: int = 0) -> None:

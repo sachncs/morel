@@ -16,6 +16,11 @@ class Decoders(nn.Module):
     The mask token is broadcast onto positions where the modality is missing
     before decoding. This is the standard masked-reconstruction practice
     (Devlin et al. 2019).
+
+    Attributes:
+        modalities: List of modality names.
+        dims: Mapping from modality name to output dimension.
+        heads: ModuleDict of per-modality decoder heads.
     """
 
     def __init__(

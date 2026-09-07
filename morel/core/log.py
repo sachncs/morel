@@ -18,7 +18,11 @@ from typing import Any
 
 
 class Json(logging.Formatter):
-    """Format log records as one JSON object per line."""
+    """Format log records as one JSON object per line.
+
+    Attributes:
+        fmt_keys: Keys to include in the JSON output.
+    """
 
     def format(self, record: logging.LogRecord) -> str:
         """Format *record* as a single-line JSON string."""
@@ -67,7 +71,13 @@ class Json(logging.Formatter):
 
 @dataclass
 class Config:
-    """Logging configuration."""
+    """Logging configuration.
+
+    Attributes:
+        level: Log level name.
+        structured: Whether to use structured logging.
+        directory: Log output directory.
+    """
 
     level: str = "INFO"
     structured: bool = True

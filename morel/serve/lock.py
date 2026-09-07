@@ -137,7 +137,11 @@ class RWLock:
 
 
 class Read:
-    """Context manager returned by :meth:`RWLock.read`."""
+    """Context manager returned by :meth:`RWLock.read`.
+
+    Attributes:
+        lock: The RWLock instance.
+    """
 
     def __init__(self, lock: RWLock) -> None:
         """Initialize the read lock context manager.
@@ -157,7 +161,11 @@ class Read:
 
 
 class Write:
-    """Context manager returned by :meth:`RWLock.write`."""
+    """Context manager returned by :meth:`RWLock.write`.
+
+    Attributes:
+        lock: The RWLock instance.
+    """
 
     def __init__(self, lock: RWLock) -> None:
         """Initialize the write lock context manager.

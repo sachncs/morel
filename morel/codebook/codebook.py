@@ -161,7 +161,12 @@ class Soft(Codebook):
 
 
 class Noop(Codebook):
-    """No-op codebook used for ablations; returns the input and a uniform probs."""
+    """No-op codebook used for ablations; returns the input and a uniform probs.
+
+    Attributes:
+        dim: Hidden dimension.
+        size: Number of codebook entries.
+    """
 
     def __init__(self, dim: int, size: int) -> None:
         """Initialize the no-op codebook.

@@ -12,7 +12,14 @@ import torch
 
 
 class Device(str, Enum):
-    """Supported device types."""
+    """Supported device types.
+
+    Attributes:
+        AUTO: Auto-detect device.
+        CPU: CPU device.
+        CUDA: CUDA device.
+        MPS: Apple Metal device.
+    """
 
     CPU = "cpu"
     CUDA = "cuda"
