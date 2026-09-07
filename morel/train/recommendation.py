@@ -42,6 +42,21 @@ class Recommendation(Trainer):
         device: str | torch.device | None = None,
         amp: bool = False,
     ) -> None:
+        """Initialize the recommendation trainer.
+
+        Args:
+            model: PyTorch model to train.
+            config: Recommendation training configuration.
+            ui_graph: User-item interaction matrix.
+            neg: Number of negatives per positive.
+            seed: Random seed.
+            lr: Learning rate.
+            weight_decay: Weight decay for optimizer.
+            monitor: Training monitor (optional).
+            checkpoint_dir: Checkpoint directory (optional).
+            device: Training device (optional).
+            amp: Whether to use automatic mixed precision.
+        """
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
         super().__init__(
             model=model,

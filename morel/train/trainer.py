@@ -34,6 +34,20 @@ class Trainer(ABC):
         amp: bool = False,
         device: str | torch.device | None = None,
     ) -> None:
+        """Initialize the trainer.
+
+        Args:
+            model: PyTorch model to train.
+            optimizer: Optimizer for parameter updates.
+            loss: Loss function (optional).
+            config: Training configuration object.
+            scheduler: Learning rate scheduler (optional).
+            monitor: Training monitor for logging (optional).
+            checkpoint_dir: Directory for checkpoints (optional).
+            grad_clip: Gradient clipping value (optional).
+            amp: Whether to use automatic mixed precision.
+            device: Device to train on (optional).
+        """
         self.model = model
         self.optimizer = optimizer
         self.scheduler = scheduler

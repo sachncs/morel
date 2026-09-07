@@ -40,6 +40,18 @@ class Completion(Trainer):
         device: str | torch.device | None = None,
         amp: bool = False,
     ) -> None:
+        """Initialize the completion trainer.
+
+        Args:
+            model: PyTorch model to train.
+            config: Completion training configuration.
+            lr: Learning rate.
+            weight_decay: Weight decay for optimizer.
+            monitor: Training monitor (optional).
+            checkpoint_dir: Checkpoint directory (optional).
+            device: Training device (optional).
+            amp: Whether to use automatic mixed precision.
+        """
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
         reconstruction: Loss = Reconstruction()
         super().__init__(
