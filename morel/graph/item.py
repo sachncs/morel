@@ -20,6 +20,9 @@ class Item:
         - no self-loops
         - symmetric (binary co-occurrence)
         - finite values
+
+    Attributes:
+        matrix: Sparse CSR adjacency matrix.
     """
 
     matrix: sp.csr_matrix

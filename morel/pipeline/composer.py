@@ -30,7 +30,14 @@ from morel.route import build as build_route
 
 @dataclass
 class Output:
-    """Pipeline forward output."""
+    """Pipeline forward output.
+
+    Attributes:
+        completed: Per-modality completed features.
+        routing: Routing probabilities.
+        subgraph_indices: Subgraph node indices (optional).
+        subgraph_mask: Subgraph mask (optional).
+    """
 
     completed: dict[str, torch.Tensor]
     routing: torch.Tensor

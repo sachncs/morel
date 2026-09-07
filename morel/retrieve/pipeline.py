@@ -22,7 +22,13 @@ from morel.retrieve.mage import expand as mage_expand
 
 @dataclass(frozen=True)
 class Result:
-    """Retrieval output for one query or a batch."""
+    """Retrieval output for one query or a batch.
+
+    Attributes:
+        nodes: Padded node indices.
+        sizes: Actual number of nodes per batch item.
+        mask: Boolean mask for valid nodes.
+    """
 
     nodes: np.ndarray  # (B, max_S) int64
     sizes: np.ndarray  # (B,) int64
