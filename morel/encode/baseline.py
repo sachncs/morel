@@ -36,8 +36,8 @@ class Identity(nn.Module):
     """
 
     This is the no-transformer ablation: it satisfies the same contract as
-    :class:`~morel.encode.transformer.Transformer` — hidden-width output, and
-    one embedding per query when handed a padded subgraph batch — so
+    :class:`~morel.encode.transformer.Transformer` -- hidden-width output, and
+    one embedding per query when handed a padded subgraph batch -- so
     ``Pipeline`` can use it wherever the transformer is used.
     """
 
