@@ -84,7 +84,17 @@ def synthetic(
 
 @dataclass
 class Experiment:
-    """Top-level experiment orchestration."""
+    """Top-level experiment orchestration.
+
+    Attributes:
+        config: Configuration object.
+        dir: Run directory path.
+        items: Number of items to use.
+        users: Number of users to use.
+        dv: Visual feature dimension.
+        td: Text feature dimension.
+        epochs: Override training epochs (optional).
+    """
 
     config: Config
     dir: Path

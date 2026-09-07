@@ -18,7 +18,20 @@ from morel.train.monitor import Monitor
 
 
 class Trainer(ABC):
-    """Abstract training loop."""
+    """Abstract training loop.
+
+    Attributes:
+        model: PyTorch model being trained.
+        optimizer: Optimizer for parameter updates.
+        scheduler: Learning rate scheduler (optional).
+        loss: Loss function (optional).
+        config: Training configuration object.
+        grad_clip: Gradient clipping value (optional).
+        amp: Whether automatic mixed precision is enabled.
+        device: Device used for training.
+        monitor: Training monitor for logging.
+        ckpt: Checkpoint directory path (optional).
+    """
 
     def __init__(
         self,

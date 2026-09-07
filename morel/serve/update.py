@@ -81,6 +81,21 @@ class Default:
 class Updater:
     """Background updater that calls :meth:`tick` periodically.
 
+    Attributes:
+        pipeline: The live Pipeline being updated.
+        lock: RWLock guarding model state.
+        buffer_lock: Lock guarding feedback/replay buffers.
+        feedback: Deque of feedback events.
+        replay: Deque of replay events.
+        rollback: Deque of model snapshots.
+        version: Current model version counter.
+        writer: Reference to loss-step callable.
+        cooldown_until: Timestamp until which updates are paused.
+        loss_window: Recent loss values for cooldown detection.
+        peak: Best validation loss seen.
+        ratio: Replay fraction per update.
+        val_ratio: Validation fraction of feedback ring.
+
     Args
     ----
     pipeline : nn.Module

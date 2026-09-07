@@ -9,7 +9,12 @@ from typing import Any
 
 
 class Monitor:
-    """Append ``(time, **metrics)`` lines to ``metrics.jsonl``."""
+    """Append ``(time, **metrics)`` lines to ``metrics.jsonl``.
+
+    Attributes:
+        directory: Directory where metrics are written.
+        path: Full path to the ``metrics.jsonl`` file.
+    """
 
     def __init__(self, directory: Path | str) -> None:
         """Initialize the metrics monitor.

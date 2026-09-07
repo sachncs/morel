@@ -13,6 +13,11 @@ class Loader:
     """Cache of named model pipelines keyed by their checkpoint path.
 
     The loader is safe to share across request threads.
+
+    Attributes:
+        capacity: Maximum number of cached pipelines.
+        cache: LRU-ordered dict of cached pipelines.
+        lock: Threading lock for safe concurrent access.
     """
 
     def __init__(self, *, capacity: int = 4) -> None:

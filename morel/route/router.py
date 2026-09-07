@@ -26,7 +26,11 @@ class Weights:
 
 
 class Router(nn.Module, ABC):
-    """Protocol-style base for routers (kept as nn.Module so parameters register)."""
+    """Protocol-style base for routers (kept as nn.Module so parameters register).
+
+    Attributes:
+        k: Number of routing entries.
+    """
 
     def __init__(self) -> None:
         """Initialize the router base class."""

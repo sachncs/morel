@@ -18,6 +18,9 @@ class Codebook(nn.Module, ABC):
     Subclasses implement :meth:`forward` to map a hidden representation to
     a tuple ``(quantized, probs)`` where ``quantized`` has the same shape as
     the input and ``probs`` is a routing distribution of shape ``(B, K)``.
+
+    Attributes:
+        size: Number of codebook entries.
     """
 
     def __init__(self) -> None:
