@@ -89,8 +89,8 @@ jobs:
       - run: pip install -e ".[dev]"
       - name: The same demo must produce byte-identical output twice
         run: |
-          python examples/end_to_end_demo.py > run1.txt
-          python examples/end_to_end_demo.py > run2.txt
+          python examples/demo.py > run1.txt
+          python examples/demo.py > run2.txt
           diff run1.txt run2.txt
           echo "demo output is reproducible across processes"
 

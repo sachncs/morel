@@ -28,7 +28,6 @@ markdown_extensions:
   - md_in_html
   - tables
 nav:
-  - Home: README.md
   - Architecture: ARCHITECTURE.md
   - Method: METHOD.md
   - API: API.md
@@ -38,3 +37,4 @@ nav:
   - Benchmarks: BENCHMARKS.md
   - Paper fidelity: FIDELITY.md
   - Limitations: LIMITATIONS.md
+  - Production readiness: PRODUCTION_READINESS.md

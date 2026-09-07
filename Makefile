@@ -35,7 +35,7 @@ clean: ## Clean build artifacts
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 
 demo: ## Run the demo script
-	python examples/end_to_end_demo.py
+	python examples/demo.py
 
 bench: ## Run benchmarks
 	pytest benchmarks/ --benchmark-only --benchmark-min-rounds=20

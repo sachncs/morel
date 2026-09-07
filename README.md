@@ -29,7 +29,7 @@ recommender.
 
 It implements the architecture from a paper
 ([CITATION.cff](CITATION.cff)). You don't need to read the paper to use
-the package — the [demo](examples/end_to_end_demo.py) runs on synthetic
+the package — the [demo](examples/demo.py) runs on synthetic
 data in seconds.
 
 ---
@@ -146,7 +146,7 @@ on port `8080` (health-checked at `/health`). See
 The fastest way to see morel work. No dataset required:
 
 ```bash
-python examples/end_to_end_demo.py
+python examples/demo.py
 ```
 
 The script builds a small synthetic user–item graph, runs the
@@ -236,7 +236,7 @@ print(scores.shape)  # (20, 50)
 
 That first run covers the whole GRE-MC flow: build the graph, retrieve
 context, complete the missing modality, and rank. The full walkthrough
-of the same code lives in [examples/end_to_end_demo.py](examples/end_to_end_demo.py).
+of the same code lives in [examples/demo.py](examples/demo.py).
 
 ---
 
