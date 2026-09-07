@@ -81,7 +81,12 @@ def collate(batch: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def split(dataset: Dataset[dict[str, Any]], *, val_fraction: float, seed: int) -> tuple[Dataset[dict[str, Any]], Dataset[dict[str, Any]] | None]:
+def split(
+    dataset: Dataset[dict[str, Any]],
+    *,
+    val_fraction: float,
+    seed: int,
+) -> tuple[Dataset[dict[str, Any]], Dataset[dict[str, Any]] | None]:
     """Split ``dataset`` deterministically into train and validation parts.
 
     Args:
