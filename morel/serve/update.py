@@ -191,6 +191,10 @@ class Updater:
         self.last = float("nan")
         self.valid: float | None = None
         self.updates = 0
+        # Seed the rollback ring with the initial model state so that
+        # undo() can restore to it. ``rollback[K]`` is the model state at
+        # version K; ``rollback[0]`` is the as-constructed state.
+        self.rollback.append(copy.deepcopy(self.pipeline.state_dict()))
 
     def accept(self, user: int, item: int, signal: Signal) -> None:
         """Append a feedback event to the feedback ring (thread-safe)."""
@@ -268,9 +272,22 @@ class Updater:
         n_replay = int(len(train_batch) * self.ratio)
         replay_sample = replay[:n_replay] if n_replay else []
         step_batch = replay_sample + train_batch
+
+        # Snapshot the pre-update model state under the write lock so it
+        # can be restored if this update diverges. ``rollback[K]`` is the
+        # model state at version K; the training step modifies the model
+        # in place and we record the post-commit state afterwards.
+        with self.lock.write():
+            pre_snapshot = copy.deepcopy(self.pipeline.state_dict())
+
+        # Training happens outside the lock so inference readers are not
+        # blocked for the duration of a step. Readers can therefore observe
+        # partial weight updates during this window; that is the project's
+        # documented trade-off, not a regression introduced by the
+        # pre-snapshot.
         loss = float(self.loss_step(step_batch))
         valid_loss = self.assess(val_batch)
-        committed, version_after = self.apply(loss, valid_loss)
+        committed, version_after = self.apply(loss, valid_loss, pre_snapshot)
         return Outcome(
             committed=committed,
             loss=loss,
@@ -280,28 +297,44 @@ class Updater:
             n_replay_used=len(replay_sample),
         )
 
-    def apply(self, loss: float, valid_loss: float | None) -> tuple[bool, int]:
-        """Apply the update guarding against divergence."""
+    def apply(
+        self,
+        loss: float,
+        valid_loss: float | None,
+        pre_snapshot: dict[str, Any],
+    ) -> tuple[bool, int]:
+        """Apply the update guarding against divergence.
+
+        ``pre_snapshot`` is the state captured before the training step
+        ran. When divergence is detected, ``pre_snapshot`` is loaded back
+        into the pipeline so the model returns to its state before this
+        update; the rollback ring is left unchanged so undo() still works
+        against the prior version. When the update commits, the new
+        (post-training) state is appended to the rollback ring so undo()
+        can restore to it on a later call.
+        """
         with self.lock.write():
             if not math.isfinite(loss):
                 self.cooldown = time.time() + 60.0
                 log.warning("divergence: non-finite loss; rolling back and cooling down")
+                self.pipeline.load_state_dict(pre_snapshot)
                 return False, self.version
             if valid_loss is not None and not math.isfinite(valid_loss):
                 self.cooldown = time.time() + 60.0
+                log.warning("divergence: non-finite valid loss; rolling back and cooling down")
+                self.pipeline.load_state_dict(pre_snapshot)
                 return False, self.version
             if self.window and loss > 3 * (sum(self.window) / len(self.window)):
                 self.cooldown = time.time() + 60.0
                 log.warning("divergence: loss explosion; rolling back and cooling down")
+                self.pipeline.load_state_dict(pre_snapshot)
                 return False, self.version
-            snapshot = self.snapshot()
-            self.rollback.append(snapshot)
-            self.pipeline.load_state_dict(snapshot)
             self.version += 1
             self.window.append(loss)
             self.last = loss
             self.valid = valid_loss
             self.updates += 1
+            self.rollback.append(copy.deepcopy(self.pipeline.state_dict()))
             return True, self.version
 
 
