@@ -267,11 +267,7 @@ class Pipeline(nn.Module):
             subgraph_indices: np.ndarray | None = None
             subgraph_mask: np.ndarray | None = None
 
-            if (
-                self.cfeat is not None
-                and self.cmask is not None
-                and index is not None
-            ):
+            if self.cfeat is not None and self.cmask is not None and index is not None:
                 queries = [int(i) for i in index.detach().cpu().tolist()]
                 result = batch(
                     queries,

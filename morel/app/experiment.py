@@ -137,9 +137,7 @@ class Experiment:
         self.config.save(self.dir / "config.yaml")
         start = time.time()
 
-        dataset = synthetic(
-            self.items, self.dv, self.td, self.users, self.config.masking
-        )
+        dataset = synthetic(self.items, self.dv, self.td, self.users, self.config.masking)
         pipeline = Pipeline(
             self.config,
             dims={"visual": self.dv, "text": self.td},
@@ -442,9 +440,7 @@ class Ablate:
         start = time.time()
         log.info("ablation.start", extra={"conditions": list(conditions(self.config))})
 
-        dataset = synthetic(
-            self.items, self.dv, self.td, self.users, self.config.masking
-        )
+        dataset = synthetic(self.items, self.dv, self.td, self.users, self.config.masking)
         labels = dataset["ui"].sign().toarray()
 
         scores_by_condition: dict[str, np.ndarray] = {}

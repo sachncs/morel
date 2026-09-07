@@ -115,9 +115,7 @@ class Recommendation(Trainer):
                 users = batch["users"].to(self.device)
                 pos = batch["positive"].to(self.device)
                 neg = batch["negative"].to(self.device)
-                scores = self.model(
-                    users, torch.arange(self.items, device=self.device), self.ui
-                )
+                scores = self.model(users, torch.arange(self.items, device=self.device), self.ui)
                 pos_scores = scores[torch.arange(users.shape[0], device=self.device), pos]
                 neg_scores = scores[torch.arange(users.shape[0], device=self.device), neg]
                 loss = bpr_loss(pos_scores, neg_scores)
