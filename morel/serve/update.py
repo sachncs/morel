@@ -34,7 +34,8 @@ Signal = str
 class Event:
     """One user-feedback event.
 
-    Attributes:
+    Attributes
+    ----------
         user: User id.
         item: Item id.
         signal: Feedback signal type.
@@ -51,7 +52,8 @@ class Event:
 class Outcome:
     """Result of one update tick.
 
-    Attributes:
+    Attributes
+    ----------
         committed: Whether an update was committed.
         loss: Training loss.
         valid_loss: Validation loss.

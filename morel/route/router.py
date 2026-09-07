@@ -60,7 +60,8 @@ class Router(nn.Module, ABC):
 class Dense(Router):
     """Plain softmax routing over K entries.
 
-    Attributes:
+    Attributes
+    ----------
         tau: Softmax temperature.
         k: Number of routing entries.
         linear: Linear projection layer.
@@ -96,7 +97,8 @@ class Top(Router):
     Applies softmax with optional Gumbel noise, then keeps the top-p entries
     and renormalises.
 
-    Attributes:
+    Attributes
+    ----------
         tau: Softmax temperature.
         k: Number of routing entries.
         p: Number of top entries to keep.
@@ -151,7 +153,8 @@ class Fixed(Router):
     ``k`` codebook entries, which is the maximum-entropy default and
     makes the downstream codebook's behaviour visible end-to-end.
 
-    Attributes:
+    Attributes
+    ----------
         k: Number of routing entries.
     """
 
@@ -186,7 +189,8 @@ class Fixed(Router):
 class Gumbel(Router):
     """Pure Gumbel-Softmax router (no top-k sparsification).
 
-    Attributes:
+    Attributes
+    ----------
         tau: Softmax temperature.
         k: Number of routing entries.
         linear: Linear projection layer.

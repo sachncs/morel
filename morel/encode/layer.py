@@ -11,7 +11,8 @@ class Layer(nn.Module):
 
     Order: ``x = x + attn(norm1(x))`` then ``x = x + ffn(norm2(x))``.
 
-    Attributes:
+    Attributes
+    ----------
         dim: Hidden dimension.
         heads: Number of attention heads.
         attn: Multi-head attention layer.

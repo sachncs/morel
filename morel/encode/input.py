@@ -11,7 +11,8 @@ class Input(nn.Module):
 
     ``mask`` semantics: 1 = kept (feature present), 0 = missing (feature zeroed).
 
-    Attributes:
+    Attributes
+    ----------
         modalities: List of modality names.
         project: Linear projection layer.
         dropout: Dropout layer.

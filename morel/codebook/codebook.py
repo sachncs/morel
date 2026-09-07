@@ -48,7 +48,8 @@ class Codebook(nn.Module, ABC):
 class VQ(Codebook):
     """Vector-quantizing codebook with straight-through gradient.
 
-    Attributes:
+    Attributes
+    ----------
         dim: Hidden dimension.
         size: Number of codebook entries.
         codebook: Embedding layer for codebook entries.
@@ -112,7 +113,8 @@ class Soft(Codebook):
     Returns ``(quantized, probs)`` where ``probs`` is the routing distribution
     (pre-mask, suitable for usage/balance losses).
 
-    Attributes:
+    Attributes
+    ----------
         dim: Hidden dimension.
         size: Number of codebook entries.
         router: Router module.

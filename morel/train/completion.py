@@ -35,7 +35,8 @@ class Fit:
 class Completion(Trainer):
     """Trainer for modality completion.
 
-    Attributes:
+    Attributes
+    ----------
         model: Model being trained.
         train: Configuration object.
         reconstruction: Reconstruction loss.

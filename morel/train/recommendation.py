@@ -32,7 +32,8 @@ class Rec:
 class Recommendation(Trainer):
     """BPR trainer with strict negatives and on-the-fly scoring.
 
-    Attributes:
+    Attributes
+    ----------
         model: Model being trained.
         ui_graph: User-item interaction matrix.
         negatives_count: Number of negatives per positive.

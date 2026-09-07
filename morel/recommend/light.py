@@ -33,7 +33,8 @@ class Light(nn.Module):
     it changes. The cache key is a content hash of the CSR matrix, not its
     ``id()`` (which can be reused after GC).
 
-    Attributes:
+    Attributes
+    ----------
         users: Number of users.
         items: Number of items.
         user_emb: User embedding layer.

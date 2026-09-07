@@ -11,7 +11,8 @@ import torch.nn as nn
 class Enc(Protocol):
     """Graph encoder turns modality features into a hidden embedding.
 
-    Attributes:
+    Attributes
+    ----------
         forward: Returns per-item hidden embedding.
     """
 
@@ -33,7 +34,8 @@ class Identity(nn.Module):
     one embedding per query when handed a padded subgraph batch -- so
     ``Pipeline`` can use it wherever the transformer is used.
 
-    Attributes:
+    Attributes
+    ----------
         dims: Mapping from modality name to feature dimension.
         pe_dim: Positional encoding dimension.
         dim: Output hidden dimension.
@@ -86,7 +88,8 @@ class Identity(nn.Module):
 class Sum(nn.Module):
     """A summation encoder (no learnable projection).
 
-    Attributes:
+    Attributes
+    ----------
         dims: Mapping from modality name to feature dimension.
         pe_dim: Positional encoding dimension.
         dim: Output hidden dimension.
@@ -120,7 +123,8 @@ class Sum(nn.Module):
 class Baseline(nn.Module):
     """Multiplexer that builds the requested graph encoder.
 
-    Attributes:
+    Attributes
+    ----------
         inner: Underlying encoder module.
         kind: Encoder kind.
     """
