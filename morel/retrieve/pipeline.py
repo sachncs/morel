@@ -34,7 +34,7 @@ class Result:
         return int(self.sizes.shape[0])
 
     @property
-    def peak(self) -> int:
+    def cap(self) -> int:
         """Return the maximum subgraph size."""
         return int(self.nodes.shape[1])
 
@@ -224,9 +224,9 @@ def batch(
         for q in queries
     ]
     sizes = np.array([len(s) for s in subgraphs], dtype=np.int64)
-    peak = int(sizes.max()) if sizes.size else 0
-    nodes = np.zeros((len(queries), peak), dtype=np.int64)
-    valid = np.zeros((len(queries), peak), dtype=bool)
+    cap = int(sizes.max()) if sizes.size else 0
+    nodes = np.zeros((len(queries), cap), dtype=np.int64)
+    valid = np.zeros((len(queries), cap), dtype=bool)
     for i, sg in enumerate(subgraphs):
         arr = np.array(sorted(sg), dtype=np.int64)
         nodes[i, : arr.size] = arr

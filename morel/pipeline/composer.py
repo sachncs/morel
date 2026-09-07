@@ -299,7 +299,7 @@ class Pipeline(nn.Module):
     ) -> torch.Tensor:
         """Encode each query item with its retrieved subgraph as one padded batch.
 
-        All per-query subgraphs are padded to ``result.peak`` and processed
+        All per-query subgraphs are padded to ``result.cap`` and processed
         in a single transformer call with a batched attention mask, instead of
         one Python loop iteration per query. Empty subgraphs are padded with a
         single attention-masked token so the transformer still produces one
@@ -316,7 +316,7 @@ class Pipeline(nn.Module):
             raise Model(
                 "encode needs a bound corpus; call Pipeline.attach(features, mask, adjacency) first"
             )
-        peak = max(int(result.peak), 1)
+        peak = max(int(result.cap), 1)
         batch = int(result.batch)
         modalities = list(self.dims.keys())
         node_features: dict[str, torch.Tensor] = {}

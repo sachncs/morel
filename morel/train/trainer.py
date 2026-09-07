@@ -47,7 +47,7 @@ class Trainer(ABC):
         self.ckpt: Path | None = (
             Path(checkpoint_dir).resolve() if checkpoint_dir is not None else None
         )
-        self.best_metric: float = float("inf")
+        self.peak: float = float("inf")
         self.cfg_hash = hash_config(config)
         self.scaler = (
             torch.amp.GradScaler(self.device.type)
@@ -100,7 +100,7 @@ class Trainer(ABC):
             if self.optimizer is not None and state.optimizer is not None:
                 self.optimizer.load_state_dict(state.optimizer)
             start_epoch = state.epoch
-            self.best_metric = state.metric
+            self.peak = state.metric
         no_improve = 0
         train_loss = float("nan")
         completed = 0
@@ -119,8 +119,8 @@ class Trainer(ABC):
                 self.monitor.log(epoch=epoch, phase="val", metric=val_metric)
             else:
                 val_metric = train_loss
-            if val_metric < self.best_metric:
-                self.best_metric = val_metric
+            if val_metric < self.peak:
+                self.peak = val_metric
                 no_improve = 0
                 if self.ckpt is not None:
                     self.save(epoch, val_metric)
@@ -130,7 +130,7 @@ class Trainer(ABC):
                     break
             if self.scheduler is not None:
                 self.scheduler.step()
-        return {"best": self.best_metric, "train_loss": train_loss, "epochs": completed}
+        return {"best": self.peak, "train_loss": train_loss, "epochs": completed}
 
     def run(self, loader: DataLoader[Any], epoch: int) -> dict[str, Any]:
         """Run one training epoch and return the average loss."""
