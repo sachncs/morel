@@ -10,7 +10,8 @@ from pydantic import BaseModel, Field
 class Fill(BaseModel):
     """Request to complete missing modalities for a set of items.
 
-    Attributes:
+    Attributes
+    ----------
         items: Item ids to complete.
         modalities: Optional subset of modality names; defaults to all.
     """
@@ -25,7 +26,8 @@ class Fill(BaseModel):
 class Done(BaseModel):
     """Response containing the completed modalities per item.
 
-    Attributes:
+    Attributes
+    ----------
         completed: Mapping from modality name to per-item vectors.
     """
 
@@ -37,7 +39,8 @@ class Done(BaseModel):
 class Query(BaseModel):
     """Request to score a user against the catalogue.
 
-    Attributes:
+    Attributes
+    ----------
         user: User id.
         top: Number of top items to return.
     """
@@ -49,7 +52,8 @@ class Query(BaseModel):
 class Pick(BaseModel):
     """One (item, score) pair.
 
-    Attributes:
+    Attributes
+    ----------
         item: Item id.
         score: Predicted score.
     """
@@ -61,7 +65,8 @@ class Pick(BaseModel):
 class List(BaseModel):
     """Response with ranked items for the requested user.
 
-    Attributes:
+    Attributes
+    ----------
         items: Ranked (item, score) pairs.
     """
 
@@ -71,7 +76,8 @@ class List(BaseModel):
 class Health(BaseModel):
     """Health probe response.
 
-    Attributes:
+    Attributes
+    ----------
         status: Service status string.
         version: Service version string.
     """

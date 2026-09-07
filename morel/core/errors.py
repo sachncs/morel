@@ -12,7 +12,8 @@ from __future__ import annotations
 class Error(Exception):
     """Base class for every exception raised by morel.
 
-    Attributes:
+    Attributes
+    ----------
         args: Inherited from Exception.
     """
 

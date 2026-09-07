@@ -27,7 +27,8 @@ if TYPE_CHECKING:
 class Ask(BaseModel):
     """One feedback event submitted by a client.
 
-    Attributes:
+    Attributes
+    ----------
         user: User id.
         item: Item id.
         signal: One of 'like', 'dislike', 'view', 'purchase'.
@@ -41,7 +42,8 @@ class Ask(BaseModel):
 class Tell(BaseModel):
     """Response from /v1/feedback.
 
-    Attributes:
+    Attributes
+    ----------
         queued: Whether the event was queued.
         buffer_size: Current buffer size after queuing.
     """
@@ -53,7 +55,8 @@ class Tell(BaseModel):
 class Rollback(BaseModel):
     """Response from /v1/rollback.
 
-    Attributes:
+    Attributes
+    ----------
         restored_version: Version after rollback.
     """
 
@@ -63,7 +66,8 @@ class Rollback(BaseModel):
 class Stats(BaseModel):
     """Response from /v1/stats.
 
-    Attributes:
+    Attributes
+    ----------
         events_buffered: Number of events in the buffer.
         updates_applied: Number of updates applied.
         last_loss: Last training loss.
