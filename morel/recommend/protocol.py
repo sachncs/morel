@@ -23,7 +23,6 @@ class Recommender(Protocol):
     Attributes:
         forward: Returns user-item score matrix.
     """
-    """
 
     def forward(
         self,
