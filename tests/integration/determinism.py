@@ -92,24 +92,55 @@ class Checker:
 
         assert not torch.equal(routing_a, routing_b)
 
-
-class ProcessChecker:
-    """Process-level determinism: two subprocess invocations must match byte-for-byte."""
-
-    def cli_demo(self, tmp_path) -> None:
+    def process(self, tmp_path) -> None:
         """``python examples/demo.py`` must be byte-identical across two processes."""
+        import os
         import subprocess
+        import sys
+        from pathlib import Path
 
-        repo = __import__("pathlib").Path(__file__).resolve().parents[2]
+        repo = Path(__file__).resolve().parents[2]
+        env = os.environ.copy()
+        env["PYTHONHASHSEED"] = "0"
+        env["PYTHONPATH"] = str(repo)
         runs = []
         for _ in range(2):
             result = subprocess.run(
-                ["python", "examples/demo.py"],
+                [sys.executable, "examples/demo.py"],
                 cwd=repo,
                 capture_output=True,
                 text=True,
                 check=True,
-                env={"PYTHONHASHSEED": "0", "PATH": __import__("os").environ.get("PATH", "")},
+                env=env,
             )
             runs.append(result.stdout)
         assert runs[0] == runs[1], "demo output drifted between two processes"
+
+    def graph(self) -> None:
+        """Cooccurrence on 20k users / 5k items fits in well under 5s and 1GB."""
+        import resource
+        import time
+
+        import numpy as np
+        from scipy.sparse import csr_matrix
+
+        from morel.data.build import cooccurrence, kcore
+
+        rng = np.random.default_rng(0)
+        users, items = 20_000, 5_000
+        ui = csr_matrix(
+            (
+                np.ones(200_000, dtype=np.float32),
+                (rng.integers(0, users, size=200_000), rng.integers(0, items, size=200_000)),
+            ),
+            shape=(users, items),
+        )
+        t0 = time.perf_counter()
+        cooc = cooccurrence(ui)
+        _ = kcore(cooc, min_edges=3)
+        elapsed = time.perf_counter() - t0
+        # ru_maxrss is in bytes on macOS, kilobytes on Linux. Normalize.
+        raw_rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        rss_mb = raw_rss / (1024 * 1024) if raw_rss > 10_000_000 else raw_rss / 1024
+        assert elapsed < 5.0, f"cooccurrence+kcore took {elapsed:.2f}s"
+        assert rss_mb < 1024, f"peak RSS {rss_mb:.0f}MB exceeds 1GB budget"

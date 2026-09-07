@@ -17,9 +17,9 @@ import numpy as np
 import torch
 
 from morel.core.config import Config
-from morel.data.build import bipartite, item_cooccurrence
+from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
-from morel.eval import ndcg_at_k, recall_at_k
+from morel.eval import ndcg, recall
 from morel.pipeline import Pipeline
 from morel.recommend import Light
 
@@ -31,13 +31,13 @@ def main() -> None:
     uids = rng.integers(0, users, size=200)
     iids = rng.integers(0, items, size=200)
     ui = bipartite(uids, iids, users, items)
-    adjacency = item_cooccurrence(ui)
+    adjacency = cooccurrence(ui)
 
     features = {
         "visual": rng.normal(size=(items, 16)).astype(np.float32),
         "text": rng.normal(size=(items, 8)).astype(np.float32),
     }
-    mask = bernoulli(items, 2, 0.4, seed=42).to_numpy()
+    mask = bernoulli(items, 2, 0.4, seed=42).numpy()
 
     config = Config()
     pipeline = Pipeline(config, dims={"visual": 16, "text": 8})
@@ -56,8 +56,8 @@ def main() -> None:
 
     labels = ui.sign().toarray()
     arr = scores.detach().numpy()
-    print(f"  recall@10: {recall_at_k(arr, labels, k=10):.4f}")
-    print(f"  ndcg@10: {ndcg_at_k(arr, labels, k=10):.4f}")
+    print(f"  recall@10: {recall(arr, labels, k=10):.4f}")
+    print(f"  ndcg@10: {ndcg(arr, labels, k=10):.4f}")
 
 
 if __name__ == "__main__":
