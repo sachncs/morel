@@ -73,14 +73,36 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.get("/health", response_model=Health)
     def health() -> Health:
+        """Health check endpoint.
+
+        Returns
+        -------
+            Health: Service status and version.
+        """
         return Health(status="ok", version="0.1.0")
 
     @app.get("/metrics")
     def metrics() -> dict[str, float]:
+        """Metrics endpoint.
+
+        Returns
+        -------
+            dict[str, float]: Current request count.
+        """
         return {"requests": float(count(app))}
 
     @app.post("/v1/complete", response_model=Done)
     def complete(payload: Fill, _: None = Depends(auth.dependency("read"))) -> Done:
+        """Completion endpoint.
+
+        Args:
+            payload: Items to complete.
+            _: Read scope dependency.
+
+        Returns
+        -------
+            Done: Completed modality predictions.
+        """
         try:
             pipeline = app.state.loader.get("default", default)
         except Error as exc:
@@ -90,6 +112,16 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.post("/v1/recommend", response_model=List)
     def recommend(payload: Query, _: None = Depends(auth.dependency("read"))) -> List:
+        """Recommendation endpoint.
+
+        Args:
+            payload: User query.
+            _: Read scope dependency.
+
+        Returns
+        -------
+            List: Ranked item recommendations.
+        """
         try:
             pipeline = app.state.loader.get("default", default)
         except Error as exc:
@@ -99,6 +131,16 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.post("/v1/feedback", response_model=Tell)
     def feedback(payload: Ask, _: None = Depends(auth.dependency("admin"))) -> Tell:
+        """Feedback endpoint.
+
+        Args:
+            payload: User feedback event.
+            _: Admin scope dependency.
+
+        Returns
+        -------
+            Tell: Confirmation with buffer size.
+        """
         if not getattr(app.state, "updater_enabled", True):
             raise HTTPException(status_code=503, detail="Updater disabled")
         updater = getattr(app.state, "updater", None)
@@ -109,6 +151,16 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.post("/v1/rollback", response_model=Rollback)
     def rollback(steps: int = 1, _: None = Depends(auth.dependency("admin"))) -> Rollback:
+        """Rollback endpoint.
+
+        Args:
+            steps: Number of versions to roll back.
+            _: Admin scope dependency.
+
+        Returns
+        -------
+            Rollback: Restored version.
+        """
         updater = getattr(app.state, "updater", None)
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")
@@ -116,6 +168,15 @@ def create(loader: Loader | None = None) -> FastAPI:
 
     @app.get("/v1/stats", response_model=Stats)
     def stats(_: None = Depends(auth.dependency("admin"))) -> Stats:
+        """Stats endpoint.
+
+        Args:
+            _: Admin scope dependency.
+
+        Returns
+        -------
+            Stats: Current updater statistics.
+        """
         updater = getattr(app.state, "updater", None)
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")
@@ -190,6 +251,15 @@ def suggest(pipeline: object, payload: Query) -> list[Pick]:
 
 
 def count(app: FastAPI) -> int:
+    """Return the current request count.
+
+    Args:
+        app: FastAPI application instance.
+
+    Returns
+    -------
+        int: Number of requests served.
+    """
     return int(getattr(app.state, "count", 0))
 
 

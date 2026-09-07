@@ -81,6 +81,11 @@ def dependency(scope: Scope) -> Callable[[Request], None]:
     """
 
     def scoped(request: Request) -> None:
+        """FastAPI dependency that checks the required scope.
+
+        Args:
+            request: Incoming HTTP request.
+        """
         require(request, scope=scope)
 
     return scoped
