@@ -12,6 +12,7 @@ The serve stack now distinguishes:
 
 from __future__ import annotations
 
+import hmac
 import os
 from collections.abc import Callable
 from typing import Literal
@@ -68,7 +69,7 @@ def require(request: Request, scope: Scope = "read") -> None:
     if not header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail=f"missing bearer token for {scope}")
     presented = header.removeprefix("Bearer ").strip()
-    if presented != expected:
+    if not hmac.compare_digest(presented, expected):
         raise HTTPException(status_code=401, detail=f"invalid bearer token for {scope}")
 
 
