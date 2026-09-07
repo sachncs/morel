@@ -15,7 +15,13 @@ import torch
 
 @runtime_checkable
 class Modality(Protocol):
-    """One modality in the system."""
+    """One modality in the system.
+
+    Attributes:
+        name: Modality name.
+        dim: Feature dimension.
+        dtype: Torch data type.
+    """
 
     name: str
     dim: int
