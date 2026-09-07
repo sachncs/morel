@@ -46,7 +46,7 @@ def main(argv: list[str] | None = None) -> int:
     raw = list(sys.argv[1:] if argv is None else argv)
     setup_log(raw)
     cli_parser = parser()
-    if not raw:
+    if not raw or raw[0] in {"-h", "--help"}:
         cli_parser.print_help()
         return 0
     cmd = raw[0]
