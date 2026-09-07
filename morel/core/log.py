@@ -20,7 +20,8 @@ from typing import Any
 class Json(logging.Formatter):
     """Format log records as one JSON object per line.
 
-    Attributes:
+    Attributes
+    ----------
         fmt_keys: Keys to include in the JSON output.
     """
 
@@ -73,7 +74,8 @@ class Json(logging.Formatter):
 class Config:
     """Logging configuration.
 
-    Attributes:
+    Attributes
+    ----------
         level: Log level name.
         structured: Whether to use structured logging.
         directory: Log output directory.

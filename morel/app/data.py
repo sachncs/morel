@@ -23,7 +23,8 @@ class Corpus(Dataset[dict[str, Any]]):
     Each item returns ``{index, features, mask, adjacency}`` shaped for the
     completion trainer's collate function.
 
-    Attributes:
+    Attributes
+    ----------
         features: Per-modality feature arrays.
         mask: Modality availability mask.
         adjacency: Item-item adjacency matrix.
@@ -153,7 +154,8 @@ class BPR(Dataset[dict[str, Any]]):
     sample belongs to does not change it and the dataset is reproducible
     across processes and workers.
 
-    Attributes:
+    Attributes
+    ----------
         ui_graph: User-item interaction matrix.
         length: Number of triples per epoch.
         seed: Random seed.

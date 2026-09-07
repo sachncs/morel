@@ -139,7 +139,8 @@ class RWLock:
 class Read:
     """Context manager returned by :meth:`RWLock.read`.
 
-    Attributes:
+    Attributes
+    ----------
         lock: The RWLock instance.
     """
 
@@ -163,7 +164,8 @@ class Read:
 class Write:
     """Context manager returned by :meth:`RWLock.write`.
 
-    Attributes:
+    Attributes
+    ----------
         lock: The RWLock instance.
     """
 

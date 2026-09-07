@@ -17,7 +17,8 @@ class Decoders(nn.Module):
     before decoding. This is the standard masked-reconstruction practice
     (Devlin et al. 2019).
 
-    Attributes:
+    Attributes
+    ----------
         modalities: List of modality names.
         dims: Mapping from modality name to output dimension.
         heads: ModuleDict of per-modality decoder heads.

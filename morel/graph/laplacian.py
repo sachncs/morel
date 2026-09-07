@@ -264,7 +264,8 @@ class Laplace(nn.Module):
     adjacency cannot return a stale tensor (the original bug used ``id()``
     which recycles with GC).
 
-    Attributes:
+    Attributes
+    ----------
         k: Number of eigenvectors.
         capacity: LRU cache size.
         cache: LRU-ordered dict of cached tensors.

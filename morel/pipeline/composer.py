@@ -74,7 +74,8 @@ def mode(module: nn.Module, training: bool) -> Iterator[None]:
 class Pipeline(nn.Module):
     """End-to-end GRE-MC pipeline.
 
-    Attributes:
+    Attributes
+    ----------
         encode: Joint encoder module.
         route: Router module.
         codebook: Codebook module.

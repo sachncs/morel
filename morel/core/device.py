@@ -14,7 +14,8 @@ import torch
 class Device(str, Enum):
     """Supported device types.
 
-    Attributes:
+    Attributes
+    ----------
         AUTO: Auto-detect device.
         CPU: CPU device.
         CUDA: CUDA device.

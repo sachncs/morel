@@ -163,7 +163,8 @@ class Soft(Codebook):
 class Noop(Codebook):
     """No-op codebook used for ablations; returns the input and a uniform probs.
 
-    Attributes:
+    Attributes
+    ----------
         dim: Hidden dimension.
         size: Number of codebook entries.
     """
