@@ -17,7 +17,11 @@ from morel.core.errors import Datum
 
 @runtime_checkable
 class Spec(Protocol):
-    """Factory for mask arrays."""
+    """Factory for mask arrays.
+
+    Attributes:
+        sample: Returns a sampled binary mask.
+    """
 
     def sample(self, items: int, modalities: int, *, seed: int) -> np.ndarray:
         """Sample a binary mask of shape ``(items, modalities)``."""
@@ -26,7 +30,11 @@ class Spec(Protocol):
 
 @dataclass(frozen=True)
 class Mask:
-    """Immutable mask value object with the Mask Protocol."""
+    """Immutable mask value object with the Mask Protocol.
+
+    Attributes:
+        data: Binary mask array of shape ``(items, modalities)``.
+    """
 
     data: np.ndarray
 

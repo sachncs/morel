@@ -19,6 +19,10 @@ class Recommender(Protocol):
     Implementations accept a batch of user ids, a batch of item ids, and
     optionally a bipartite ``ui_graph`` whose normalized adjacency they
     may rebuild. They return a ``(B_u, B_i)`` score matrix.
+
+    Attributes:
+        forward: Returns user-item score matrix.
+    """
     """
 
     def forward(

@@ -57,6 +57,9 @@ class Step(Protocol):
 
     Implementations may be the production trainer step, a small
     surrogate, or the ``Default`` baseline.
+
+    Attributes:
+        __call__: Returns the loss for one update step.
     """
 
     def __call__(self, batch: list[Event]) -> float:

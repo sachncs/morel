@@ -10,7 +10,11 @@ import torch.nn.functional as F  # noqa: N812
 
 
 class Loss(Protocol):
-    """A training loss."""
+    """A training loss.
+
+    Attributes:
+        forward: Callable that returns the scalar loss.
+    """
 
     def forward(
         self,
@@ -30,6 +34,9 @@ class Reconstruction(Loss):
     Computes ``sum_m mean( (pred - target)^2 over missing positions * dim )``
     so that modalities with different output dimensions contribute on the same
     scale (paper's per-element convention).
+
+    Attributes:
+        forward: Returns the masked MSE reconstruction loss.
     """
 
     def forward(
