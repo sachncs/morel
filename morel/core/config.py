@@ -19,7 +19,16 @@ from morel.core.errors import Cfg
 
 @dataclass(frozen=True)
 class Data:
-    """Data pipeline configuration."""
+    """Data pipeline configuration.
+
+    Attributes
+    ----------
+        raw: Path to raw data directory.
+        processed: Path to processed data directory.
+        category: Dataset category name.
+        min: Minimum edges per user/item.
+        seed: Random seed for data operations.
+    """
 
     raw: str = "data/raw"
     processed: str = "data/processed"
@@ -30,7 +39,16 @@ class Data:
 
 @dataclass(frozen=True)
 class Encoder:
-    """Feature encoder configuration."""
+    """Feature encoder configuration.
+
+    Attributes
+    ----------
+        text: Text encoder model name.
+        visual: Visual encoder model name.
+        td: Text feature dimension.
+        visual_dim: Visual feature dimension.
+        batch: Batch size for encoding.
+    """
 
     text: str = "sentence-transformers/all-MiniLM-L6-v2"
     visual: str = "resnet50"
@@ -41,7 +59,14 @@ class Encoder:
 
 @dataclass(frozen=True)
 class Masking:
-    """Masking configuration."""
+    """Masking configuration.
+
+    Attributes
+    ----------
+        kind: Masking strategy ("bernoulli" or "block").
+        ratio: Fraction of modalities to mask.
+        seed: Random seed for masking.
+    """
 
     kind: str = "bernoulli"
     ratio: float = 0.4
@@ -50,7 +75,14 @@ class Masking:
 
 @dataclass(frozen=True)
 class Retrieve:
-    """Retrieval configuration."""
+    """Retrieval configuration.
+
+    Attributes
+    ----------
+        kind: Retrieval strategy name.
+        anchors: Number of anchor nodes.
+        iters: Number of expansion iterations.
+    """
 
     kind: str = "mage"
     anchors: int = 10
@@ -59,7 +91,17 @@ class Retrieve:
 
 @dataclass(frozen=True)
 class Encode:
-    """Joint encoder configuration."""
+    """Joint encoder configuration.
+
+    Attributes
+    ----------
+        kind: Encoder kind.
+        hidden: Hidden dimension.
+        layers: Number of layers.
+        heads: Number of attention heads.
+        dropout: Dropout rate.
+        pe: Positional encoding dimension.
+    """
 
     kind: str = "transformer"
     hidden: int = 128
@@ -71,7 +113,14 @@ class Encode:
 
 @dataclass(frozen=True)
 class Route:
-    """Routing configuration."""
+    """Routing configuration.
+
+    Attributes
+    ----------
+        kind: Router kind.
+        p: Top-p or number of entries.
+        tau: Softmax temperature.
+    """
 
     kind: str = "top"
     p: int = 4
@@ -80,7 +129,13 @@ class Route:
 
 @dataclass(frozen=True)
 class Codebook:
-    """Codebook configuration."""
+    """Codebook configuration.
+
+    Attributes
+    ----------
+        kind: Codebook kind.
+        size: Number of codebook entries.
+    """
 
     kind: str = "gumbel"
     size: int = 100
@@ -88,7 +143,13 @@ class Codebook:
 
 @dataclass(frozen=True)
 class Complete:
-    """Modality completion configuration."""
+    """Modality completion configuration.
+
+    Attributes
+    ----------
+        kind: Completion model kind.
+        hidden: Hidden dimension.
+    """
 
     kind: str = "mlp"
     hidden: int = 128
@@ -96,7 +157,14 @@ class Complete:
 
 @dataclass(frozen=True)
 class Recommend:
-    """Downstream recommender configuration."""
+    """Downstream recommender configuration.
+
+    Attributes
+    ----------
+        kind: Recommender kind.
+        embed: Embedding dimension.
+        layers: Number of GCN layers.
+    """
 
     kind: str = "light"
     embed: int = 64
@@ -105,7 +173,21 @@ class Recommend:
 
 @dataclass(frozen=True)
 class Completion:
-    """Completion training configuration."""
+    """Completion training configuration.
+
+    Attributes
+    ----------
+        epochs: Number of training epochs.
+        batch: Batch size.
+        lr: Learning rate.
+        weight_decay: Weight decay.
+        usage: Usage loss weight.
+        balance: Balance loss weight.
+        grad_clip: Gradient clipping value.
+        val: Validation fraction.
+        patience: Early stopping patience.
+        amp: Whether to use mixed precision.
+    """
 
     epochs: int = 100
     batch: int = 512
@@ -121,7 +203,20 @@ class Completion:
 
 @dataclass(frozen=True)
 class Recommendation:
-    """Recommendation training configuration."""
+    """Recommendation training configuration.
+
+    Attributes
+    ----------
+        epochs: Number of training epochs.
+        batch: Batch size.
+        lr: Learning rate.
+        weight_decay: Weight decay.
+        negatives: Number of negatives per positive.
+        grad_clip: Gradient clipping value.
+        val: Validation fraction.
+        patience: Early stopping patience.
+        amp: Whether to use mixed precision.
+    """
 
     epochs: int = 100
     batch: int = 1024
@@ -136,7 +231,14 @@ class Recommendation:
 
 @dataclass(frozen=True)
 class Eval:
-    """Evaluation configuration."""
+    """Evaluation configuration.
+
+    Attributes
+    ----------
+        ks: Cutoff values for ranking metrics.
+        robustness: Robustness sweep ratios.
+        ablations: Ablation condition names.
+    """
 
     ks: tuple[int, ...] = (10, 20)
     robustness: tuple[float, ...] = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
@@ -145,7 +247,15 @@ class Eval:
 
 @dataclass(frozen=True)
 class Serve:
-    """Inference server configuration."""
+    """Inference server configuration.
+
+    Attributes
+    ----------
+        host: Server host.
+        port: Server port.
+        workers: Number of workers.
+        auth: Whether auth is enabled.
+    """
 
     host: str = "0.0.0.0"
     port: int = 8080
@@ -155,7 +265,14 @@ class Serve:
 
 @dataclass(frozen=True)
 class Log:
-    """Logging configuration."""
+    """Logging configuration.
+
+    Attributes
+    ----------
+        level: Log level.
+        structured: Whether to use structured logging.
+        directory: Log output directory.
+    """
 
     level: str = "INFO"
     structured: bool = True
@@ -164,7 +281,27 @@ class Log:
 
 @dataclass(frozen=True)
 class Config:
-    """Top-level morel configuration."""
+    """Top-level morel configuration.
+
+    Attributes
+    ----------
+        seed: Global random seed.
+        device: Compute device.
+        data: Data configuration.
+        encoder: Encoder configuration.
+        masking: Masking configuration.
+        retrieve: Retrieval configuration.
+        encode: Encoder configuration.
+        route: Router configuration.
+        codebook: Codebook configuration.
+        complete: Completion configuration.
+        recommend: Recommender configuration.
+        completion: Completion training configuration.
+        recommendation: Recommendation training configuration.
+        eval: Evaluation configuration.
+        serve: Serving configuration.
+        log: Logging configuration.
+    """
 
     seed: int = 42
     device: str = "auto"
