@@ -17,7 +17,8 @@ import torch
 class Modality(Protocol):
     """One modality in the system.
 
-    Attributes:
+    Attributes
+    ----------
         name: Modality name.
         dim: Feature dimension.
         dtype: Torch data type.
@@ -34,7 +35,8 @@ class Mask(Protocol):
 
     Semantics: 1 = observed, 0 = missing. Shape ``(items, modalities)``.
 
-    Attributes:
+    Attributes
+    ----------
         data: Underlying binary array.
         items: Number of items.
         modalities: Number of modalities.
@@ -63,7 +65,8 @@ class Mask(Protocol):
 class Graph(Protocol):
     """Sparse graph abstraction.
 
-    Attributes:
+    Attributes
+    ----------
         nodes: Number of nodes in the graph.
     """
 

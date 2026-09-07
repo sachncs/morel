@@ -58,7 +58,8 @@ class Step(Protocol):
     Implementations may be the production trainer step, a small
     surrogate, or the ``Default`` baseline.
 
-    Attributes:
+    Attributes
+    ----------
         __call__: Returns the loss for one update step.
     """
 
@@ -73,7 +74,8 @@ class Default:
     the current wall-clock time so subsequent ticks produce different
     losses (and the divergence guard can be exercised).
 
-    Attributes:
+    Attributes
+    ----------
         model: Model to train.
         optimizer: Optimizer.
     """

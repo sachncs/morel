@@ -19,7 +19,8 @@ from morel.core.errors import Datum
 class Spec(Protocol):
     """Factory for mask arrays.
 
-    Attributes:
+    Attributes
+    ----------
         sample: Returns a sampled binary mask.
     """
 
@@ -32,7 +33,8 @@ class Spec(Protocol):
 class Mask:
     """Immutable mask value object with the Mask Protocol.
 
-    Attributes:
+    Attributes
+    ----------
         data: Binary mask array of shape ``(items, modalities)``.
     """
 
