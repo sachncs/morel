@@ -51,7 +51,7 @@ class Checker:
         real = module.Completion
 
         def capture(model: Any, config: Any, **kwargs: Any) -> Any:
-            captured["completion_config"] = config
+            captured["train"] = config
             captured.update(kwargs)
             return real(model, config, **kwargs)
 
@@ -68,9 +68,9 @@ class Checker:
 
         assert captured["lr"] == pytest.approx(5e-4)
         assert captured["weight_decay"] == pytest.approx(3e-6)
-        assert captured["completion_config"].lambda_usage == pytest.approx(0.25)
-        assert captured["completion_config"].lambda_balance == pytest.approx(0.75)
-        assert captured["completion_config"].grad_clip == pytest.approx(2.5)
+        assert captured["train"].lambda_usage == pytest.approx(0.25)
+        assert captured["train"].lambda_balance == pytest.approx(0.75)
+        assert captured["train"].grad_clip == pytest.approx(2.5)
 
     def batch(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         captured: dict[str, Any] = {}

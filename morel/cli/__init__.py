@@ -64,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     handler = {
         "data": data,
-        "train": train,
+        "train": train_cmd,
         "eval": eval,
         "bench": bench,
         "reproduce": repro,
@@ -81,7 +81,7 @@ def data(argv: list[str]) -> int:
     return int(data_main(argv) or 0)
 
 
-def train(argv: list[str]) -> int:
+def train_cmd(argv: list[str]) -> int:
     """Handle the ``train`` subcommand."""
     parser = argparse.ArgumentParser(prog="morel train", description="training")
     sub = parser.add_subparsers(dest="sub", required=True)

@@ -53,7 +53,7 @@ class Completion(Trainer):
             device=device,
             amp=amp,
         )
-        self.completion_config = config
+        self.train = config
         self.reconstruction = reconstruction
 
     def step(self, batch: dict[str, Any]) -> dict[str, Any]:
@@ -73,8 +73,8 @@ class Completion(Trainer):
             balance_term = balance(probs)
             total = (
                 recon
-                + self.completion_config.lambda_usage * usage_term
-                + self.completion_config.lambda_balance * balance_term
+                + self.train.lambda_usage * usage_term
+                + self.train.lambda_balance * balance_term
             )
         if self.scaler is not None:
             self.scaler.scale(total).backward()  # type: ignore[no-untyped-call]  # torch stubs leave this untyped
