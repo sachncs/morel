@@ -93,7 +93,7 @@ class Updater:
         Max number of state snapshots kept for rollback.
     cooldown_seconds : float
         Seconds to skip updates after a divergence event.
-    replay_ratio : float
+    ratio : float
         Fraction of a batch drawn from the replay ring vs. feedback.
     val_ratio : float
         Fraction of the feedback ring reserved for held-out validation.
@@ -107,7 +107,7 @@ class Updater:
         replay_capacity: int = 10_000,
         rollback_window: int = 3,
         cooldown_seconds: float = 60.0,
-        replay_ratio: float = 0.3,
+        ratio: float = 0.3,
         val_ratio: float = 0.1,
         loss_step: Step | None = None,
     ) -> None:
@@ -128,7 +128,7 @@ class Updater:
         self.replay: deque[Event] = deque(maxlen=replay_capacity)
         self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
         self.cooldown: float = 0.0
-        self.replay_ratio = float(replay_ratio)
+        self.ratio = float(ratio)
         self.val = float(val_ratio)
         self.loss_step: Step = loss_step or Default()
         self.version = 0
@@ -210,7 +210,7 @@ class Updater:
         val_count = max(1, int(len(events) * self.val))
         val_batch = events[:val_count]
         train_batch = events[val_count:]
-        n_replay = int(len(train_batch) * self.replay_ratio)
+        n_replay = int(len(train_batch) * self.ratio)
         replay_sample = replay[:n_replay] if n_replay else []
         step_batch = replay_sample + train_batch
         loss = float(self.loss_step(step_batch))
