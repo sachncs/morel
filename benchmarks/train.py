@@ -10,9 +10,9 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from morel.core.config import Config
-from morel.data.build import bipartite, item_cooccurrence
+from morel.data.build import bipartite, cooccurrence
 from morel.pipeline import Pipeline
-from morel.train.completion import Completion, CompletionConfig
+from morel.train.completion import Completion, Fit
 
 
 class Monitor:
@@ -70,7 +70,7 @@ def bench_5k(tmp_path: Any, benchmark: Any) -> None:
     uids = rng.integers(0, users, size=items * 4)
     iids = rng.integers(0, items, size=items * 4)
     ui = bipartite(uids, iids, users, items)
-    adjacency = item_cooccurrence(ui)
+    adjacency = cooccurrence(ui)
     features = {
         "visual": rng.normal(size=(items, 8)).astype(np.float32),
         "text": rng.normal(size=(items, 4)).astype(np.float32),
@@ -82,7 +82,7 @@ def bench_5k(tmp_path: Any, benchmark: Any) -> None:
     pipeline.attach(features, mask, adjacency)
     trainer = Completion(
         pipeline,
-        CompletionConfig(),
+        Fit(),
         monitor=Monitor(),
         checkpoint_dir=tmp_path,
     )

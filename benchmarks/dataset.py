@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from morel.data.build import bipartite, item_cooccurrence
+from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 
 
@@ -18,7 +18,7 @@ def bench_kcore_10k(benchmark) -> None:
     ui = bipartite(uids, iids, users, items)
 
     def run() -> None:
-        item_cooccurrence(ui)
+        cooccurrence(ui)
 
     benchmark(run)
 

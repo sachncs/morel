@@ -5,7 +5,8 @@ from __future__ import annotations
 import numpy as np
 import scipy.sparse as sp
 
-from morel.retrieve import acs, mage
+from morel.retrieve.acs import compute as acs_compute
+from morel.retrieve.mage import expand as mage_expand
 
 
 def _make_graph(n: int) -> sp.csr_matrix:
@@ -21,7 +22,7 @@ def bench_acs_1k(benchmark) -> None:
 
     def run():
         for _ in range(10):
-            acs.compute(g, [0, 999])
+            acs_compute(g, [0, 999])
 
     benchmark(run)
 
@@ -33,6 +34,6 @@ def bench_mage_1k(benchmark) -> None:
 
     def run():
         for _ in range(5):
-            mage.expand(g, [0, 999], 0, features, mask, iters=3)
+            mage_expand(g, [0, 999], 0, features, mask, iters=3)
 
     benchmark(run)
