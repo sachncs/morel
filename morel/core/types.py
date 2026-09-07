@@ -33,6 +33,11 @@ class Mask(Protocol):
     """Modality availability mask.
 
     Semantics: 1 = observed, 0 = missing. Shape ``(items, modalities)``.
+
+    Attributes:
+        data: Underlying binary array.
+        items: Number of items.
+        modalities: Number of modalities.
     """
 
     @property
@@ -56,7 +61,11 @@ class Mask(Protocol):
 
 @runtime_checkable
 class Graph(Protocol):
-    """Sparse graph abstraction."""
+    """Sparse graph abstraction.
+
+    Attributes:
+        nodes: Number of nodes in the graph.
+    """
 
     @property
     def nodes(self) -> int:

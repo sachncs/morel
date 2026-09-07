@@ -69,6 +69,10 @@ class Default:
     Returns a deterministic pseudo-loss derived from the batch size and
     the current wall-clock time so subsequent ticks produce different
     losses (and the divergence guard can be exercised).
+
+    Attributes:
+        model: Model to train.
+        optimizer: Optimizer.
     """
 
     def __call__(self, batch: list[Event]) -> float:
