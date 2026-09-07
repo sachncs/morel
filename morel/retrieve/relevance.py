@@ -11,7 +11,7 @@ import numpy as np
 from morel.core.errors import Shape
 
 
-def normalize(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def scale(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Row-normalize ``matrix`` and return ``(normalized, valid_mask)``.
 
     Rows with zero norm are kept as zero vectors; the returned mask marks
@@ -109,7 +109,7 @@ def rel(
     denom_per_node = np.zeros(n_candidates, dtype=np.float64)
     for mod_idx, name in enumerate(modalities):
         feats = features[name]
-        normalized, valid = normalize(feats.astype(np.float64, copy=False))
+        normalized, valid = scale(feats.astype(np.float64, copy=False))
         query_norm = normalized[i] if valid[i] else None
         if query_norm is None:
             continue
