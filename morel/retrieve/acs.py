@@ -26,6 +26,12 @@ log = logger("retrieve.acs")
 
 
 def verify(adj: sp.csr_matrix, anchors: list[int]) -> None:
+    """Validate that anchors form a connected subgraph.
+
+    Args:
+        adj: Adjacency matrix.
+        anchors: Anchor node ids.
+    """
     if anchors is None:
         raise Net("anchors must not be None")
     if not anchors:

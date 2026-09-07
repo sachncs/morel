@@ -100,6 +100,11 @@ def save_graph(
     coo = sp.coo_matrix(graph)
 
     def writer(tmp: Path) -> None:
+        """Write the sparse graph to a temp .npz file.
+
+        Args:
+            tmp: Temporary file path to write to.
+        """
         np.savez(
             tmp,
             data=coo.data.astype(np.float32, copy=False),

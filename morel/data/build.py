@@ -138,6 +138,16 @@ def interactions(
         log.warning("skipped malformed review lines", extra={"count": skipped})
 
     def filter(keep_users: set[str], keep_items: set[str]) -> list[tuple[str, str]]:
+        """Filter pairs to only those whose user and item are in the keep sets.
+
+        Args:
+            keep_users: Set of user ids to retain.
+            keep_items: Set of item ids to retain.
+
+        Returns
+        -------
+            list[tuple[str, str]]: Filtered (user, item) pairs.
+        """
         return [(u, i) for u, i in user_item_pairs if u in keep_users and i in keep_items]
 
     filtered = filter(

@@ -89,6 +89,18 @@ def fetch(
 
 
 def pull(base: str, category: str, dest: Path | str, *, timeout: float) -> list[Path]:
+    """Download and decompress the dataset files.
+
+    Args:
+        base: Base URL for the dataset.
+        category: Dataset category name.
+        dest: Local destination directory.
+        timeout: Download timeout in seconds.
+
+    Returns
+    -------
+        list[Path]: Paths to the decompressed files.
+    """
     files = [f"{category}_5.json.gz", f"{category}_metadata.json.gz"]
     root = Path(dest).resolve()
     root.mkdir(parents=True, exist_ok=True)

@@ -111,6 +111,14 @@ class Baseline(nn.Module):
         pe_dim: int,
         hidden: int,
     ) -> None:
+        """Initialize the graph encoder multiplexer.
+
+        Args:
+            kind: Encoder kind ("identity", "sum", or "transformer").
+            dims: Mapping from modality name to feature dimension.
+            pe_dim: Positional encoding dimension.
+            hidden: Output hidden dimension.
+        """
         super().__init__()
         if kind == "identity":
             self.inner: nn.Module = Identity(dims, pe_dim, hidden)
