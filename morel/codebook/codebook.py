@@ -46,7 +46,13 @@ class Codebook(nn.Module, ABC):
 
 
 class VQ(Codebook):
-    """Vector-quantizing codebook with straight-through gradient."""
+    """Vector-quantizing codebook with straight-through gradient.
+
+    Attributes:
+        dim: Hidden dimension.
+        size: Number of codebook entries.
+        codebook: Embedding layer for codebook entries.
+    """
 
     def __init__(
         self, dim: int, size: int, *, commitment: float = 0.25, seed: int | None = None
@@ -105,6 +111,13 @@ class Soft(Codebook):
 
     Returns ``(quantized, probs)`` where ``probs`` is the routing distribution
     (pre-mask, suitable for usage/balance losses).
+
+    Attributes:
+        dim: Hidden dimension.
+        size: Number of codebook entries.
+        router: Router module.
+        codebook: Linear projection layer.
+        seed: Random seed.
     """
 
     def __init__(self, dim: int, size: int, *, router: nn.Module, seed: int | None = None) -> None:
