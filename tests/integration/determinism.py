@@ -91,3 +91,25 @@ class Checker:
         _, routing_b, _, _ = run(Config(seed=7))
 
         assert not torch.equal(routing_a, routing_b)
+
+
+class ProcessChecker:
+    """Process-level determinism: two subprocess invocations must match byte-for-byte."""
+
+    def cli_demo(self, tmp_path) -> None:
+        """``python examples/demo.py`` must be byte-identical across two processes."""
+        import subprocess
+
+        repo = __import__("pathlib").Path(__file__).resolve().parents[2]
+        runs = []
+        for _ in range(2):
+            result = subprocess.run(
+                ["python", "examples/demo.py"],
+                cwd=repo,
+                capture_output=True,
+                text=True,
+                check=True,
+                env={"PYTHONHASHSEED": "0", "PATH": __import__("os").environ.get("PATH", "")},
+            )
+            runs.append(result.stdout)
+        assert runs[0] == runs[1], "demo output drifted between two processes"
