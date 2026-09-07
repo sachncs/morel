@@ -12,6 +12,8 @@ from typing import Protocol
 
 import numpy as np
 import torch
+from sentence_transformers import SentenceTransformer
+from torchvision import models as tv_models
 
 from morel.core.errors import Datum
 from morel.core.log import get as logger
@@ -152,12 +154,6 @@ class Sentence:
 
     def __init__(self, model: str, *, batch: int = 64) -> None:
         """Load ``model``; requires the ``text`` extra."""
-        try:
-            from sentence_transformers import SentenceTransformer
-        except ImportError as exc:  # pragma: no cover - depends on optional extra
-            raise Datum(
-                f"encoder {model!r} needs sentence-transformers; install morel[text]"
-            ) from exc
         self.name = model
         self.batch = batch
         self.model = SentenceTransformer(model)
@@ -185,11 +181,7 @@ class Vision:
 
     def __init__(self, model: str, *, batch: int = 32) -> None:
         """Load ``model`` with default pretrained weights; requires ``vision``."""
-        try:
-            import torchvision
-        except ImportError as exc:  # pragma: no cover - depends on optional extra
-            raise Datum(f"encoder {model!r} needs torchvision; install morel[vision]") from exc
-        builder = getattr(torchvision.models, model, None)
+        builder = getattr(tv_models, model, None)
         if builder is None:
             raise Datum(f"torchvision has no model named {model!r}")
         self.name = model
