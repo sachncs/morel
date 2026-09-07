@@ -126,7 +126,7 @@ class Updater:
         self.sync = threading.Lock()
         self.ring: deque[Event] = deque(maxlen=feedback_capacity)
         self.replay: deque[Event] = deque(maxlen=replay_capacity)
-        self.rollback_ring: deque[dict[str, Any]] = deque(maxlen=rollback_window)
+        self.rollback: deque[dict[str, Any]] = deque(maxlen=rollback_window)
         self.cooldown: float = 0.0
         self.ratio = float(ratio)
         self.val = float(val_ratio)
@@ -162,17 +162,17 @@ class Updater:
                 "cooldown_until": self.cooldown,
             }
 
-    def rollback(self, steps: int = 1) -> int:
+    def undo(self, steps: int = 1) -> int:
         """Roll back ``steps`` versions. Returns the new version (-1 if none)."""
         with self.lock.write():
             for _ in range(steps):
-                if not self.rollback_ring:
+                if not self.rollback:
                     self.version = -1
                     return self.version
-                self.rollback_ring.pop()
-            if self.rollback_ring:
+                self.rollback.pop()
+            if self.rollback:
                 self.version -= 1
-                snapshot = self.rollback_ring[-1]
+                snapshot = self.rollback[-1]
             else:
                 self.version = -1
                 return self.version
@@ -240,7 +240,7 @@ class Updater:
                 log.warning("divergence: loss explosion; rolling back and cooling down")
                 return False, self.version
             snapshot = self.snapshot()
-            self.rollback_ring.append(snapshot)
+            self.rollback.append(snapshot)
             self.pipeline.load_state_dict(snapshot)
             self.version += 1
             self.window.append(loss)

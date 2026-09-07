@@ -198,7 +198,7 @@ class Checker:
         updater.tick()
         updater.tick()
         assert updater.version == 2
-        version = updater.rollback(steps=1)
+        version = updater.undo(steps=1)
         assert version == 1
         assert updater.version == 1
 
