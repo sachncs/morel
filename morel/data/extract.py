@@ -20,7 +20,11 @@ log = logger("data.extract")
 
 
 class Feature(Protocol):
-    """One feature extractor for raw modality inputs."""
+    """One feature extractor for raw modality inputs.
+
+    Attributes:
+        forward: Returns per-item feature vectors.
+    """
 
     name: str
     dim: int
@@ -106,6 +110,11 @@ class Random:
 
     Satisfies :class:`Feature` without any model download, so the
     synthetic pipeline exercises the same code path as a real encoder.
+
+    Attributes:
+        name: Extractor name.
+        dim: Output feature dimension.
+        seed: Random seed.
     """
 
     def __init__(self, dim: int, *, seed: int = 0, name: str = "random") -> None:
@@ -132,7 +141,14 @@ class Random:
 
 
 class Sentence:
-    """Text encoder backed by sentence-transformers."""
+    """Text encoder backed by sentence-transformers.
+
+    Attributes:
+        name: Model name.
+        batch: Batch size for encoding.
+        model: Underlying SentenceTransformer model.
+        dim: Output feature dimension.
+    """
 
     def __init__(self, model: str, *, batch: int = 64) -> None:
         """Load ``model``; requires the ``text`` extra."""
@@ -158,7 +174,14 @@ class Sentence:
 
 
 class Vision:
-    """Visual encoder backed by a torchvision classification backbone."""
+    """Visual encoder backed by a torchvision classification backbone.
+
+    Attributes:
+        name: Model name.
+        batch: Batch size for encoding.
+        model: Underlying torchvision model.
+        dim: Output feature dimension.
+    """
 
     def __init__(self, model: str, *, batch: int = 32) -> None:
         """Load ``model`` with default pretrained weights; requires ``vision``."""
