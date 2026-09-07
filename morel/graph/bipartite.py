@@ -13,7 +13,8 @@ import scipy.sparse as sp
 class Bipartite:
     """Immutable user-item bipartite graph.
 
-    Attributes:
+    Attributes
+    ----------
         matrix: Sparse CSR adjacency matrix.
     """
 

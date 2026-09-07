@@ -19,7 +19,8 @@ from morel.core.errors import Net
 class Subgraph:
     """A node-subset view of an Item graph.
 
-    Attributes:
+    Attributes
+    ----------
         nodes: Array of node ids in the subgraph.
     """
 

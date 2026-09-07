@@ -58,7 +58,8 @@ class Reconstruction(Loss):
 class BPR(Loss):
     """BPR loss using provided positive/negative scores.
 
-    Attributes:
+    Attributes
+    ----------
         pos: Positive scores tensor.
         neg: Negative scores tensor.
         eps: Epsilon for numerical stability.
@@ -84,7 +85,8 @@ class BPR(Loss):
 class Composite(Loss):
     """Linear combination of named loss components.
 
-    Attributes:
+    Attributes
+    ----------
         components: Mapping from name to loss function.
         weights: Mapping from name to weight.
     """

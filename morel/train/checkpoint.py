@@ -67,7 +67,8 @@ def unsafe(target: Path | str) -> dict[str, Any]:
 class State:
     """Trainer state snapshot for resume.
 
-    Attributes:
+    Attributes
+    ----------
         model: Model state dict.
         optimizer: Optimizer state dict (optional).
         epoch: Current epoch.

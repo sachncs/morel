@@ -20,7 +20,8 @@ from morel.train.trainer import Trainer
 class Fit:
     """Configuration for completion training.
 
-    Attributes:
+    Attributes
+    ----------
         lambda_usage: Weight for usage loss.
         lambda_balance: Weight for balance loss.
         grad_clip: Gradient clipping value.

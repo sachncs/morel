@@ -24,7 +24,8 @@ from morel.retrieve.mage import expand as mage_expand
 class Result:
     """Retrieval output for one query or a batch.
 
-    Attributes:
+    Attributes
+    ----------
         nodes: Padded node indices.
         sizes: Actual number of nodes per batch item.
         mask: Boolean mask for valid nodes.

@@ -25,7 +25,8 @@ VERSION = 1
 class Manifest:
     """Manifest sidecar for a data artifact.
 
-    Attributes:
+    Attributes
+    ----------
         dataset: Dataset name.
         version: Dataset version.
         code: Code version string.

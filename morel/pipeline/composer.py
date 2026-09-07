@@ -32,7 +32,8 @@ from morel.route import build as build_route
 class Output:
     """Pipeline forward output.
 
-    Attributes:
+    Attributes
+    ----------
         completed: Per-modality completed features.
         routing: Routing probabilities.
         subgraph_indices: Subgraph node indices (optional).

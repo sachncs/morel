@@ -12,7 +12,8 @@ import numpy as np
 class Robust:
     """Result of a robustness sweep.
 
-    Attributes:
+    Attributes
+    ----------
         ratios: Robustness ratios used.
         metrics: Per-ratio metric values.
     """

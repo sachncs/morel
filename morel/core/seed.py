@@ -71,7 +71,8 @@ class State:
     and a dict for the newer one), and morel only ever passes them straight
     back to the library that produced them.
 
-    Attributes:
+    Attributes
+    ----------
         python: Python random module state.
         numpy: NumPy random state.
         torch: PyTorch random state.

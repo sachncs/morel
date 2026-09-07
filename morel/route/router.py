@@ -16,7 +16,8 @@ from morel.core.errors import Cfg
 class Weights:
     """Routing distribution and any associated metadata.
 
-    Attributes:
+    Attributes
+    ----------
         probs: Routing probability distribution.
         logits: Raw logits (optional).
     """

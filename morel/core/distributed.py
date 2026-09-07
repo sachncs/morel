@@ -24,7 +24,8 @@ from morel.core.errors import Error
 class Cluster:
     """Module-level distributed runtime state.
 
-    Attributes:
+    Attributes
+    ----------
         backend: Distributed backend name.
         initialized: Whether the runtime is initialized.
     """
