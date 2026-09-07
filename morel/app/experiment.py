@@ -244,6 +244,14 @@ class Rank:
     and reported it as recommendation training, so the ``Recommendation``
     trainer was unreachable from any entry point. This is the service that
     actually drives it.
+
+    Attributes
+    ----------
+        config: Configuration object.
+        dir: Run directory path.
+        items: Number of items to use.
+        users: Number of users to use.
+        epochs: Override training epochs (optional).
     """
 
     config: Config
@@ -374,6 +382,16 @@ class Ablate:
     runs the baseline and each named ablation through the same pipeline,
     changing only the component the condition removes, and reports the ranking
     metrics at every cutoff in ``eval.ks``.
+
+    Attributes
+    ----------
+        config: Configuration object.
+        dir: Run directory path.
+        items: Number of items to use.
+        users: Number of users to use.
+        dv: Visual feature dimension.
+        td: Text feature dimension.
+        seed: Random seed (optional).
     """
 
     config: Config
@@ -474,7 +492,15 @@ class Ablate:
 
 @dataclass
 class Benchmark:
-    """Run a benchmark sweep and return timings."""
+    """Run a benchmark sweep and return timings.
+
+    Attributes
+    ----------
+        config: Configuration object.
+        dir: Run directory path.
+        sizes: List of dataset sizes to benchmark.
+        epochs: Number of epochs per benchmark run.
+    """
 
     config: Config
     dir: Path
@@ -505,7 +531,15 @@ class Benchmark:
 
 @dataclass
 class Reproduce:
-    """Reproduce a run from a saved config and manifest."""
+    """Reproduce a run from a saved config and manifest.
+
+    Attributes
+    ----------
+        path: Path to the saved config file.
+        dir: Run directory path.
+        items: Number of items to use.
+        users: Number of users to use.
+    """
 
     path: Path
     dir: Path
