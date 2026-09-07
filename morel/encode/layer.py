@@ -10,6 +10,14 @@ class Layer(nn.Module):
     """A single Pre-LN transformer block: MHA + FFN with residuals.
 
     Order: ``x = x + attn(norm1(x))`` then ``x = x + ffn(norm2(x))``.
+
+    Attributes:
+        dim: Hidden dimension.
+        heads: Number of attention heads.
+        attn: Multi-head attention layer.
+        norm1: First layer norm.
+        norm2: Second layer norm.
+        ffn: Feed-forward network.
     """
 
     def __init__(self, dim: int, heads: int, dropout: float = 0.5) -> None:

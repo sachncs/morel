@@ -58,7 +58,13 @@ class Router(nn.Module, ABC):
 
 
 class Dense(Router):
-    """Plain softmax routing over K entries."""
+    """Plain softmax routing over K entries.
+
+    Attributes:
+        tau: Softmax temperature.
+        k: Number of routing entries.
+        linear: Linear projection layer.
+    """
 
     def __init__(self, dim: int, k: int, *, tau: float = 1.0) -> None:
         """Initialize the dense softmax router.
@@ -89,6 +95,13 @@ class Top(Router):
 
     Applies softmax with optional Gumbel noise, then keeps the top-p entries
     and renormalises.
+
+    Attributes:
+        tau: Softmax temperature.
+        k: Number of routing entries.
+        p: Number of top entries to keep.
+        linear: Linear projection layer.
+        eps: Epsilon for numerical stability.
     """
 
     def __init__(self, dim: int, k: int, *, p: int, tau: float = 0.5) -> None:
@@ -135,6 +148,10 @@ class Fixed(Router):
 
     The fixed router has no learnable parameters. Without an explicit
     index input it falls back to a uniform distribution over the
+
+    Attributes:
+        k: Number of routing entries.
+    """
     ``k`` codebook entries, which is the maximum-entropy default and
     makes the downstream codebook's behaviour visible end-to-end.
     """
@@ -168,7 +185,14 @@ class Fixed(Router):
 
 
 class Gumbel(Router):
-    """Pure Gumbel-Softmax router (no top-k sparsification)."""
+    """Pure Gumbel-Softmax router (no top-k sparsification).
+
+    Attributes:
+        tau: Softmax temperature.
+        k: Number of routing entries.
+        linear: Linear projection layer.
+        eps: Epsilon for numerical stability.
+    """
 
     def __init__(self, dim: int, k: int, *, tau: float = 0.5) -> None:
         """Initialize the Gumbel-Softmax router.

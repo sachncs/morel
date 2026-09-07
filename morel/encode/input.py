@@ -10,6 +10,12 @@ class Input(nn.Module):
     """Concatenate per-modality features (zero-pad missing) with PE, then project.
 
     ``mask`` semantics: 1 = kept (feature present), 0 = missing (feature zeroed).
+
+    Attributes:
+        modalities: List of modality names.
+        project: Linear projection layer.
+        dropout: Dropout layer.
+        norm: Layer normalization.
     """
 
     def __init__(
