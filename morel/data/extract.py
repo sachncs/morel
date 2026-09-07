@@ -24,7 +24,8 @@ log = logger("data.extract")
 class Feature(Protocol):
     """One feature extractor for raw modality inputs.
 
-    Attributes:
+    Attributes
+    ----------
         forward: Returns per-item feature vectors.
     """
 
@@ -113,7 +114,8 @@ class Random:
     Satisfies :class:`Feature` without any model download, so the
     synthetic pipeline exercises the same code path as a real encoder.
 
-    Attributes:
+    Attributes
+    ----------
         name: Extractor name.
         dim: Output feature dimension.
         seed: Random seed.
@@ -145,7 +147,8 @@ class Random:
 class Sentence:
     """Text encoder backed by sentence-transformers.
 
-    Attributes:
+    Attributes
+    ----------
         name: Model name.
         batch: Batch size for encoding.
         model: Underlying SentenceTransformer model.
@@ -172,7 +175,8 @@ class Sentence:
 class Vision:
     """Visual encoder backed by a torchvision classification backbone.
 
-    Attributes:
+    Attributes
+    ----------
         name: Model name.
         batch: Batch size for encoding.
         model: Underlying torchvision model.
