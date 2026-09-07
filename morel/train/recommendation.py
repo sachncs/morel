@@ -57,7 +57,7 @@ class Recommendation(Trainer):
         self.ui = ui_graph
         self.users = ui_graph.shape[0]
         self.items = ui_graph.shape[1]
-        self.neg_score = neg
+        self.neg = neg
         self.seed = seed
         self.negmat: np.ndarray | None = None
 
