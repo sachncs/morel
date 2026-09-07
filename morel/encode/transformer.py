@@ -27,6 +27,17 @@ class Transformer(nn.Module):
         dropout: float = 0.5,
         pool: str = "attention",
     ) -> None:
+        """Initialize the transformer encoder.
+
+        Args:
+            dims: Mapping from modality name to feature dimension.
+            pe_dim: Positional encoding dimension.
+            hidden: Hidden dimension.
+            layers: Number of transformer layers.
+            heads: Number of attention heads.
+            dropout: Dropout rate.
+            pool: Pooling strategy ("attention" or "mean").
+        """
         super().__init__()
         if layers <= 0:
             raise ValueError(f"layers must be positive, got {layers}")

@@ -21,6 +21,7 @@ class Codebook(nn.Module, ABC):
     """
 
     def __init__(self) -> None:
+        """Initialize the codebook base class."""
         super().__init__()
 
     @abstractmethod
@@ -144,6 +145,12 @@ class Noop(Codebook):
     """No-op codebook used for ablations; returns the input and a uniform probs."""
 
     def __init__(self, dim: int, size: int) -> None:
+        """Initialize the no-op codebook.
+
+        Args:
+            dim: Hidden dimension.
+            size: Number of codebook entries (for uniform probs shape).
+        """
         super().__init__()
         if size <= 0:
             raise ValueError(f"size must be positive, got {size}")

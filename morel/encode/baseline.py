@@ -77,6 +77,13 @@ class Sum(nn.Module):
     """A summation encoder (no learnable projection)."""
 
     def __init__(self, dims: dict[str, int], pe_dim: int, hidden: int) -> None:
+        """Initialize the summation encoder.
+
+        Args:
+            dims: Mapping from modality name to feature dimension.
+            pe_dim: Positional encoding dimension.
+            hidden: Output hidden dimension.
+        """
         super().__init__()
         self.dims = dims
         self.pe_dim = pe_dim

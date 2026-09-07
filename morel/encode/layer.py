@@ -13,6 +13,13 @@ class Layer(nn.Module):
     """
 
     def __init__(self, dim: int, heads: int, dropout: float = 0.5) -> None:
+        """Initialize the transformer layer.
+
+        Args:
+            dim: Hidden dimension.
+            heads: Number of attention heads.
+            dropout: Dropout rate.
+        """
         super().__init__()
         self.dim = dim
         self.heads = heads

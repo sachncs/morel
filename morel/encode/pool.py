@@ -21,6 +21,11 @@ class Attention(nn.Module):
     """
 
     def __init__(self, dim: int) -> None:
+        """Initialize the attention pooling layer.
+
+        Args:
+            dim: Hidden dimension.
+        """
         super().__init__()
         self.dim = dim
         self.score = nn.Linear(dim, 1)

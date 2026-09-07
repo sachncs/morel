@@ -29,6 +29,7 @@ class Router(nn.Module, ABC):
     """Protocol-style base for routers (kept as nn.Module so parameters register)."""
 
     def __init__(self) -> None:
+        """Initialize the router base class."""
         super().__init__()
 
     @abstractmethod
@@ -49,6 +50,13 @@ class Dense(Router):
     """Plain softmax routing over K entries."""
 
     def __init__(self, dim: int, k: int, *, tau: float = 1.0) -> None:
+        """Initialize the dense softmax router.
+
+        Args:
+            dim: Input hidden dimension.
+            k: Number of routing entries.
+            tau: Softmax temperature.
+        """
         super().__init__()
         if k <= 0:
             raise ValueError(f"k must be positive, got {k}")
@@ -73,6 +81,14 @@ class Top(Router):
     """
 
     def __init__(self, dim: int, k: int, *, p: int, tau: float = 0.5) -> None:
+        """Initialize the top-p sparsifying router.
+
+        Args:
+            dim: Input hidden dimension.
+            k: Total number of routing entries.
+            p: Number of top entries to keep.
+            tau: Softmax temperature.
+        """
         super().__init__()
         if p <= 0:
             raise ValueError(f"p must be positive, got {p}")
@@ -113,6 +129,11 @@ class Fixed(Router):
     """
 
     def __init__(self, k: int) -> None:
+        """Initialize the fixed uniform router.
+
+        Args:
+            k: Number of routing entries.
+        """
         super().__init__()
         self.k = k
 
@@ -139,6 +160,13 @@ class Gumbel(Router):
     """Pure Gumbel-Softmax router (no top-k sparsification)."""
 
     def __init__(self, dim: int, k: int, *, tau: float = 0.5) -> None:
+        """Initialize the Gumbel-Softmax router.
+
+        Args:
+            dim: Input hidden dimension.
+            k: Number of routing entries.
+            tau: Softmax temperature.
+        """
         super().__init__()
         if tau <= 0:
             raise ValueError(f"tau must be positive, got {tau}")

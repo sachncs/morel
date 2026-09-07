@@ -15,6 +15,14 @@ class Input(nn.Module):
     def __init__(
         self, dims: dict[str, int], pe_dim: int, hidden: int, dropout: float = 0.5
     ) -> None:
+        """Initialize the input projection layer.
+
+        Args:
+            dims: Mapping from modality name to feature dimension.
+            pe_dim: Positional encoding dimension.
+            hidden: Output hidden dimension.
+            dropout: Dropout rate.
+        """
         super().__init__()
         self.modalities = list(dims.keys())
         total = sum(dims.values()) + pe_dim
