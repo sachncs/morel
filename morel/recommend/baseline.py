@@ -13,7 +13,14 @@ from morel.core.seed import deterministic
 
 
 class MF(nn.Module):
-    """Matrix factorization with dot-product scoring."""
+    """Matrix factorization with dot-product scoring.
+
+    Attributes:
+        users: Number of users.
+        items: Number of items.
+        user_emb: User embedding layer.
+        item_emb: Item embedding layer.
+    """
 
     def __init__(self, users: int, items: int, *, embed: int = 64, seed: int | None = None) -> None:
         """Build a matrix-factorization ranker.
@@ -58,7 +65,14 @@ class MF(nn.Module):
 
 
 class Pop(nn.Module):
-    """Popularity baseline: scores proportional to item interaction count."""
+    """Popularity baseline: scores proportional to item interaction count.
+
+    Attributes:
+        users: Number of users.
+        items: Number of items.
+        popularity: Item popularity buffer.
+        fitted: Whether the model has been fit.
+    """
 
     def __init__(self, users: int, items: int) -> None:
         """Initialize the popularity baseline.

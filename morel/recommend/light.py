@@ -32,6 +32,13 @@ class Light(nn.Module):
     cached, so ``ui_graph`` does not need to be passed at every call unless
     it changes. The cache key is a content hash of the CSR matrix, not its
     ``id()`` (which can be reused after GC).
+
+    Attributes:
+        users: Number of users.
+        items: Number of items.
+        user_emb: User embedding layer.
+        item_emb: Item embedding layer.
+        cache: Cached normalized adjacency.
     """
 
     def __init__(
