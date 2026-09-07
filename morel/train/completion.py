@@ -33,7 +33,13 @@ class Fit:
 
 
 class Completion(Trainer):
-    """Trainer for modality completion."""
+    """Trainer for modality completion.
+
+    Attributes:
+        model: Model being trained.
+        train: Configuration object.
+        reconstruction: Reconstruction loss.
+    """
 
     def __init__(
         self,
