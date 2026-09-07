@@ -30,6 +30,13 @@ class Corpus(Dataset[dict[str, Any]]):
         mask: np.ndarray,
         adjacency: sp.csr_matrix,
     ) -> None:
+        """Initialize the completion dataset.
+
+        Args:
+            features: Per-modality feature arrays.
+            mask: Modality availability mask.
+            adjacency: Item-item adjacency matrix.
+        """
         self.features = features
         self.mask = mask
         self.adjacency = adjacency

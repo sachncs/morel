@@ -61,6 +61,12 @@ class Pop(nn.Module):
     """Popularity baseline: scores proportional to item interaction count."""
 
     def __init__(self, users: int, items: int) -> None:
+        """Initialize the popularity baseline.
+
+        Args:
+            users: Number of users.
+            items: Number of items.
+        """
         super().__init__()
         if users <= 0 or items <= 0:
             raise ValueError("users and items must be positive")

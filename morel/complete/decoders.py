@@ -24,6 +24,13 @@ class Decoders(nn.Module):
         dims: dict[str, int],
         hidden: int | None = None,
     ) -> None:
+        """Initialize the multi-modality decoder.
+
+        Args:
+            latent_dim: Dimension of the latent representation.
+            dims: Mapping from modality name to output dimension.
+            hidden: Hidden dimension of decoder heads (defaults to latent_dim).
+        """
         super().__init__()
         if latent_dim <= 0:
             raise ValueError(f"latent_dim must be positive, got {latent_dim}")

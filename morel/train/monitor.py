@@ -12,6 +12,11 @@ class Monitor:
     """Append ``(time, **metrics)`` lines to ``metrics.jsonl``."""
 
     def __init__(self, directory: Path | str) -> None:
+        """Initialize the metrics monitor.
+
+        Args:
+            directory: Directory to write ``metrics.jsonl`` to.
+        """
         self.directory = Path(directory)
         self.directory.mkdir(parents=True, exist_ok=True)
         self.path = self.directory / "metrics.jsonl"

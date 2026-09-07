@@ -133,6 +133,11 @@ class Read:
     """Context manager returned by :meth:`RWLock.read`."""
 
     def __init__(self, lock: RWLock) -> None:
+        """Initialize the read lock context manager.
+
+        Args:
+            lock: The RWLock instance.
+        """
         self.lock = lock
 
     def __enter__(self) -> None:
@@ -148,6 +153,11 @@ class Write:
     """Context manager returned by :meth:`RWLock.write`."""
 
     def __init__(self, lock: RWLock) -> None:
+        """Initialize the write lock context manager.
+
+        Args:
+            lock: The RWLock instance.
+        """
         self.lock = lock
 
     def __enter__(self) -> None:

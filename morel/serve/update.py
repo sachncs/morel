@@ -111,6 +111,18 @@ class Updater:
         val_ratio: float = 0.1,
         loss_step: Step | None = None,
     ) -> None:
+        """Initialize the model updater.
+
+        Args:
+            pipeline: Model to update in place.
+            feedback_capacity: Max feedback events buffered.
+            replay_capacity: Max replay events stored.
+            rollback_window: Number of versions kept for rollback.
+            cooldown_seconds: Cooldown after a divergence.
+            ratio: Replay fraction per update.
+            val_ratio: Validation fraction of feedback ring.
+            loss_step: Training step callable (optional).
+        """
         self.pipeline = pipeline
         # Two locks for two concerns. ``lock`` guards model state -- weights,
         # version, rollback history -- where readers must never observe a

@@ -16,6 +16,11 @@ class Loader:
     """
 
     def __init__(self, *, capacity: int = 4) -> None:
+        """Initialize the pipeline loader.
+
+        Args:
+            capacity: Maximum number of cached pipelines.
+        """
         if capacity <= 0:
             raise ValueError("capacity must be positive")
         self.capacity = capacity

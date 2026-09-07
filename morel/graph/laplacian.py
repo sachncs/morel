@@ -266,6 +266,12 @@ class Laplace(nn.Module):
     """
 
     def __init__(self, k: int = 20, *, capacity: int = 8) -> None:
+        """Initialize the Laplacian PE module.
+
+        Args:
+            k: Number of eigenvectors.
+            capacity: LRU cache size.
+        """
         super().__init__()
         self.k = k
         self.capacity = capacity
