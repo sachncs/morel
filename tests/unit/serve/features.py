@@ -202,6 +202,77 @@ class Checker:
         assert version == 1
         assert updater.version == 1
 
+    def restores(self) -> None:
+        """Regression: undo() must not corrupt the model state."""
+        model = Tiny()
+        updater = Updater(
+            model,
+            cooldown_seconds=0,
+            loss_step=lambda batch: 0.5,
+        )
+        for i in range(32):
+            updater.accept(user=i, item=i, signal="like")
+        updater.tick()
+        updater.tick()
+        assert updater.version == 2
+        version = updater.undo(steps=1)
+        assert version == 1
+        assert updater.version == 1
+
+    def state(self) -> None:
+        """Regression: rolling back restores the pipeline state to a prior version."""
+        import torch
+
+        model = Tiny()
+        initial_weight = model.linear.weight.detach().clone()
+        captured: list[torch.Tensor] = [initial_weight.clone()]
+
+        def mutate(batch):
+            with torch.no_grad():
+                model.linear.weight.fill_(captured[-1].mean().item() + 0.1)
+            captured.append(model.linear.weight.detach().clone())
+            return 0.5
+
+        updater = Updater(model, cooldown_seconds=0, loss_step=mutate)
+        for i in range(32):
+            updater.accept(user=i, item=i, signal="like")
+        updater.tick()  # version 1: weight becomes captured[1]
+        weight_after_v1 = model.linear.weight.detach().clone()
+        updater.tick()  # version 2: weight becomes captured[2]
+        weight_after_v2 = model.linear.weight.detach().clone()
+        assert not torch.equal(weight_after_v1, weight_after_v2)
+
+        updater.undo(steps=1)
+        # After undo, the model must equal the state at version 1, not 2.
+        assert torch.equal(model.linear.weight, weight_after_v1)
+        assert not torch.equal(model.linear.weight, weight_after_v2)
+
+        updater.undo(steps=1)
+        # After undo to the initial snapshot, the model must match the
+        # initial weight.
+        assert torch.equal(model.linear.weight, initial_weight)
+
+    def divergence(self) -> None:
+        """Regression: a divergent tick must not leave the model updated."""
+        import torch
+
+        model = Tiny()
+        initial = {k: v.clone() for k, v in model.state_dict().items()}
+
+        def explode(batch):
+            with torch.no_grad():
+                model.linear.weight.fill_(42.0)
+            return float("nan")
+
+        updater = Updater(model, cooldown_seconds=30, loss_step=explode)
+        for i in range(16):
+            updater.accept(user=i, item=i, signal="like")
+        result = updater.tick()
+        assert result.committed is False
+        assert updater.cooldown > time.time()
+        # The pipeline must be in its pre-update state, not the diverged one.
+        assert torch.equal(model.linear.weight, initial["linear.weight"])
+
     def polymorphic(self) -> None:
         """Step Protocol: Default and a custom callable both work."""
         from morel.serve.update import Default
