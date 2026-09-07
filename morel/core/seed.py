@@ -70,6 +70,12 @@ class State:
     opaque state blob (``numpy`` returns a 5-tuple for the legacy generator
     and a dict for the newer one), and morel only ever passes them straight
     back to the library that produced them.
+
+    Attributes:
+        python: Python random module state.
+        numpy: NumPy random state.
+        torch: PyTorch random state.
+        cuda: CUDA random state (optional).
     """
 
     python: tuple[Any, ...]

@@ -22,7 +22,12 @@ from morel.core.errors import Error
 
 @dataclass
 class Cluster:
-    """Module-level distributed runtime state."""
+    """Module-level distributed runtime state.
+
+    Attributes:
+        backend: Distributed backend name.
+        initialized: Whether the runtime is initialized.
+    """
 
     backend: str | None = None
     initialized: bool = False

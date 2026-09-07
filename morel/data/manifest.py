@@ -23,7 +23,20 @@ VERSION = 1
 
 @dataclass
 class Manifest:
-    """Manifest sidecar for a data artifact."""
+    """Manifest sidecar for a data artifact.
+
+    Attributes:
+        dataset: Dataset name.
+        version: Dataset version.
+        code: Code version string.
+        seed: Random seed used.
+        extractor: Extractor name.
+        cfg_hash: Configuration hash.
+        parents: Parent manifest paths.
+        schema: Schema name.
+        timestamp: Creation timestamp.
+        extras: Additional metadata.
+    """
 
     dataset: str
     version: str

@@ -18,7 +18,13 @@ from morel.train.trainer import Trainer
 
 @dataclass
 class Fit:
-    """Configuration for completion training."""
+    """Configuration for completion training.
+
+    Attributes:
+        lambda_usage: Weight for usage loss.
+        lambda_balance: Weight for balance loss.
+        grad_clip: Gradient clipping value.
+    """
 
     lambda_usage: float = 1.0
     lambda_balance: float = 1.0

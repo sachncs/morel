@@ -10,7 +10,12 @@ import numpy as np
 
 @dataclass
 class Robust:
-    """Result of a robustness sweep."""
+    """Result of a robustness sweep.
+
+    Attributes:
+        ratios: Robustness ratios used.
+        metrics: Per-ratio metric values.
+    """
 
     ratios: list[float]
     metrics: dict[str, list[float]] = field(default_factory=dict)

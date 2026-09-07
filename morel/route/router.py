@@ -14,7 +14,12 @@ from morel.core.errors import Cfg
 
 @dataclass(frozen=True)
 class Weights:
-    """Routing distribution and any associated metadata."""
+    """Routing distribution and any associated metadata.
+
+    Attributes:
+        probs: Routing probability distribution.
+        logits: Raw logits (optional).
+    """
 
     probs: torch.Tensor  # (B, K) nonnegative, sums to 1
     logits: torch.Tensor | None = None

@@ -19,7 +19,11 @@ from morel.train.trainer import Trainer
 
 @dataclass
 class Rec:
-    """Configuration for recommendation training."""
+    """Configuration for recommendation training.
+
+    Attributes:
+        grad_clip: Gradient clipping value.
+    """
 
     grad_clip: float = 1.0
 

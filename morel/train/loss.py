@@ -56,7 +56,13 @@ class Reconstruction(Loss):
 
 @dataclass
 class BPR(Loss):
-    """BPR loss using provided positive/negative scores."""
+    """BPR loss using provided positive/negative scores.
+
+    Attributes:
+        pos: Positive scores tensor.
+        neg: Negative scores tensor.
+        eps: Epsilon for numerical stability.
+    """
 
     pos: torch.Tensor
     neg: torch.Tensor
@@ -76,7 +82,12 @@ class BPR(Loss):
 
 @dataclass
 class Composite(Loss):
-    """Linear combination of named loss components."""
+    """Linear combination of named loss components.
+
+    Attributes:
+        components: Mapping from name to loss function.
+        weights: Mapping from name to weight.
+    """
 
     components: dict[str, Loss]
     weights: dict[str, float]

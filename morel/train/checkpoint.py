@@ -65,7 +65,17 @@ def unsafe(target: Path | str) -> dict[str, Any]:
 
 @dataclass
 class State:
-    """Trainer state snapshot for resume."""
+    """Trainer state snapshot for resume.
+
+    Attributes:
+        model: Model state dict.
+        optimizer: Optimizer state dict (optional).
+        epoch: Current epoch.
+        metric: Current best metric value.
+        rng: Random number generator states (optional).
+        cfg_hash: Configuration hash.
+        extras: Additional state to save.
+    """
 
     model: dict[str, Any]
     optimizer: dict[str, Any] | None
