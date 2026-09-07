@@ -28,17 +28,16 @@ class Enc(Protocol):
 class Identity(nn.Module):
     """A trivial encoder that just projects concatenated features with a Linear.
 
+    This is the no-transformer ablation: it satisfies the same contract as
+    :class:`~morel.encode.transformer.Transformer` -- hidden-width output, and
+    one embedding per query when handed a padded subgraph batch -- so
+    ``Pipeline`` can use it wherever the transformer is used.
+
     Attributes:
         dims: Mapping from modality name to feature dimension.
         pe_dim: Positional encoding dimension.
         dim: Output hidden dimension.
         linear: Linear projection layer.
-    """
-
-    This is the no-transformer ablation: it satisfies the same contract as
-    :class:`~morel.encode.transformer.Transformer` -- hidden-width output, and
-    one embedding per query when handed a padded subgraph batch -- so
-    ``Pipeline`` can use it wherever the transformer is used.
     """
 
     def __init__(self, dims: dict[str, int], pe_dim: int, hidden: int) -> None:
