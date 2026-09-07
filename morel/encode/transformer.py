@@ -21,7 +21,6 @@ class Transformer(nn.Module):
         layers: Transformer layers.
         pool: Pooling layer.
     """
-    """
 
     def __init__(
         self,
