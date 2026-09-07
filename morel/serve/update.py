@@ -32,7 +32,14 @@ Signal = str
 
 @dataclass
 class Event:
-    """One user-feedback event."""
+    """One user-feedback event.
+
+    Attributes:
+        user: User id.
+        item: Item id.
+        signal: Feedback signal type.
+        timestamp: Event timestamp.
+    """
 
     user: int
     item: int
@@ -42,7 +49,16 @@ class Event:
 
 @dataclass
 class Outcome:
-    """Result of one update tick."""
+    """Result of one update tick.
+
+    Attributes:
+        committed: Whether an update was committed.
+        loss: Training loss.
+        valid_loss: Validation loss.
+        version: Current model version.
+        n_events_used: Number of feedback events used.
+        n_replay_used: Number of replay events used.
+    """
 
     committed: bool
     loss: float

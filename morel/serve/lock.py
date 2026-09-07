@@ -27,6 +27,12 @@ class RWLock:
 
     The lock is not reentrant. A thread already holding a read lock must not
     ask for the write lock, and vice versa; doing so deadlocks.
+
+    Attributes:
+        condition: Threading condition variable.
+        readers: Number of active readers.
+        writer: Whether a writer holds the lock.
+        writers: Number of waiting writers.
     """
 
     def __init__(self) -> None:
