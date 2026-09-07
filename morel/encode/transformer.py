@@ -15,6 +15,12 @@ class Transformer(nn.Module):
 
     Accepts either ``(B, d_m)`` per-node inputs (no sequence dim) or
     ``(B, S, d_m)`` sequence inputs (subgraph tokens).
+
+    Attributes:
+        input: Input projection layer.
+        layers: Transformer layers.
+        pool: Pooling layer.
+    """
     """
 
     def __init__(

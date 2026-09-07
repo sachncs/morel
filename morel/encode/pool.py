@@ -18,6 +18,11 @@ class Attention(nn.Module):
     rather than ``-inf`` so that rows with all-masked tokens still produce
     a finite softmax (a uniform-weight fallback is applied when no token is
     valid in a row).
+
+    Attributes:
+        dim: Hidden dimension.
+        score: Attention score projection.
+        scale: Attention scale factor.
     """
 
     def __init__(self, dim: int) -> None:
@@ -60,7 +65,11 @@ class Attention(nn.Module):
 
 
 class Mean(nn.Module):
-    """Mean pool over a sequence dim, masking invalid tokens."""
+    """Mean pool over a sequence dim, masking invalid tokens.
+
+    Attributes:
+        dim: Hidden dimension (unused, for interface compatibility).
+    """
 
     def forward(self, hidden: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
         """Pool a sequence of tokens into one vector per batch item."""
@@ -72,7 +81,11 @@ class Mean(nn.Module):
 
 
 class Token(nn.Module):
-    """Select the first token (CLS-like) of every sequence."""
+    """Select the first token (CLS-like) of every sequence.
+
+    Attributes:
+        dim: Hidden dimension (unused, for interface compatibility).
+    """
 
     def forward(self, hidden: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
         """Select the first token of every sequence."""
@@ -80,7 +93,11 @@ class Token(nn.Module):
 
 
 class CLS(nn.Module):
-    """Alias for Token pooling."""
+    """Alias for Token pooling.
+
+    Attributes:
+        dim: Hidden dimension (unused, for interface compatibility).
+    """
 
     def forward(self, hidden: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
         """Select the first token of every sequence."""

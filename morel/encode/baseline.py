@@ -9,7 +9,11 @@ import torch.nn as nn
 
 
 class Enc(Protocol):
-    """Graph encoder turns modality features into a hidden embedding."""
+    """Graph encoder turns modality features into a hidden embedding.
+
+    Attributes:
+        forward: Returns per-item hidden embedding.
+    """
 
     def forward(
         self,
@@ -23,6 +27,13 @@ class Enc(Protocol):
 
 class Identity(nn.Module):
     """A trivial encoder that just projects concatenated features with a Linear.
+
+    Attributes:
+        dims: Mapping from modality name to feature dimension.
+        pe_dim: Positional encoding dimension.
+        dim: Output hidden dimension.
+        linear: Linear projection layer.
+    """
 
     This is the no-transformer ablation: it satisfies the same contract as
     :class:`~morel.encode.transformer.Transformer` — hidden-width output, and
@@ -74,7 +85,13 @@ class Identity(nn.Module):
 
 
 class Sum(nn.Module):
-    """A summation encoder (no learnable projection)."""
+    """A summation encoder (no learnable projection).
+
+    Attributes:
+        dims: Mapping from modality name to feature dimension.
+        pe_dim: Positional encoding dimension.
+        dim: Output hidden dimension.
+    """
 
     def __init__(self, dims: dict[str, int], pe_dim: int, hidden: int) -> None:
         """Initialize the summation encoder.
@@ -102,7 +119,12 @@ class Sum(nn.Module):
 
 
 class Baseline(nn.Module):
-    """Multiplexer that builds the requested graph encoder."""
+    """Multiplexer that builds the requested graph encoder.
+
+    Attributes:
+        inner: Underlying encoder module.
+        kind: Encoder kind.
+    """
 
     def __init__(
         self,
