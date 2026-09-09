@@ -1,0 +1,82 @@
+.PHONY: help install dev test test-fast lint lint-fix format typecheck build clean bench serve reproduce fidelity docs lock lock-check check-urls
+
+help: ## Show this help message
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+install: ## Install the package
+	pip install -e .
+
+dev: ## Install with development dependencies
+	pip install -e ".[dev]"
+
+test: ## Run tests with coverage
+	pytest tests/
+
+test-fast: ## Run tests without coverage
+	pytest tests/ -v
+
+lint: ## Run linter
+	ruff check .
+
+lint-fix: ## Run linter with auto-fix
+	ruff check --fix .
+
+format: ## Format code
+	ruff format .
+
+typecheck: ## Type checker
+	mypy morel/
+
+build: ## Build the package
+	python -m build
+
+clean: ## Clean build artifacts
+	rm -rf build/ dist/ *.egg-info .pytest_cache .mypy_cache .ruff_cache .coverage htmlcov/
+	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+
+demo: ## Run the demo script
+	python examples/demo.py
+
+bench: ## Run benchmarks
+	pytest benchmarks/ --benchmark-only --benchmark-min-rounds=20
+
+serve: ## Run the inference server
+	python -m morel serve --host 0.0.0.0 --port 8080
+
+reproduce: ## Run end-to-end reproduction
+	python -m morel train completion
+
+fidelity: ## Render the fidelity report
+	python -m morel render-fidelity docs/FIDELITY.md docs/FIDELITY.json
+
+docs: ## Build documentation
+	mkdocs build --strict
+
+lock: ## Regenerate requirements.lock (hash-pinned, targets the CI platform)
+	uv pip compile pyproject.toml --extra serve \
+		--python-platform linux --python-version 3.11 \
+		--generate-hashes -o requirements.lock
+
+lock-check: ## Fail if requirements.lock is out of date with pyproject.toml
+	@tmp=$$(mktemp) && trap 'rm -f "$$tmp"' EXIT && \
+	uv pip compile pyproject.toml --extra serve \
+		--python-platform linux --python-version 3.11 \
+		--generate-hashes 2>/dev/null | grep -v '^#' > "$$tmp" && \
+	grep -v '^#' requirements.lock | diff -u - "$$tmp" \
+		&& echo "requirements.lock is up to date"
+
+check: lint test ## Run lint and tests
+
+check-urls: ## Fail CI if any tracked file references the legacy repo URL
+	@if grep -rln 'robust-multimodal-recommendation' \
+	    --include='*.md' --include='*.toml' --include='*.yml' --include='*.yaml' \
+	    --include='*.cff' --include='*.py' --include='*.txt' --include='*.cfg' \
+	    --include='*.json' . 2>/dev/null | grep -v -E '\.git/|site/' | grep -v '^./requirements.lock' >/dev/null; then \
+	    echo "tracked files reference the legacy 'robust-multimodal-recommendation' URL:"; \
+	    grep -rln 'robust-multimodal-recommendation' \
+	        --include='*.md' --include='*.toml' --include='*.yml' --include='*.yaml' \
+	        --include='*.cff' --include='*.py' --include='*.txt' --include='*.cfg' \
+	        --include='*.json' . 2>/dev/null | grep -v -E '\.git/|site/' | grep -v '^./requirements.lock'; \
+	    exit 1; \
+	fi
+	@echo "all references point at the canonical morel repo"

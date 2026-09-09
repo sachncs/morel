@@ -1,0 +1,882 @@
+/* morel visual system. One accent (deep indigo), neutral canvas, dense
+   information hierarchy. Compatible with mkdocs-material: shadowing
+   vars instead of redefining Material defaults, and all custom
+   classes are namespaced under .morel-* so future Material updates
+   cannot silently collide. */
+
+:root {
+  --morel-accent: #3d5afe;
+  --morel-accent-strong: #5e3dab;
+  --morel-text: #11121a;
+  --morel-text-soft: #4a4a55;
+  --morel-text-mute: #75757f;
+  --morel-bg: #ffffff;
+  --morel-bg-soft: #f6f6fa;
+  --morel-bg-card: #fafafd;
+  --morel-line: #e5e5ed;
+  --morel-line-strong: #c9c9d3;
+  --morel-code-bg: #f1f1f7;
+  --morel-radius: 10px;
+  --morel-radius-lg: 16px;
+  --morel-shadow-sm: 0 1px 2px rgba(20, 20, 36, 0.04);
+  --morel-shadow: 0 2px 12px rgba(20, 20, 36, 0.06);
+  --morel-shadow-lg: 0 16px 36px rgba(20, 20, 36, 0.08);
+  --morel-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
+  --morel-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+                Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+[data-md-color-scheme="slate"] {
+  --morel-accent: #7c8cff;
+  --morel-accent-strong: #c292ff;
+  --morel-text: #f1f1f7;
+  --morel-text-soft: #b6b6c3;
+  --morel-text-mute: #82828f;
+  --morel-bg: #14141d;
+  --morel-bg-soft: #1b1b27;
+  --morel-bg-card: #20202d;
+  --morel-line: #2a2a3a;
+  --morel-line-strong: #3a3a4a;
+  --morel-code-bg: #232331;
+  --morel-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --morel-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+  --morel-shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Header / brand chrome ---- */
+
+.md-header {
+  background: var(--morel-bg);
+  color: var(--morel-text);
+  border-bottom: 1px solid var(--morel-line);
+  box-shadow: none;
+}
+
+.md-tabs {
+  background: var(--morel-bg);
+  border-bottom: 1px solid var(--morel-line);
+}
+
+.md-tabs__link {
+  color: var(--morel-text-soft);
+  font-weight: 500;
+}
+
+.md-tabs__link:hover,
+.md-tabs__link--active {
+  color: var(--morel-accent);
+}
+
+.md-header__title,
+.md-header__title .md-ellipsis {
+  font-family: var(--morel-sans);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.md-search__form {
+  background: var(--morel-bg-soft);
+  border-radius: 8px;
+}
+
+.md-search__form:hover {
+  background: var(--morel-bg-card);
+}
+
+.md-header__button.md-logo svg {
+  height: 1.85rem;
+  width: 1.85rem;
+}
+
+/* ---- Headings ---- */
+
+.md-typeset h1 {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.md-typeset h2 {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  border-top: 1px solid var(--morel-line);
+  padding-top: 1.25rem;
+  margin-top: 3rem;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+/* ---- Code ---- */
+
+.md-typeset code {
+  background: var(--morel-code-bg);
+  border-radius: 4px;
+  padding: 0.08rem 0.35rem;
+  font-family: var(--morel-mono);
+  font-size: 0.86em;
+}
+
+.md-typeset pre {
+  border-radius: var(--morel-radius);
+  box-shadow: var(--morel-shadow-sm);
+  border: 1px solid var(--morel-line);
+}
+
+/* Inline code copy button only borrows enough room — no border changes. */
+
+.md-typeset pre > code {
+  background: transparent;
+  padding: 0;
+  border-radius: var(--morel-radius);
+}
+
+/* ---- Tables ---- */
+
+.md-typeset table:not([class]) {
+  border-radius: var(--morel-radius);
+  border: 1px solid var(--morel-line);
+  overflow: hidden;
+  box-shadow: var(--morel-shadow-sm);
+  font-size: 0.88rem;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--morel-bg-soft);
+  color: var(--morel-text);
+  font-weight: 600;
+}
+
+/* ---- Hero / Section Orchestration ---- */
+
+.morel-hero {
+  position: relative;
+  margin: 0 0 3rem 0;
+  padding: 4.5rem 2rem 3.5rem 2rem;
+  border-bottom: 1px solid var(--morel-line);
+  overflow: hidden;
+}
+
+.morel-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(61, 90, 254, 0.10), transparent 38%),
+    radial-gradient(circle at 88% 80%, rgba(94, 61, 171, 0.08), transparent 42%);
+  pointer-events: none;
+}
+
+.morel-hero__inner {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.morel-hero__lockup .morel-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--morel-accent);
+}
+
+.morel-hero__lockup .morel-eyebrow::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--morel-accent);
+}
+
+.morel-hero h1 {
+  margin: 0 0 1rem 0;
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+  color: var(--morel-text);
+}
+
+.morel-hero h1 .morel-accent {
+  background: linear-gradient(120deg, var(--morel-accent), var(--morel-accent-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.morel-hero p.morel-subhead {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.12rem;
+  line-height: 1.55;
+  color: var(--morel-text-soft);
+  max-width: 38rem;
+}
+
+.morel-hero p.morel-subhead strong {
+  color: var(--morel-text);
+  font-weight: 600;
+}
+
+.morel-cta-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.6rem;
+}
+
+.morel-cta-row a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.05rem;
+  border-radius: var(--morel-radius);
+  font-weight: 600;
+  font-size: 0.92rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+}
+
+.morel-cta-row a.morel-cta-primary {
+  background: var(--morel-accent);
+  color: #ffffff;
+}
+
+.morel-cta-row a.morel-cta-primary:hover {
+  background: var(--morel-accent-strong);
+  color: #ffffff;
+}
+
+.morel-cta-row a.morel-cta-secondary {
+  background: var(--morel-bg);
+  color: var(--morel-text);
+  border-color: var(--morel-line-strong);
+}
+
+.morel-cta-row a.morel-cta-secondary:hover {
+  border-color: var(--morel-accent);
+  color: var(--morel-accent);
+}
+
+.morel-cta-row a.morel-cta-quiet {
+  background: transparent;
+  color: var(--morel-text-soft);
+  border: none;
+  padding: 0.6rem 0.4rem;
+}
+
+.morel-cta-row a.morel-cta-quiet:hover {
+  color: var(--morel-text);
+}
+
+.morel-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.5rem;
+  font-size: 0.82rem;
+}
+
+.morel-trust .morel-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  background: var(--morel-bg-soft);
+  color: var(--morel-text-soft);
+  border: 1px solid var(--morel-line);
+  font-weight: 500;
+}
+
+.morel-trust .morel-pill.morel-pill-strong {
+  color: var(--morel-accent);
+  border-color: rgba(61, 90, 254, 0.18);
+  background: rgba(61, 90, 254, 0.06);
+}
+
+.morel-hero__diagram {
+  background: var(--morel-bg-card);
+  border: 1px solid var(--morel-line);
+  border-radius: var(--morel-radius-lg);
+  box-shadow: var(--morel-shadow-lg);
+  padding: 1.5rem;
+}
+
+.morel-hero__diagram svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.morel-hero__diagram {
+  padding: 1.5rem 1.4rem;
+}
+
+/* When the hero is the only thing on a dedicated landing page, hide
+   the markdown body chrome (TOC, prev/next) and let the hero breathe. */
+
+.morel-landing .md-content__inner {
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+
+.morel-landing .md-content article {
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  background: var(--morel-bg);
+  box-shadow: none;
+}
+
+.morel-landing .md-sidebar--primary,
+.morel-landing .md-sidebar--secondary {
+  display: none;
+}
+
+/* ---- Section frames ---- */
+
+.morel-section {
+  padding: 4.5rem 0 4.5rem 0;
+  border-bottom: 1px solid var(--morel-line);
+}
+
+.morel-section--tight {
+  padding: 3rem 0;
+}
+
+.morel-section--alt {
+  background: var(--morel-bg-soft);
+}
+
+.morel-section--flush {
+  border-bottom: none;
+}
+
+.morel-section__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.morel-section__head {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 2rem;
+  align-items: end;
+  margin-bottom: 2.5rem;
+}
+
+.morel-section__head h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: 1.7rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.morel-section__kicker {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--morel-accent);
+  margin-bottom: 0.5rem;
+}
+
+.morel-section__lead {
+  margin: 0;
+  color: var(--morel-text-soft);
+  font-size: 1.02rem;
+  line-height: 1.55;
+  max-width: 32rem;
+}
+
+/* ---- Grids ---- */
+
+.morel-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.morel-grid--two   { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.morel-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.morel-grid--four  { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (max-width: 880px) {
+  .morel-grid--two,
+  .morel-grid--three,
+  .morel-grid--four {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Cards ---- */
+
+.morel-card {
+  background: var(--morel-bg-card);
+  border: 1px solid var(--morel-line);
+  border-radius: var(--morel-radius);
+  padding: 1.1rem 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  transition: border-color 0.12s ease, transform 0.08s ease;
+}
+
+.morel-card:hover {
+  border-color: var(--morel-line-strong);
+}
+
+.morel-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(61, 90, 254, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--morel-accent);
+}
+
+.morel-card__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.morel-card h3 {
+  margin: 0;
+  font-size: 1.02rem;
+  letter-spacing: -0.005em;
+}
+
+.morel-card p {
+  margin: 0;
+  color: var(--morel-text-soft);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.morel-card--compact {
+  padding: 0.9rem 0.9rem 0.85rem 0.9rem;
+}
+
+/* Data cards (benchmarks, ablation tables, side-by-side metric tiles). */
+
+.morel-data {
+  background: var(--morel-bg-card);
+  border: 1px solid var(--morel-line);
+  border-radius: var(--morel-radius);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.morel-data__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.morel-data__name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.morel-data__hint {
+  font-size: 0.8rem;
+  color: var(--morel-text-mute);
+}
+
+.morel-data__metric {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.morel-data__value {
+  font-family: var(--morel-mono);
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  color: var(--morel-accent);
+}
+
+.morel-data__suffix {
+  font-size: 0.85rem;
+  color: var(--morel-text-mute);
+}
+
+.morel-bar {
+  height: 6px;
+  background: var(--morel-bg-soft);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.morel-bar__fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--morel-accent), var(--morel-accent-strong));
+}
+
+/* ---- Method summary diagram ---- */
+
+.morel-method {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 2rem;
+  align-items: stretch;
+}
+
+.morel-method__diagram {
+  background: var(--morel-bg-card);
+  border: 1px solid var(--morel-line);
+  border-radius: var(--morel-radius-lg);
+  box-shadow: var(--morel-shadow);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.morel-method__diagram svg {
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+}
+
+.morel-method__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.morel-method__step {
+  display: flex;
+  gap: 0.8rem;
+  align-items: flex-start;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid var(--morel-line);
+  border-radius: var(--morel-radius);
+  background: var(--morel-bg-card);
+}
+
+.morel-method__step-number {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--morel-bg-soft);
+  color: var(--morel-accent);
+  font-weight: 700;
+  font-family: var(--morel-mono);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0.85rem;
+}
+
+.morel-method__step h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.morel-method__step p {
+  margin: 0.15rem 0 0 0;
+  font-size: 0.88rem;
+  color: var(--morel-text-soft);
+  line-height: 1.5;
+}
+
+@media (max-width: 880px) {
+  .morel-method {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Pipeline strip ---- */
+
+.morel-pipeline {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+@media (max-width: 880px) {
+  .morel-pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.morel-pipeline__step {
+  background: var(--morel-bg-card);
+  border: 1px solid var(--morel-line);
+  border-radius: var(--morel-radius);
+  padding: 1rem 0.9rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 130px;
+}
+
+.morel-pipeline__step::after {
+  content: "";
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  width: 20px;
+  height: 1px;
+  background: var(--morel-line-strong);
+  transform: translateY(-50%);
+}
+
+.morel-pipeline__step:last-child::after { display: none; }
+
+.morel-pipeline__step-num {
+  font-family: var(--morel-mono);
+  font-size: 0.7rem;
+  color: var(--morel-text-mute);
+  letter-spacing: 0.1em;
+}
+
+.morel-pipeline__step h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  letter-spacing: -0.005em;
+}
+
+.morel-pipeline__step p {
+  margin: 0;
+  font-size: 0.83rem;
+  color: var(--morel-text-soft);
+  line-height: 1.45;
+}
+
+@media (max-width: 880px) {
+  .morel-pipeline__step::after { display: none; }
+}
+
+/* ---- Docs navigation tiles ---- */
+
+.morel-docs-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1rem;
+  border: 1px solid var(--morel-line);
+  border-radius: var(--morel-radius);
+  background: var(--morel-bg-card);
+  text-decoration: none;
+  color: var(--morel-text);
+  transition: border-color 0.12s ease, transform 0.08s ease;
+}
+
+.morel-docs-tile:hover {
+  border-color: var(--morel-accent);
+}
+
+.morel-docs-tile__title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--morel-text);
+}
+
+.morel-docs-tile__blurb {
+  font-size: 0.88rem;
+  color: var(--morel-text-soft);
+  line-height: 1.5;
+}
+
+/* ---- Limitation callouts ---- */
+
+.morel-limitation {
+  border: 1px dashed var(--morel-line-strong);
+  border-radius: var(--morel-radius);
+  padding: 1.25rem 1.5rem;
+  background: var(--morel-bg-card);
+}
+
+.morel-limitation h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: var(--morel-text);
+}
+
+.morel-limitation p {
+  margin: 0;
+  color: var(--morel-text-soft);
+  line-height: 1.55;
+}
+
+/* ---- Reproduction / output panel ---- */
+
+.morel-terminal {
+  background: #14141d;
+  color: #e6e6f0;
+  font-family: var(--morel-mono);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  padding: 1.1rem 1.25rem;
+  border-radius: var(--morel-radius);
+  overflow-x: auto;
+  border: 1px solid #14141d;
+  position: relative;
+}
+
+.morel-terminal::before {
+  content: "● ● ●";
+  display: block;
+  margin-bottom: 0.6rem;
+  color: #555566;
+  font-size: 0.7rem;
+  letter-spacing: 0.4em;
+}
+
+.morel-terminal .morel-prompt { color: #7c8cff; }
+.morel-terminal .morel-out    { color: #c1c1cf; }
+.morel-terminal .morel-meta   { color: #6d6d80; font-style: italic; }
+
+/* Headings inside the quickstart / install column should be small but
+   visually distinct from body text. The inline-style h3 sits inside
+   a Material article; scope CSS to the section. */
+
+.morel-section h3.morel-qs-title {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: var(--morel-text-mute) !important;
+  margin: 1.4rem 0 0.6rem !important;
+}
+
+.morel-section h3.morel-qs-title:first-child {
+  margin-top: 0 !important;
+}
+
+/* ---- Footer polish (Material footer variant) ---- */
+
+.md-footer {
+  background: var(--morel-bg-soft);
+  color: var(--morel-text);
+}
+
+.md-footer-meta {
+  background: var(--morel-bg-soft);
+}
+
+footer.morel-section--flush {
+  font-size: 0.82rem;
+}
+
+footer.morel-section--flush p {
+  font-size: 0.82rem !important;
+  color: var(--morel-text-mute) !important;
+}
+
+footer.morel-section--flush h3 {
+  font-size: 0.78rem !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: var(--morel-text-mute) !important;
+  font-weight: 600 !important;
+  margin: 0 0 0.6rem 0 !important;
+}
+
+footer.morel-section--flush ul {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+footer.morel-section--flush li {
+  list-style: none !important;
+  line-height: 1.7 !important;
+}
+
+footer.morel-section--flush a {
+  color: var(--morel-text) !important;
+  font-size: 0.88rem !important;
+  text-decoration: none !important;
+}
+
+footer.morel-section--flush a:hover {
+  color: var(--morel-accent) !important;
+}
+
+.md-footer-meta__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+/* On every page the site footer is replaced by an inline footer
+   rendered inside the page itself. Material's chrome renders its own
+   footer after the article; hide it everywhere so the inline footer
+   is the only one a visitor sees. */
+
+.md-footer,
+.md-footer-meta {
+  display: none !important;
+}
+
+/* ---- Misc ---- */
+
+.morel-skip-link {
+  display: inline-block;
+  margin: 0.4rem 0;
+  font-size: 0.85rem;
+  color: var(--morel-accent);
+  text-decoration: none;
+}
+
+.morel-skip-link:hover { text-decoration: underline; }
+
+/* ---- Section nav strip (under the hero) ---- */
+
+.morel-section-nav {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--morel-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.65rem;
+  font-size: 0.82rem;
+}
+
+.morel-section-nav a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--morel-line);
+  background: var(--morel-bg-soft);
+  color: var(--morel-text-soft);
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+
+.morel-section-nav a:hover {
+  color: var(--morel-accent);
+  border-color: var(--morel-accent);
+  background: rgba(61, 90, 254, 0.06);
+}

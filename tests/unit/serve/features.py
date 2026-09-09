@@ -1,0 +1,305 @@
+"""Tests for two-token auth, RWLock, and Updater."""
+
+from __future__ import annotations
+
+import threading
+import time
+from typing import ClassVar
+
+import pytest
+import torch.nn as nn
+
+from morel.serve.auth import (
+    admin,
+    assert_,
+    require,
+    token,
+    viewer,
+)
+from morel.serve.lock import RWLock
+from morel.serve.update import Updater
+
+
+class Tiny(nn.Module):
+    """Small module used as a stand-in pipeline for updater tests."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.linear = nn.Linear(2, 2)
+
+
+# ---- Two-token auth ----
+
+
+# ---- RWLock ----
+
+
+# ---- Updater ----
+
+
+class Checker:
+    """Aggregated test methods for this module."""
+
+    def token(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
+        monkeypatch.delenv("MOREL_AUTH_TOKEN_ADMIN", raising=False)
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "read-tok")
+        assert viewer() is True
+        assert admin() is False
+        assert token("read") == "read-tok"
+        assert token("admin") is None
+
+    def only(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
+        monkeypatch.delenv("MOREL_AUTH_TOKEN_READ", raising=False)
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "admin-tok")
+        assert viewer() is False
+        assert admin() is True
+        assert token("read") is None
+        assert token("admin") == "admin-tok"
+
+    def both(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Legacy token grants read scope only; admin scope must opt in."""
+        for var in (
+            "MOREL_AUTH_TOKEN",
+            "MOREL_AUTH_TOKEN_READ",
+            "MOREL_AUTH_TOKEN_ADMIN",
+        ):
+            monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv("MOREL_AUTH_TOKEN", "legacy")
+        assert viewer() is True
+        assert admin() is False
+        assert token("read") == "legacy"
+        assert token("admin") is None
+
+    def admin(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Admin scope is satisfied only by the dedicated variable."""
+        for var in (
+            "MOREL_AUTH_TOKEN",
+            "MOREL_AUTH_TOKEN_READ",
+            "MOREL_AUTH_TOKEN_ADMIN",
+        ):
+            monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv("MOREL_AUTH_TOKEN", "legacy")
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "admin-tok")
+        assert admin() is True
+        assert token("admin") == "admin-tok"
+
+    def without(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        from morel.core.errors import Cfg
+
+        for var in (
+            "MOREL_AUTH_TOKEN",
+            "MOREL_AUTH_TOKEN_READ",
+            "MOREL_AUTH_TOKEN_ADMIN",
+        ):
+            monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv("MOREL_AUTH_ENABLED", "1")
+        with pytest.raises(Cfg):
+            assert_()
+
+    def noop(self) -> None:
+        class Req:
+            headers: ClassVar[dict[str, str]] = {}
+
+        require(Req(), scope="read")
+
+    def raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from fastapi import HTTPException
+
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "real-token")
+
+        class Req:
+            headers: ClassVar[dict[str, str]] = {"authorization": "Bearer wrong"}
+
+        with pytest.raises(HTTPException):
+            require(Req(), scope="read")
+
+    def other(self) -> None:
+        lock = RWLock()
+        errors: list[Exception] = []
+        readers_in = 0
+        readers_in_lock = threading.Lock()
+
+        def reader() -> None:
+            nonlocal readers_in
+            try:
+                with lock.read():
+                    with readers_in_lock:
+                        readers_in += 1
+                    time.sleep(0.05)
+                    with readers_in_lock:
+                        readers_in -= 1
+            except Exception as exc:
+                errors.append(exc)
+
+        threads = [threading.Thread(target=reader) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        assert not errors
+
+    def writers(self) -> None:
+        lock = RWLock()
+        counter = [0]
+        counter_lock = threading.Lock()
+
+        def writer() -> None:
+            with lock.write():
+                with counter_lock:
+                    assert counter[0] == 0
+                    counter[0] += 1
+                time.sleep(0.02)
+                with counter_lock:
+                    counter[0] -= 1
+
+        threads = [threading.Thread(target=writer) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        assert counter[0] == 0
+
+    def buffer(self) -> None:
+        updater = Updater(Tiny())
+        for i in range(8):
+            updater.accept(user=i, item=i, signal="like")
+        assert updater.stats()["events_buffered"] == 8
+        assert updater.stats()["replay_buffered"] == 8
+
+    def returns(self) -> None:
+        updater = Updater(Tiny())
+        result = updater.tick()
+        assert result.committed is False
+
+    def commit(self) -> None:
+        updater = Updater(
+            Tiny(),
+            cooldown_seconds=0,
+            loss_step=lambda batch: 0.5,
+        )
+        for i in range(32):
+            updater.accept(user=i, item=i, signal="like")
+        result = updater.tick()
+        assert result.committed is True
+        assert result.version == 1
+        assert updater.stats()["updates_applied"] == 1
+
+    def loss(self) -> None:
+        updater = Updater(
+            Tiny(),
+            cooldown_seconds=30,
+            loss_step=lambda batch: float("nan"),
+        )
+        for i in range(16):
+            updater.accept(user=i, item=i, signal="like")
+        result = updater.tick()
+        assert result.committed is False
+        assert updater.cooldown > time.time()
+
+    def version(self) -> None:
+        updater = Updater(
+            Tiny(),
+            cooldown_seconds=0,
+            loss_step=lambda batch: 0.5,
+        )
+        for i in range(32):
+            updater.accept(user=i, item=i, signal="like")
+        updater.tick()
+        updater.tick()
+        assert updater.version == 2
+        version = updater.undo(steps=1)
+        assert version == 1
+        assert updater.version == 1
+
+    def restores(self) -> None:
+        """Regression: undo() must not corrupt the model state."""
+        model = Tiny()
+        updater = Updater(
+            model,
+            cooldown_seconds=0,
+            loss_step=lambda batch: 0.5,
+        )
+        for i in range(32):
+            updater.accept(user=i, item=i, signal="like")
+        updater.tick()
+        updater.tick()
+        assert updater.version == 2
+        version = updater.undo(steps=1)
+        assert version == 1
+        assert updater.version == 1
+
+    def state(self) -> None:
+        """Regression: rolling back restores the pipeline state to a prior version."""
+        import torch
+
+        model = Tiny()
+        initial_weight = model.linear.weight.detach().clone()
+        captured: list[torch.Tensor] = [initial_weight.clone()]
+
+        def mutate(batch):
+            with torch.no_grad():
+                model.linear.weight.fill_(captured[-1].mean().item() + 0.1)
+            captured.append(model.linear.weight.detach().clone())
+            return 0.5
+
+        updater = Updater(model, cooldown_seconds=0, loss_step=mutate)
+        for i in range(32):
+            updater.accept(user=i, item=i, signal="like")
+        updater.tick()  # version 1: weight becomes captured[1]
+        weight_after_v1 = model.linear.weight.detach().clone()
+        updater.tick()  # version 2: weight becomes captured[2]
+        weight_after_v2 = model.linear.weight.detach().clone()
+        assert not torch.equal(weight_after_v1, weight_after_v2)
+
+        updater.undo(steps=1)
+        # After undo, the model must equal the state at version 1, not 2.
+        assert torch.equal(model.linear.weight, weight_after_v1)
+        assert not torch.equal(model.linear.weight, weight_after_v2)
+
+        updater.undo(steps=1)
+        # After undo to the initial snapshot, the model must match the
+        # initial weight.
+        assert torch.equal(model.linear.weight, initial_weight)
+
+    def divergence(self) -> None:
+        """Regression: a divergent tick must not leave the model updated."""
+        import torch
+
+        model = Tiny()
+        initial = {k: v.clone() for k, v in model.state_dict().items()}
+
+        def explode(batch):
+            with torch.no_grad():
+                model.linear.weight.fill_(42.0)
+            return float("nan")
+
+        updater = Updater(model, cooldown_seconds=30, loss_step=explode)
+        for i in range(16):
+            updater.accept(user=i, item=i, signal="like")
+        result = updater.tick()
+        assert result.committed is False
+        assert updater.cooldown > time.time()
+        # The pipeline must be in its pre-update state, not the diverged one.
+        assert torch.equal(model.linear.weight, initial["linear.weight"])
+
+    def polymorphic(self) -> None:
+        """Step Protocol: Default and a custom callable both work."""
+        from morel.serve.update import Default
+
+        base = Updater(Tiny(), cooldown_seconds=0)
+        assert isinstance(base.loss_step, Default)
+        custom = Updater(
+            Tiny(),
+            cooldown_seconds=0,
+            loss_step=lambda batch: 0.42,
+        )
+        for i in range(8):
+            custom.accept(user=i, item=i, signal="like")
+        result = custom.tick()
+        assert result.committed is True
+        assert abs(result.loss - 0.42) < 1e-6

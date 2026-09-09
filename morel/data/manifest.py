@@ -1,0 +1,133 @@
+"""Artifact manifest.
+
+Every persisted artifact has a sidecar ``.manifest.json`` carrying enough
+metadata to answer: what dataset, what version, what preprocessing, what
+feature extractor, what configuration, what random seed, what code version.
+"""
+
+from __future__ import annotations
+
+import dataclasses
+import datetime as dt
+import hashlib
+import json
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+from morel.core.errors import Datum
+
+VERSION = 1
+
+
+@dataclass
+class Manifest:
+    """Manifest sidecar for a data artifact.
+
+    Attributes
+    ----------
+        dataset: Dataset name.
+        version: Dataset version.
+        code: Code version string.
+        seed: Random seed used.
+        extractor: Extractor name.
+        cfg_hash: Configuration hash.
+        parents: Parent manifest paths.
+        schema: Schema name.
+        timestamp: Creation timestamp.
+        extras: Additional metadata.
+    """
+
+    dataset: str
+    version: str
+    code: str
+    seed: int
+    extractor: str
+    cfg_hash: str
+    parents: list[str] = field(default_factory=list)
+    schema: int = VERSION
+    timestamp: str = field(default_factory=lambda: dt.datetime.now(dt.timezone.utc).isoformat())
+    extras: dict[str, Any] = field(default_factory=dict)
+
+    def json(self) -> str:
+        """Serialize to JSON."""
+        return json.dumps(dataclasses.asdict(self), indent=2, sort_keys=True, ensure_ascii=False)
+
+    @classmethod
+    def parse_json(cls, text: str) -> Manifest:
+        """Deserialize from JSON."""
+        payload = json.loads(text)
+        return cls(**payload)
+
+
+def locate(artifact: Path | str) -> Path:
+    """Return the sidecar manifest path for an artifact."""
+    target = Path(artifact)
+    return target.with_suffix(target.suffix + ".manifest.json")
+
+
+def save(artifact: Path | str, manifest: Manifest) -> Path:
+    """Atomically save a manifest next to an artifact.
+
+    Args:
+        artifact: Path to the artifact the manifest describes.
+        manifest: Manifest payload.
+
+    Returns
+    -------
+        The manifest path that was written.
+    """
+    target = Path(artifact).resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    sidecar = locate(target)
+    tmp = sidecar.with_suffix(sidecar.suffix + ".tmp")
+    tmp.write_text(manifest.json(), encoding="utf-8")
+    os.replace(tmp, sidecar)
+    return sidecar
+
+
+def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Manifest:
+    """Load a manifest sidecar.
+
+    Args:
+        artifact: Path to the artifact whose manifest to load.
+        expected_config_hash: If provided, raise Datum on mismatch.
+
+    Returns
+    -------
+        The loaded Manifest.
+
+    Raises
+    ------
+        Datum: If the sidecar is missing or its config hash mismatches.
+    """
+    sidecar = locate(artifact)
+    if not sidecar.exists():
+        raise Datum(f"manifest not found for {artifact}: {sidecar}")
+    manifest = Manifest.parse_json(sidecar.read_text(encoding="utf-8"))
+    if expected_config_hash is not None and manifest.cfg_hash != expected_config_hash:
+        raise Datum(
+            f"manifest config hash mismatch for {artifact}: "
+            f"got {manifest.cfg_hash}, expected {expected_config_hash}"
+        )
+    return manifest
+
+
+def checksum(path: Path | str) -> str:
+    """Compute SHA256 of a file's contents."""
+    h = hashlib.sha256()
+    with Path(path).open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+__all__ = [
+    "VERSION",
+    "Manifest",
+    "checksum",
+    "load",
+    "locate",
+    "save",
+]

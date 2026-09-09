@@ -1,0 +1,38 @@
+"""morel: Modality-aware recommendation via graph retrieval-enhanced completion.
+
+Public surface is re-exported here. Library consumers should import from
+``morel`` directly.
+"""
+
+from __future__ import annotations
+
+import logging
+
+from morel.core import (
+    Config,
+    Embedding,
+    configure_log,
+    logger,
+    seed_everything,
+)
+from morel.data.manifest import Manifest
+from morel.pipeline import Output, Pipeline
+
+__version__ = "0.0.0+unknown"
+from morel.version import __version__ as _scm_version
+
+__version__ = _scm_version
+if not logging.getLogger("morel").handlers:
+    logging.getLogger("morel").addHandler(logging.NullHandler())
+
+
+__all__ = [
+    "Config",
+    "Embedding",
+    "Manifest",
+    "Output",
+    "Pipeline",
+    "configure_log",
+    "logger",
+    "seed_everything",
+]

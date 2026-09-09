@@ -1,0 +1,209 @@
+"""Reader-writer lock for the live serve pipeline.
+
+The serve stack runs inference requests concurrently while the
+``Updater`` runs periodic update steps. A reader-writer lock
+ensures readers never see a half-applied update, and writers are
+serialised.
+"""
+
+from __future__ import annotations
+
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager
+
+
+class RWLock:
+    """A reader-writer lock with writer preference.
+
+    Multiple readers hold the lock concurrently; writers are exclusive.
+
+    Once a writer is waiting, new readers queue behind it. Without that, a
+    stream of overlapping readers keeps ``readers`` above zero forever
+    and a writer never runs: under sustained inference traffic the model
+    updater would be starved indefinitely and updates would silently never be
+    applied. Readers therefore wait at most for the duration of one update,
+    and writers are guaranteed to make progress.
+
+    The lock is not reentrant. A thread already holding a read lock must not
+    ask for the write lock, and vice versa; doing so deadlocks.
+
+    Attributes
+    ----------
+        condition: Threading condition variable.
+        readers: Number of active readers.
+        writer: Whether a writer holds the lock.
+        writers: Number of waiting writers.
+    """
+
+    def __init__(self) -> None:
+        """Create an unheld lock."""
+        self.condition = threading.Condition()
+        self.readers = 0
+        self.writer = False
+        self.writers = 0
+
+    def read_lock(self, timeout: float | None = None) -> bool:
+        """Acquire a read lock, waiting for any active or pending writer.
+
+        Args:
+            timeout: Seconds to wait, or ``None`` to wait indefinitely.
+
+        Returns
+        -------
+            ``True`` if the lock was acquired, ``False`` on timeout.
+        """
+        with self.condition:
+            if timeout is None:
+                while self.writer or self.writers > 0:
+                    self.condition.wait()
+            elif not self.condition.wait_for(
+                lambda: not self.writer and self.writers == 0,
+                timeout=timeout,
+            ):
+                return False
+            self.readers += 1
+            return True
+
+    def read_unlock(self) -> None:
+        """Release a previously acquired read lock.
+
+        Raises
+        ------
+            RuntimeError: If no read lock is held. Silently going negative
+                would let a later writer proceed while a reader is still
+                inside the critical section.
+        """
+        with self.condition:
+            if self.readers <= 0:
+                raise RuntimeError("unlock called without holding a read lock")
+            self.readers -= 1
+            if self.readers == 0:
+                self.condition.notify_all()
+
+    def write_lock(self, timeout: float | None = None) -> bool:
+        """Acquire the exclusive write lock.
+
+        Registers as a waiting writer first, which holds off new readers so
+        that this call cannot be starved by a continuous read stream.
+
+        Args:
+            timeout: Seconds to wait, or ``None`` to wait indefinitely.
+
+        Returns
+        -------
+            ``True`` if the lock was acquired, ``False`` on timeout.
+        """
+        with self.condition:
+            self.writers += 1
+            try:
+                if timeout is None:
+                    while self.writer or self.readers > 0:
+                        self.condition.wait()
+                elif not self.condition.wait_for(
+                    lambda: not self.writer and self.readers == 0,
+                    timeout=timeout,
+                ):
+                    return False
+                self.writer = True
+                return True
+            finally:
+                self.writers -= 1
+                if not self.writer:
+                    # Gave up: wake the readers that were queued behind us,
+                    # otherwise they wait for a writer that is no longer coming.
+                    self.condition.notify_all()
+
+    def write_unlock(self) -> None:
+        """Release a previously acquired write lock.
+
+        Raises
+        ------
+            RuntimeError: If the write lock is not held.
+        """
+        with self.condition:
+            if not self.writer:
+                raise RuntimeError("unlock called without holding the write lock")
+            self.writer = False
+            self.condition.notify_all()
+
+    def read(self) -> Read:
+        """Return a context manager that acquires/releases a read lock."""
+        return Read(self)
+
+    def write(self) -> Write:
+        """Return a context manager that acquires/releases a write lock."""
+        return Write(self)
+
+
+class Read:
+    """Context manager returned by :meth:`RWLock.read`.
+
+    Attributes
+    ----------
+        lock: The RWLock instance.
+    """
+
+    def __init__(self, lock: RWLock) -> None:
+        """Initialize the read lock context manager.
+
+        Args:
+            lock: The RWLock instance.
+        """
+        self.lock = lock
+
+    def __enter__(self) -> None:
+        """Acquire the read lock."""
+        self.lock.read_lock()
+
+    def __exit__(self, *exc: object) -> None:
+        """Release the read lock."""
+        self.lock.read_unlock()
+
+
+class Write:
+    """Context manager returned by :meth:`RWLock.write`.
+
+    Attributes
+    ----------
+        lock: The RWLock instance.
+    """
+
+    def __init__(self, lock: RWLock) -> None:
+        """Initialize the write lock context manager.
+
+        Args:
+            lock: The RWLock instance.
+        """
+        self.lock = lock
+
+    def __enter__(self) -> None:
+        """Acquire the write lock."""
+        self.lock.write_lock()
+
+    def __exit__(self, *exc: object) -> None:
+        """Release the write lock."""
+        self.lock.write_unlock()
+
+
+@contextmanager
+def reader(lock: RWLock) -> Iterator[None]:
+    """Context manager for a read lock."""
+    lock.read_lock()
+    try:
+        yield None
+    finally:
+        lock.read_unlock()
+
+
+@contextmanager
+def writer(lock: RWLock) -> Iterator[None]:
+    """Context manager for a write lock."""
+    lock.write_lock()
+    try:
+        yield None
+    finally:
+        lock.write_unlock()
+
+
+__all__ = ["RWLock", "Read", "Write", "reader", "writer"]

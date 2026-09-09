@@ -1,0 +1,163 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel", "setuptools_scm>=8.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "morel"
+description = "Modality-aware recommendation via graph retrieval-enhanced completion"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Sachin", email = "sachncs@gmail.com"},
+]
+maintainers = [
+    {name = "Sachin", email = "sachncs@gmail.com"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Framework :: PyTorch",
+    "Typing :: Typed",
+]
+requires-python = ">=3.10"
+dynamic = ["version"]
+dependencies = [
+    "torch>=2.0,<3",
+    "numpy>=1.24,<3",
+    "scipy>=1.10,<2",
+    "sentence-transformers>=2.2,<7",
+    "torchvision>=0.15,<1",
+    "Pillow>=10.0,<13",
+    "pandas>=2.0,<3",
+    "pyyaml>=6.0,<7",
+    "pydantic>=2.0,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "pytest-xdist>=3.3",
+    "pytest-timeout>=2.2",
+    "pytest-benchmark>=4.0",
+    "hypothesis>=6.90",
+    "ruff>=0.5",
+    "mypy>=1.10",
+    "mkdocstrings>=0.24",
+    "mkdocstrings-python>=1.10",
+    "mkdocs-material>=9.5",
+    "pip-audit>=2.7",
+    "build>=1.0",
+    "twine>=5.0",
+    "cyclonedx-py>=1.0",
+]
+serve = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "prometheus-client>=0.20",
+    "httpx>=0.27",
+]
+bench = ["pytest-benchmark>=4.0"]
+text = ["sentence-transformers>=2.2"]
+vision = ["torchvision>=0.15"]
+
+[project.urls]
+Homepage = "https://github.com/sachncs/morel"
+Repository = "https://github.com/sachncs/morel"
+Issues = "https://github.com/sachncs/morel/issues"
+Documentation = "https://sachncs.github.io/morel/"
+
+[project.scripts]
+morel = "morel.cli:main"
+
+[tool.setuptools_scm]
+write_to = "morel/_version.py"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["morel*"]
+
+[tool.setuptools.package-data]
+morel = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "benchmarks"]
+python_files = ["*.py"]
+python_classes = ["Checker", "Spec"]
+python_functions = ["*"]
+addopts = ["-v", "--strict-markers", "--strict-config", "--tb=short", "--cov=morel", "--cov-report=term-missing", "--cov-report=xml", "--cov-fail-under=70"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "gpu: marks tests as requiring GPU (deselect with '-m \"not gpu\"')",
+    "property: marks property-based tests",
+    "research: marks paper-validation tests",
+    "integration: marks integration tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["morel"]
+omit = [
+    "morel/_version.py",
+    "examples/*",
+    "benchmarks/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = ["morel/_version.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM", "ICN", "TID", "RUF", "PIE", "PT", "RET"]
+ignore = ["D100", "D104", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D102", "D103", "D401", "N806", "N803", "E501", "B011"]
+"benchmarks/**/*.py" = ["D", "N", "E501"]
+"examples/**/*.py" = ["D", "N", "E501"]
+"morel/serve/**/*.py" = ["B008"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+exclude = ["tests/", "docs/", "benchmarks/", "examples/", "build/"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false

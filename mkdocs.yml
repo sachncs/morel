@@ -1,0 +1,126 @@
+site_name: morel
+site_description: Robust multimodal recommendation via graph retrieval-enhanced modality completion.
+site_author: Sachin
+site_url: https://sachncs.github.io/morel/
+copyright: >
+  Copyright © 2024–2026 Sachin. Released under the MIT License.
+
+repo_url: https://github.com/sachncs/morel
+repo_name: sachncs/morel
+edit_uri: ""
+
+theme:
+  name: material
+  logo: assets/logo.svg
+  favicon: assets/favicon.svg
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - announce.dismiss
+    - content.code.copy
+    - content.tabs.link
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.sections
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+extra_css:
+  - assets/theme.css
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["."]
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            docstring_style: numpy
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.details
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Docs hub: docs-hub.md
+  - Tutorials:
+      - tutorials/index.md
+      - tutorials/synthetic.md
+      - tutorials/real-data.md
+      - tutorials/serve.md
+  - How-to guides:
+      - howto/index.md
+      - howto/configure.md
+      - howto/custom-component.md
+      - howto/serve.md
+  - Concepts:
+      - concepts/index.md
+      - concepts/method.md
+      - concepts/architecture.md
+  - Reference:
+      - reference/index.md
+      - reference/api.md
+      - reference/cli.md
+      - reference/config.md
+      - reference/fidelity.md
+      - reference/benchmarks.md
+      - reference/production-readiness.md
+      - reference/limitations.md
+  - Operations:
+      - operations/index.md
+      - operations/install.md
+      - operations/reproduce.md
+      - operations/deploy.md
+      - operations/observability.md
+      - operations/pages.md
+  - Project:
+      - project/index.md
+      - project/changelog.md
+      - project/security.md
+      - project/contributing.md
+      - project/license.md

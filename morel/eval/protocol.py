@@ -1,0 +1,73 @@
+"""Robustness and ablation evaluation protocols."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from dataclasses import dataclass, field
+
+import numpy as np
+
+
+@dataclass
+class Robust:
+    """Result of a robustness sweep.
+
+    Attributes
+    ----------
+        ratios: Robustness ratios used.
+        metrics: Per-ratio metric values.
+    """
+
+    ratios: list[float]
+    metrics: dict[str, list[float]] = field(default_factory=dict)
+
+
+def sweep(
+    scores_by_ratio: dict[float, np.ndarray],
+    labels: np.ndarray,
+    *,
+    metrics: dict[str, Callable[[np.ndarray, np.ndarray], float]],
+) -> Robust:
+    """Evaluate a metric across a range of mask ratios.
+
+    Args:
+        scores_by_ratio: Mapping from mask ratio to score matrix.
+        labels: Ground-truth binary labels.
+        metrics: Mapping from metric name to scorer.
+
+    Returns
+    -------
+        Robust with one entry per ratio per metric.
+    """
+    if not scores_by_ratio:
+        return Robust(ratios=[])
+    ratios = sorted(scores_by_ratio.keys())
+    metric_lists: dict[str, list[float]] = {name: [] for name in metrics}
+    for ratio in ratios:
+        scores = scores_by_ratio[ratio]
+        for name, fn in metrics.items():
+            metric_lists[name].append(fn(scores, labels))
+    return Robust(ratios=ratios, metrics=metric_lists)
+
+
+def results(
+    scores_by_condition: dict[str, np.ndarray],
+    labels: np.ndarray,
+    *,
+    metric: Callable[[np.ndarray, np.ndarray], float],
+) -> dict[str, float]:
+    """Evaluate a single metric across ablation conditions.
+
+    Args:
+        scores_by_condition: Mapping from condition name to score matrix.
+        labels: Ground-truth binary labels.
+        metric: Scorer function.
+
+    Returns
+    -------
+        Mapping from condition name to metric value.
+    """
+    return {name: metric(scores, labels) for name, scores in scores_by_condition.items()}
+
+
+__all__ = ["Robust", "results", "sweep"]

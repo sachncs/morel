@@ -1,0 +1,23 @@
+cve:
+  notify: GHSA
+  require_signed_commits: false
+  require_2fa: false
+
+dependabot:
+  labels: ["dependencies"]
+  groups:
+    runtime:
+      dependency-type: production
+    dev:
+      dependency-type: development
+    actions:
+      patterns: ["*"]
+
+secret_scanning:
+  push_protection: true
+
+dependabot_pat:
+  scope: public
+
+vulnerability_alerts:
+  enabled: true
