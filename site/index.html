@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0e" />
+    <meta name="color-scheme" content="dark light" />
+
+    <title>morel — Robust multimodal recommendation, one graph at a time</title>
+    <meta
+      name="description"
+      content="morel is an open-source Python library for graph retrieval-enhanced modality completion. Build recommenders that finish missing modalities before ranking — paper-faithful, deterministic, production-ready."
+    />
+    <meta name="author" content="Sachin" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="morel — Robust multimodal recommendation" />
+    <meta
+      property="og:description"
+      content="An open-source Python library for graph retrieval-enhanced modality completion. One graph, one pipeline, one recommender."
+    />
+    <meta property="og:url" content="https://sachncs.github.io/morel/" />
+    <meta property="og:image" content="/og-image.svg" />
+    <meta property="og:site_name" content="morel" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="morel — Robust multimodal recommendation" />
+    <meta
+      name="twitter:description"
+      content="An open-source Python library for graph retrieval-enhanced modality completion."
+    />
+    <meta name="twitter:image" content="/og-image.svg" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("morel-theme");
+          var prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+          var useLight = stored ? stored === "light" : false;
+          if (useLight) document.documentElement.classList.remove("dark");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body class="bg-white text-ink-900 antialiased dark:bg-ink-950 dark:text-ink-50">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

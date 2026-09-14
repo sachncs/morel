@@ -71,10 +71,10 @@ text = ["sentence-transformers>=2.2"]
 vision = ["torchvision>=0.15"]
 
 [project.urls]
-Homepage = "https://github.com/sachncs/morel"
+Homepage = "https://sachncs.github.io/morel/"
 Repository = "https://github.com/sachncs/morel"
 Issues = "https://github.com/sachncs/morel/issues"
-Documentation = "https://sachncs.github.io/morel/"
+Documentation = "https://github.com/sachncs/morel/tree/master/docs"
 
 [project.scripts]
 morel = "morel.cli:main"

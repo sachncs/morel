@@ -5,7 +5,7 @@
     <a href="#before-you-start"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
     <a href="https://github.com/sachncs/morel/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/morel/ci.yml" alt="CI"></a>
-    <a href="https://sachncs.github.io/morel/"><img src="https://img.shields.io/badge/docs-morel-blue" alt="Documentation"></a>
+    <a href="https://sachncs.github.io/morel/"><img src="https://img.shields.io/badge/site-morel-blue" alt="Product site"></a>
     <a href="https://github.com/astral-sh/ruff"><img src="https://img.shields.io/badge/code%20style-ruff-000000.svg" alt="Ruff"></a>
     <a href="https://mypy-lang.org/"><img src="https://img.shields.io/badge/type%20checked-mypy-blue.svg" alt="mypy"></a>
   </p>
