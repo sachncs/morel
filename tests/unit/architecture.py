@@ -195,3 +195,21 @@ class Checker:
             assert doc[name] == set(registry), (
                 f"{name}: docs list {sorted(doc[name])}, code registers {sorted(set(registry))}"
             )
+
+    def named_protocols(self) -> None:
+        """Raw-feature and graph-encoder protocols remain distinct and usable."""
+        from morel.data import Feature, FeatureEncoder, Random
+        from morel.encode import Enc, GraphEncoder, Identity
+        from morel.retrieve import KIND, RetrievalStrategy
+
+        assert Feature is FeatureEncoder
+        assert Enc is GraphEncoder
+        assert isinstance(Random(4), FeatureEncoder)
+        assert isinstance(Identity({"text": 4}, 0, 4), GraphEncoder)
+        assert all(isinstance(strategy, RetrievalStrategy) for strategy in KIND.values())
+
+    def modality_mask_name(self) -> None:
+        """The explicit mask value-object name preserves the old alias."""
+        from morel.data import Mask, ModalityMask
+
+        assert Mask is ModalityMask

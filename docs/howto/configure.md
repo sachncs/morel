@@ -130,7 +130,7 @@ python -m morel train completion --config configs/synthetic.yaml
 from morel import Config
 
 config = Config.defaults()
-config = Config.from_dict({...})         # from a nested dict
+config = Config.from_dict({...})  # from a nested dict
 config = Config.from_yaml("path.yaml")  # convenience, same as Config.load
 ```
 

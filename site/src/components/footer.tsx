@@ -15,10 +15,10 @@ const COLUMNS = [
   {
     title: "Resources",
     links: [
-      { label: "Documentation", href: SITE.url + "docs/" },
+      { label: "Documentation", href: SITE.docs },
       { label: "Getting started", href: `${SITE.repo}#installation` },
-      { label: "Demo notebook", href: `${SITE.repo}blob/master/examples/demo.py` },
-      { label: "Changelog", href: `${SITE.repo}blob/master/CHANGELOG.md` },
+      { label: "Demo notebook", href: `${SITE.repo}/blob/master/examples/demo.py` },
+      { label: "Changelog", href: `${SITE.repo}/blob/master/CHANGELOG.md` },
     ],
   },
   {
@@ -26,17 +26,17 @@ const COLUMNS = [
     links: [
       { label: "GitHub", href: SITE.repo },
       { label: "Issues", href: `${SITE.repo}/issues` },
-      { label: "Discussions", href: `${SITE.repo}/discussions` },
-      { label: "Citation", href: `${SITE.repo}blob/master/CITATION.cff` },
+      { label: "Pull requests", href: `${SITE.repo}/pulls` },
+      { label: "Citation", href: `${SITE.repo}/blob/master/CITATION.cff` },
     ],
   },
   {
     title: "Trust",
     links: [
-      { label: "License", href: `${SITE.repo}blob/master/LICENSE` },
-      { label: "Security", href: `${SITE.repo}blob/master/SECURITY.md` },
-      { label: "Contributing", href: `${SITE.repo}blob/master/CONTRIBUTING.md` },
-      { label: "Code of conduct", href: `${SITE.repo}blob/master/CODE_OF_CONDUCT.md` },
+      { label: "License", href: `${SITE.repo}/blob/master/LICENSE` },
+      { label: "Security", href: `${SITE.repo}/blob/master/SECURITY.md` },
+      { label: "Contributing", href: `${SITE.repo}/blob/master/CONTRIBUTING.md` },
+      { label: "Code of conduct", href: `${SITE.repo}/blob/master/CODE_OF_CONDUCT.md` },
     ],
   },
 ] as const;
@@ -53,7 +53,7 @@ export function Footer() {
             <p className="mt-5 max-w-sm text-sm leading-relaxed text-ink-600 dark:text-ink-300">
               An open-source Python library for graph retrieval-enhanced
               modality completion. Paper-faithful, deterministic,
-              production-ready.
+              ready to validate.
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-ink-500 dark:text-ink-400">
               <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-100 px-2.5 py-1 ring-1 ring-ink-200/60 dark:bg-white/5 dark:ring-white/10">
@@ -105,7 +105,7 @@ export function Footer() {
             Copyright © {new Date().getFullYear()} Sachin. Released under the {SITE.license} license.
           </p>
           <div className="flex items-center gap-5">
-            <a href={SITE.url + "docs/"} className="transition hover:text-ink-900 dark:hover:text-white">
+            <a href={SITE.docs} className="transition hover:text-ink-900 dark:hover:text-white">
               Docs
             </a>
             <a
@@ -117,7 +117,7 @@ export function Footer() {
               GitHub
             </a>
             <a
-              href={`${SITE.repo}blob/master/CITATION.cff`}
+              href={`${SITE.repo}/blob/master/CITATION.cff`}
               target="_blank"
               rel="noreferrer noopener"
               className="transition hover:text-ink-900 dark:hover:text-white"

@@ -121,3 +121,8 @@ def pytest_collection_modifyitems(config, items):
         if isinstance(parent, Class) and parent.name in {"Checker", "Spec"}:
             keep.append(item)
     items[:] = keep
+
+
+def pytest_report_collectionfinish(config, start_path, items):
+    """Expose the post-filter test count for verification-metric checks."""
+    return [f"morel verification count: {len(items)}"]

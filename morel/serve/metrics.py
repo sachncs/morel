@@ -22,7 +22,17 @@ if TYPE_CHECKING:
 # the Prometheus client_python default so dashboards that assume those
 # boundaries still work.
 DEFAULT_BUCKETS: tuple[float, ...] = (
-    0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0,
+    0.005,
+    0.01,
+    0.025,
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0,
+    2.5,
+    5.0,
+    10.0,
 )
 
 
@@ -65,9 +75,9 @@ class Registry:
     """
 
     counters: dict[str, dict[tuple[tuple[str, str], ...], float]] = field(default_factory=dict)
-    histograms: dict[
-        str, dict[tuple[tuple[str, str], ...], _HistogramStats]
-    ] = field(default_factory=dict)
+    histograms: dict[str, dict[tuple[tuple[str, str], ...], _HistogramStats]] = field(
+        default_factory=dict
+    )
     gauges: dict[str, dict[tuple[tuple[str, str], ...], float]] = field(default_factory=dict)
     _lock: threading.Lock = field(default_factory=threading.Lock)
 
@@ -146,9 +156,7 @@ class Registry:
                     lines.append(
                         _format_line(
                             f"{name}_bucket",
-                            tuple(
-                                sorted({**dict(label_key), "le": "+Inf"}.items())
-                            ),
+                            tuple(sorted({**dict(label_key), "le": "+Inf"}.items())),
                             stats.count,
                         )
                     )

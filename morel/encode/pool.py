@@ -52,14 +52,10 @@ class Attention(nn.Module):
         if mask is not None:
             scores = scores.masked_fill(~mask, -1e9)
             row_valid = mask.any(dim=1)
-            uniform = torch.ones_like(scores) / max(scores.shape[1], 1)
-            scores = torch.where(
-                row_valid.unsqueeze(-1) & ~mask.any(dim=1, keepdim=True),
-                uniform,
-                scores,
-            )
             all_masked = ~row_valid
             if all_masked.any():
+                # Zero logits produce a deliberate uniform fallback for a
+                # row with no valid tokens; this keeps the output finite.
                 scores = scores.masked_fill(all_masked.unsqueeze(-1), 0.0)
         weights = F.softmax(scores * self.scale, dim=1)
         return (weights.unsqueeze(-1) * hidden).sum(dim=1)

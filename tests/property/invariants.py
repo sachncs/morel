@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import numpy as np
+import pytest
 import scipy.sparse as sp
 import torch
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 from morel.retrieve.acs import compute
 from morel.retrieve.bfs import path
@@ -23,6 +25,25 @@ def random(draw: st.DrawFn) -> sp.csr_matrix:
             arr[i, i + 1] = 1
             arr[i + 1, i] = 1
     return sp.csr_matrix(arr)
+
+
+@st.composite
+def random_bipartite(draw: st.DrawFn) -> tuple[np.ndarray, np.ndarray, int, int]:
+    """Generate a bounded interaction graph, including duplicate edges."""
+    users = draw(st.integers(min_value=1, max_value=8))
+    items = draw(st.integers(min_value=1, max_value=8))
+    edges = draw(
+        st.lists(
+            st.tuples(
+                st.integers(min_value=0, max_value=7),
+                st.integers(min_value=0, max_value=7),
+            ),
+            max_size=32,
+        )
+    )
+    user = np.array([u % users for u, _ in edges], dtype=np.int64)
+    item = np.array([i % items for _, i in edges], dtype=np.int64)
+    return user, item, users, items
 
 
 class Checker:
@@ -42,6 +63,35 @@ class Checker:
     def bernoulli(self, items: int) -> None:
         mask = bernoulli(items, 3, 0.4, seed=0).numpy()
         assert (mask.sum(axis=1) >= 1).all()
+
+    @given(random_bipartite())
+    @settings(max_examples=15, deadline=None)
+    def cooccurrence(self, payload: tuple[np.ndarray, np.ndarray, int, int]) -> None:
+        """Co-occurrence remains a simple, loop-free binary graph."""
+        user, item, users, items = payload
+        graph = bipartite(user, item, users, items)
+        result = cooccurrence(graph).toarray()
+        assert result.shape == (items, items)
+        assert np.array_equal(result, result.T)
+        assert np.all(np.diag(result) == 0)
+        assert np.isin(result, [0, 1]).all()
+
+    @given(st.integers(min_value=-2, max_value=10), st.integers(min_value=-2, max_value=10))
+    @settings(max_examples=20, deadline=None)
+    def bipartite_bounds(self, user_id: int, item_id: int) -> None:
+        """Malformed sparse-graph indices become domain errors, never SciPy leaks."""
+        users, items = 4, 5
+        user = np.array([user_id], dtype=np.int64)
+        item = np.array([item_id], dtype=np.int64)
+        valid = 0 <= user_id < users and 0 <= item_id < items
+        if valid:
+            graph = bipartite(user, item, users, items)
+            assert graph.shape == (users, items)
+        else:
+            from morel.core.errors import Datum
+
+            with pytest.raises(Datum):
+                bipartite(user, item, users, items)
 
     def top(self) -> None:
         r = Top(dim=8, k=10, p=3, tau=0.5)

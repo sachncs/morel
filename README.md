@@ -45,8 +45,8 @@ You, even if:
 
 If you can install Python and type commands into a terminal, you can
 run morel. When the docs use a word you don't know, look it up in
-[docs/METHOD.md](docs/METHOD.md) or
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+[docs/concepts/method.md](docs/concepts/method.md) or
+[docs/concepts/architecture.md](docs/concepts/architecture.md).
 
 If you've used Python before, you'll be productive in five minutes.
 
@@ -67,9 +67,11 @@ If you've used Python before, you'll be productive in five minutes.
   ablations. ([morel.eval](morel/eval))
 - **Reproducibility** — deterministic seeding and a machine-rendered
   fidelity report tying implementations to paper equations.
-  ([docs/FIDELITY.md](docs/FIDELITY.md))
+  ([docs/reference/fidelity.md](docs/reference/fidelity.md))
 - **Inference server** — FastAPI service with token auth, a cached
-  model loader, and Docker support. ([docs/DEPLOY.md](docs/DEPLOY.md))
+  model loader, and Docker support. ([docs/operations/deploy.md](docs/operations/deploy.md))
+- **Engineering standards** — Google-style Python, visibility conventions,
+  typed contracts, and reliability gates. ([docs/engineering.md](docs/engineering.md))
 
 ---
 
@@ -167,7 +169,7 @@ Once installed, the `morel` command drives the rest of the pipeline:
 ```bash
 python -m morel              # prints the command tree
 python -m morel data --help  # data lifecycle: download, extract, build, mask, verify
-python -m morel serve        # start the inference server
+python -m morel serve --model-dir runs/completion  # start from a trained bundle
 ```
 
 The top-level command tree is:
@@ -190,7 +192,7 @@ import numpy as np
 import torch
 
 from morel.core.config import Config
-from morel.data.build import bipartite, item_cooccurrence
+from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
 from morel.recommend import Light
@@ -204,7 +206,7 @@ ui = bipartite(
     users,
     items,
 )
-adjacency = item_cooccurrence(ui)
+adjacency = cooccurrence(ui)
 
 # Per-item features, with 40% of modalities masked out.
 features = {
@@ -215,7 +217,7 @@ mask = bernoulli(items, 2, 0.4, seed=42).to_numpy()
 
 # Build the GRE-MC pipeline and attach the corpus.
 pipeline = Pipeline(Config(), dims={"visual": 16, "text": 8})
-pipeline.attach_corpus(features, mask, adjacency)
+pipeline.attach(features, mask, adjacency)
 
 # Complete the missing modalities and route through the codebook.
 output = pipeline(
@@ -293,21 +295,21 @@ What each field means:
 
 ## Where to go next
 
-- **[docs/API.md](docs/API.md)** — the public API reference.
-- **[docs/METHOD.md](docs/METHOD.md)** — the math behind the pipeline, step by step.
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** — module layout and data flow.
-- **[docs/REPRODUCE.md](docs/REPRODUCE.md)** — full reproduction workflow on real data.
-- **[docs/FIDELITY.md](docs/FIDELITY.md)** — does the code match the paper?
-- **[docs/LIMITATIONS.md](docs/LIMITATIONS.md)** — known scope boundaries.
+- **[docs/reference/api.md](docs/reference/api.md)** — the public API reference.
+- **[docs/concepts/method.md](docs/concepts/method.md)** — the math behind the pipeline, step by step.
+- **[docs/concepts/architecture.md](docs/concepts/architecture.md)** — module layout and data flow.
+- **[docs/operations/reproduce.md](docs/operations/reproduce.md)** — full reproduction workflow on real data.
+- **[docs/reference/fidelity.md](docs/reference/fidelity.md)** — does the code match the paper?
+- **[docs/reference/limitations.md](docs/reference/limitations.md)** — known scope boundaries.
 - **[examples/](examples)** — runnable demos.
 - **[PLAN.md](PLAN.md)** — implementation history and phase notes.
 
 For maintainers:
 
-- **[docs/INSTALL.md](docs/INSTALL.md)** — environment setup.
-- **[docs/DEPLOY.md](docs/DEPLOY.md)** — run the inference server.
-- **[docs/BENCHMARKS.md](docs/BENCHMARKS.md)** — benchmark results.
-- **[docs/PRODUCTION_READINESS.md](docs/PRODUCTION_READINESS.md)** — production assessment.
+- **[docs/operations/install.md](docs/operations/install.md)** — environment setup.
+- **[docs/operations/deploy.md](docs/operations/deploy.md)** — run the inference server.
+- **[docs/reference/benchmarks.md](docs/reference/benchmarks.md)** — benchmark results.
+- **[docs/reference/production-readiness.md](docs/reference/production-readiness.md)** — production assessment.
 - **[Makefile](Makefile)** — `make lint`, `make typecheck`, `make test`, `make bench`, `make serve`, and more.
 
 ---

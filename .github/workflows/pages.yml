@@ -33,6 +33,12 @@ jobs:
       - run: pnpm build
         env:
           GITHUB_PAGES: "1"
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify Pages base path
+        run: pnpm exec playwright test --project=chromium
+        env:
+          BASE_URL: "http://127.0.0.1:4173/morel/"
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

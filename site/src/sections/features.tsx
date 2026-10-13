@@ -41,8 +41,8 @@ function FeatureVisual({ icon }: { icon: string }) {
         <svg viewBox="0 0 360 160" className="h-auto w-full">
           <defs>
             <linearGradient id="feat-cb" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
           </defs>
           {Array.from({ length: 5 }).map((_, r) =>
@@ -68,12 +68,12 @@ function FeatureVisual({ icon }: { icon: string }) {
         <svg viewBox="0 0 360 160" className="h-auto w-full">
           <defs>
             <linearGradient id="feat-gr" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
             <radialGradient id="feat-gr-halo" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#7a7eff" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#7a7eff" stopOpacity="0" />
+              <stop offset="0%" stopColor="#c58e3d" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#c58e3d" stopOpacity="0" />
             </radialGradient>
           </defs>
           <g stroke="url(#feat-gr)" strokeWidth={1} fill="none">
@@ -88,7 +88,7 @@ function FeatureVisual({ icon }: { icon: string }) {
           </g>
           <circle cx="180" cy="80" r="28" fill="url(#feat-gr-halo)" />
           <circle cx="180" cy="80" r="6" fill="url(#feat-gr)" />
-          <g fill="#c4a8ff">
+          <g fill="#e1bd7a">
             <circle cx="60" cy="30" r="4" />
             <circle cx="300" cy="30" r="4" />
             <circle cx="60" cy="130" r="4" />
@@ -105,8 +105,8 @@ function FeatureVisual({ icon }: { icon: string }) {
         <svg viewBox="0 0 360 160" className="h-auto w-full">
           <defs>
             <linearGradient id="feat-sh" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
           </defs>
           <g stroke="url(#feat-sh)" strokeWidth={1.2} fill="none">
@@ -134,8 +134,8 @@ function FeatureVisual({ icon }: { icon: string }) {
         <svg viewBox="0 0 360 160" className="h-auto w-full">
           <defs>
             <linearGradient id="feat-bo" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
           </defs>
           <g fontFamily="ui-monospace, monospace" fontSize="9" fill="#8a8a98">
@@ -145,10 +145,10 @@ function FeatureVisual({ icon }: { icon: string }) {
             <line x1="14" y1="30" x2="346" y2="30" />
           </g>
           <g fontFamily="ui-monospace, monospace" fontSize="11">
-            <text x="14" y="56" fill="#5d57ff">200 OK</text>
+            <text x="14" y="56" fill="#9a5e1d">200 OK</text>
             <text x="14" y="78" fill="#474754" className="dark:fill-ink-300">{`{`}</text>
             <text x="32" y="96" fill="#474754">"items": [</text>
-            <text x="48" y="114" fill="#7a7eff">"sku-214", "sku-808", "sku-512"</text>
+            <text x="48" y="114" fill="#c58e3d">"sku-214", "sku-808", "sku-512"</text>
             <text x="32" y="132" fill="#474754">]</text>
             <text x="14" y="150" fill="#474754">{`}`}</text>
           </g>
@@ -159,8 +159,8 @@ function FeatureVisual({ icon }: { icon: string }) {
         <svg viewBox="0 0 360 160" className="h-auto w-full">
           <defs>
             <linearGradient id="feat-sp" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
           </defs>
           <g stroke="url(#feat-sp)" strokeWidth={1.5} fill="none" strokeLinecap="round">
@@ -168,7 +168,7 @@ function FeatureVisual({ icon }: { icon: string }) {
             <path d="M 30 110 Q 100 60 180 110 T 330 110" opacity="0.5" />
             <path d="M 30 50 Q 100 0 180 50 T 330 50" opacity="0.3" />
           </g>
-          <g fill="#7a7eff">
+          <g fill="#c58e3d">
             <circle cx="80" cy="58" r="3" />
             <circle cx="160" cy="80" r="3" />
             <circle cx="240" cy="65" r="3" />
@@ -183,19 +183,19 @@ function FeatureVisual({ icon }: { icon: string }) {
         <svg viewBox="0 0 360 160" className="h-auto w-full">
           <defs>
             <linearGradient id="feat-st" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
           </defs>
           <g fontFamily="ui-monospace, monospace" fontSize="11">
             <rect x="40" y="20" width="280" height="22" rx="4" fill="url(#feat-st)" opacity="0.18" />
-            <text x="56" y="35" fill="#5d57ff">retrieve.kind = "mage"</text>
+            <text x="56" y="35" fill="#9a5e1d">retrieve.kind = "mage"</text>
 
             <rect x="40" y="50" width="280" height="22" rx="4" fill="url(#feat-st)" opacity="0.28" />
-            <text x="56" y="65" fill="#5d57ff">codebook.size = 100</text>
+            <text x="56" y="65" fill="#9a5e1d">codebook.size = 100</text>
 
             <rect x="40" y="80" width="280" height="22" rx="4" fill="url(#feat-st)" opacity="0.45" />
-            <text x="56" y="95" fill="#5d57ff">completion.epochs = 100</text>
+            <text x="56" y="95" fill="#9a5e1d">completion.epochs = 100</text>
 
             <rect x="40" y="110" width="280" height="22" rx="4" fill="url(#feat-st)" opacity="0.7" />
             <text x="56" y="125" fill="#fff">recommend.kind = "light"</text>
@@ -237,7 +237,7 @@ export function Features() {
               )}
             >
               <div className="flex flex-1 flex-col p-7 sm:p-8">
-                <div className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500/15 to-violet-500/10 text-accent-600 ring-1 ring-accent-500/15 dark:text-accent-300">
+                <div className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500/15 to-accent-700/10 text-accent-600 ring-1 ring-accent-500/15 dark:text-accent-300">
                   <Icon className="h-5 w-5" strokeWidth={1.6} />
                 </div>
                 <h3 className="text-display-sm font-semibold tracking-tight text-ink-900 dark:text-white">

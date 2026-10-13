@@ -156,7 +156,6 @@ class Checker:
             def forward(
                 self, hidden: torch.Tensor, *, training: bool = True
             ) -> tuple[torch.Tensor, torch.Tensor]:
-                del training
                 probs = torch.full(
                     (*hidden.shape[:-1], self.size),
                     1.0 / self.size,

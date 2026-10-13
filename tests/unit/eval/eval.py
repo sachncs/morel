@@ -44,6 +44,21 @@ class Checker:
         s = precision(np.eye(3, 5), np.eye(3, 5), k=2)
         assert 0.0 <= s <= 1.0
 
+    def empty_catalog(self) -> None:
+        """Ranking metrics return a neutral score for an empty catalog."""
+        scores = np.empty((3, 0), dtype=np.float32)
+        labels = np.empty((3, 0), dtype=np.float32)
+        assert recall(scores, labels, k=10) == 0.0
+        assert ndcg(scores, labels, k=10) == 0.0
+        assert precision(scores, labels, k=10) == 0.0
+        assert map(scores, labels, k=10) == 0.0
+
+    def cutoff(self) -> None:
+        """Cutoffs wider than the catalog use the available item width."""
+        scores = np.eye(2, 3, dtype=np.float32)
+        assert precision(scores, scores, k=10) == pytest.approx(1 / 3)
+        assert ndcg(scores, scores, k=10) == 1.0
+
     def mrr(self) -> None:
         labels = np.eye(3, 5, dtype=np.float32)
         s = mrr(labels, labels)

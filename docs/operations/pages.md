@@ -39,7 +39,7 @@ The `pages.yml` workflow has two jobs:
   with `/morel/`), and uploads the resulting `site/dist` directory as a
   Pages artifact.
 - `deploy` — depends on `build`, downloads the artifact, and
-  publishes it through `actions/deploy-pages@v4`.
+  publishes it through `actions/deploy-pages@v5`.
 
 The `concurrency: group: pages, cancel-in-progress: true` block
 cancels in-progress runs from the same branch, so a fast-follow push

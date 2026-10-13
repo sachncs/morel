@@ -242,7 +242,8 @@ from morel.data import (
 - `Feature` — One feature extractor for raw modality inputs.
 - `MASKS` — dict() -> new empty dictionary
 - `Manifest` — Manifest sidecar for a data artifact.
-- `Mask` — Immutable mask value object with the Mask Protocol.
+- `ModalityMask` — Immutable modality-availability value object. `Mask` remains
+  a compatibility alias for existing callers.
 - `Random` — Deterministic pseudo-random encoder.
 - `Sentence` — Text encoder backed by sentence-transformers.
 - `Vision` — Visual encoder backed by a torchvision classification backbone.
@@ -287,6 +288,7 @@ from morel.encode import (
     'Baseline',
     'CLS',
     'Enc',
+    'GraphEncoder',
     'Identity',
     'Input',
     'KIND',
@@ -302,7 +304,8 @@ from morel.encode import (
 - `Attention` — Scaled dot-product attention pooling over a sequence dim.
 - `Baseline` — Multiplexer that builds the requested graph encoder.
 - `CLS` — Alias for Token pooling.
-- `Enc` — Graph encoder turns modality features into a hidden embedding.
+- `GraphEncoder` — Graph encoder turns modality features into a hidden embedding.
+- `Enc` — Backward-compatible alias for `GraphEncoder`.
 - `Identity` — A trivial encoder that just projects concatenated features with a Linear.
 - `Input` — Concatenate per-modality features (zero-pad missing) with PE, then project.
 - `KIND` — dict() -> new empty dictionary

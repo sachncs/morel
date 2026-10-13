@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 from collections import OrderedDict
+from typing import cast
 
 import numpy as np
 import scipy.sparse as sp
@@ -56,7 +57,7 @@ def laplacian(adj: sp.spmatrix) -> sp.csr_matrix:
         d_inv_sqrt = np.where(rowsum > 0, np.power(rowsum, -0.5), 0.0)
     d_inv_sqrt = sp.diags(d_inv_sqrt.astype(np.float32))
     laplacian_csr = sp.eye(adj.shape[0], format="csr") - d_inv_sqrt @ adj_coo @ d_inv_sqrt
-    return laplacian_csr.tocsr()
+    return cast(sp.csr_matrix, laplacian_csr.tocsr())
 
 
 def signs(eigvecs: np.ndarray) -> np.ndarray:
@@ -81,7 +82,7 @@ def signs(eigvecs: np.ndarray) -> np.ndarray:
     pivot = np.abs(eigvecs).argmax(axis=0)
     signs = np.sign(eigvecs[pivot, np.arange(eigvecs.shape[1])])
     signs[signs == 0] = 1.0
-    return eigvecs * signs
+    return cast(np.ndarray, eigvecs * signs)
 
 
 #: Eigenvalue gap below which two modes are treated as one degenerate cluster.
@@ -295,6 +296,32 @@ class Laplace(nn.Module):
         while len(self.cache) > self.capacity:
             self.cache.popitem(last=False)
         return tensor
+
+    def prime(self, adjacency: sp.spmatrix, encoding: torch.Tensor | np.ndarray) -> None:
+        """Prime the cache with a validated persisted encoding.
+
+        Args:
+            adjacency: Graph the encoding was computed from.
+            encoding: ``(nodes, min(k, nodes - 1))`` positional encoding.
+
+        Raises
+        ------
+        Net: If the persisted encoding has the wrong shape or non-finite data.
+        """
+        value = torch.as_tensor(encoding, dtype=torch.float32).detach().cpu().contiguous()
+        nodes = int(adjacency.shape[0])
+        expected = (nodes, min(self.k, max(nodes - 1, 0)))
+        if tuple(value.shape) != expected:
+            raise Net(
+                f"persisted positional encoding has shape {tuple(value.shape)}, expected {expected}"
+            )
+        if not bool(torch.isfinite(value).all()):
+            raise Net("persisted positional encoding contains non-finite values")
+        key = digest(adjacency)
+        self.cache[key] = value
+        self.cache.move_to_end(key)
+        while len(self.cache) > self.capacity:
+            self.cache.popitem(last=False)
 
     def clear(self) -> None:
         """Clear the cache."""

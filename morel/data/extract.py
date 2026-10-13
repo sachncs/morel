@@ -8,7 +8,7 @@ arrays of shape ``(items, dim)``.
 from __future__ import annotations
 
 import hashlib
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 import torch
@@ -21,7 +21,8 @@ from morel.core.log import get as logger
 log = logger("data.extract")
 
 
-class Feature(Protocol):
+@runtime_checkable
+class FeatureEncoder(Protocol):
     """One feature extractor for raw modality inputs.
 
     Attributes
@@ -37,6 +38,12 @@ class Feature(Protocol):
         ...
 
 
+# Backward-compatible name retained for callers of the v0.1 API. New code
+# should use FeatureEncoder to distinguish raw-modality encoders from the
+# graph encoder used inside Pipeline.
+Feature = FeatureEncoder
+
+
 def l2_normalize(array: np.ndarray) -> np.ndarray:
     """L2-normalize each row; replace zero-norm rows with the zero vector."""
     norms = np.linalg.norm(array, axis=1, keepdims=True)
@@ -46,7 +53,7 @@ def l2_normalize(array: np.ndarray) -> np.ndarray:
 
 def text(
     inputs: list[str],
-    encoder: Feature,
+    encoder: FeatureEncoder,
     *,
     batch: int = 64,
     device: str | torch.device | None = None,
@@ -70,7 +77,7 @@ def text(
 
 def visual(
     paths: list[str],
-    encoder: Feature,
+    encoder: FeatureEncoder,
     *,
     batch: int = 32,
     device: str | torch.device | None = None,
@@ -167,7 +174,6 @@ class Random:
         Deriving the row from a hash of the input keeps the output stable when
         the same item appears at a different index or in a different batch.
         """
-        del device
         rows = np.empty((len(inputs), self.dim), dtype=np.float32)
         for i, item in enumerate(inputs):
             digest = hashlib.sha256(f"{self.seed}:{item}".encode()).digest()
@@ -192,14 +198,22 @@ class Sentence:
         self.name = model
         self.batch = batch
         self.model = SentenceTransformer(model)
-        self.dim = int(self.model.get_sentence_embedding_dimension())
+        dimension = self.model.get_sentence_embedding_dimension()
+        if dimension is None:
+            raise RuntimeError(
+                f"sentence-transformer {model!r} did not report an embedding dimension"
+            )
+        self.dim = int(dimension)
 
     def encode(  # pragma: no cover - requires a model download
         self, inputs: list[str], *, device: str | torch.device | None = None
     ) -> np.ndarray:
         """Encode text through the loaded sentence-transformer."""
         vectors = self.model.encode(
-            inputs, batch_size=self.batch, convert_to_numpy=True, device=device
+            inputs,
+            batch_size=self.batch,
+            convert_to_numpy=True,
+            device=None if device is None else str(device),
         )
         return l2_normalize(np.asarray(vectors, dtype=np.float32))
 
@@ -225,11 +239,9 @@ class Vision:
         # Probe the model with weights=None to read the actual output
         # dimension of the final fully-connected layer. This costs an
         # extra constructor call but is the only way to learn the
-        # dimension for arbitrary backbones; we discard the
-        # weights=None probe after reading ``fc.in_features``.
-        probe = builder(weights=None)
-        feature_dim = int(probe.fc.in_features)
-        del probe
+        # dimension for arbitrary backbones; the temporary probe is not
+        # retained after reading ``fc.in_features``.
+        feature_dim = int(builder(weights=None).fc.in_features)
         self.model = builder(weights="DEFAULT")
         self.model.fc = torch.nn.Identity()
         self.model.eval()

@@ -7,10 +7,14 @@ Dispatches to ``morel.data``, ``morel.train``, ``morel.eval``, ``morel.bench``,
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import yaml
+
+from morel.core.errors import Cfg, Model
 from morel.core.log import configure as configure_log
 from morel.core.log import get as logger
 
@@ -258,19 +262,83 @@ def api(argv: list[str]) -> int:
     parser.add_argument("--port", type=int, default=None, help="overrides serve.port")
     parser.add_argument("--workers", type=int, default=None, help="overrides serve.workers")
     parser.add_argument("--config", default=None)
+    parser.add_argument(
+        "--model-dir",
+        default=None,
+        help="completed run directory containing the serving artifact bundle",
+    )
     args = parser.parse_args(argv)
     config = load_cfg(resolve_cfg(argv))
+    from morel.serve.auth import assert_, assert_production
+    from morel.serve.preflight import validate as validate_preflight
+
+    assert_()
+    assert_production()
+    validate_preflight(config, model_dir=args.model_dir)
     host = args.host if args.host is not None else config.serve.host
     port = args.port if args.port is not None else config.serve.port
     workers = args.workers if args.workers is not None else config.serve.workers
     from morel.serve.app import create
+    from morel.serve.loader import Loader
+    from morel.serve.protocol import is_serving_pipeline
 
-    app = create()
-    import sys
+    loader = Loader(factory_timeout=config.serve.factory_timeout)
+    if args.model_dir is not None:
+        from morel.serve.factory import from_run
 
-    sys.modules["uvicorn"].run(
-        app, host=host, port=port, workers=workers, log_level=config.log.level.lower()
-    )
+        model_dir = Path(args.model_dir)
+        loader.register("default", lambda: from_run(model_dir), validator=is_serving_pipeline)
+        # Validate and materialize the production bundle before opening the
+        # socket. A bad checkpoint or incompatible artifact must fail startup,
+        # not become a first-request outage.
+        try:
+            pipeline = loader.get("default")
+        except Model as exc:
+            raise Cfg("serving model factory returned an incompatible pipeline contract") from exc
+        if not is_serving_pipeline(pipeline):
+            raise Cfg("serving model factory returned an incompatible pipeline contract")
+    else:
+        log.warning("serve.model_missing: starting without a model bundle")
+    import uvicorn
+
+    if workers > 1:
+        # Uvicorn's multiprocess supervisor requires an import string or an
+        # app factory. The parent has already validated an explicit model
+        # bundle above; pass its path through the inherited worker environment
+        # so every worker rebuilds and validates its own app instance.
+        os.environ["MOREL_SERVE_MODEL_DIR"] = str(args.model_dir or "")
+        uvicorn.run(
+            "morel.serve.runtime:create_app",
+            factory=True,
+            host=host,
+            port=port,
+            workers=workers,
+            limit_concurrency=config.serve.limit_concurrency,
+            limit_max_requests=config.serve.limit_max_requests,
+            timeout_keep_alive=config.serve.timeout_keep_alive,
+            timeout_graceful_shutdown=config.serve.timeout_graceful_shutdown,
+            log_level=config.log.level.lower(),
+        )
+    else:
+        app = create(
+            loader,
+            rate_limit_per_minute=config.serve.rate_limit_per_minute,
+            admin_limit_per_minute=config.serve.admin_limit_per_minute,
+            trusted_proxy_cidrs=tuple(config.serve.trusted_proxy_cidrs),
+            metrics_enabled=config.serve.metrics_enabled,
+            metrics_path=config.serve.metrics_path,
+        )
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            workers=workers,
+            limit_concurrency=config.serve.limit_concurrency,
+            limit_max_requests=config.serve.limit_max_requests,
+            timeout_keep_alive=config.serve.timeout_keep_alive,
+            timeout_graceful_shutdown=config.serve.timeout_graceful_shutdown,
+            log_level=config.log.level.lower(),
+        )
     return 0
 
 
@@ -284,7 +352,7 @@ def setup_log(argv: list[str]) -> None:
     """
     try:
         config = load_cfg(resolve_cfg(argv))
-    except Exception:
+    except (Cfg, OSError, TypeError, ValueError, yaml.YAMLError):
         configure_log(level="INFO", structured=False)
         return
     configure_log(

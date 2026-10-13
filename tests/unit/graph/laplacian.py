@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 import scipy.sparse as sp
+import torch
 
 from morel.core.errors import Net
 from morel.graph.laplacian import Laplace, laplacian, pe, signs, start
@@ -53,6 +54,16 @@ class Checker:
         a = lap(path3)
         b = lap(path3)
         assert a.data_ptr() == b.data_ptr()
+
+    def prime(self, path3) -> None:
+        """Persisted encodings can populate the content-addressed cache."""
+        lap = Laplace(k=2)
+        encoding = lap(path3)
+        lap.clear()
+        lap.prime(path3, encoding)
+        assert torch.equal(lap(path3), encoding)
+        with pytest.raises(Net, match="persisted positional encoding"):
+            lap.prime(path3, np.zeros((1, 1), dtype=np.float32))
 
     def full(self, path3) -> None:
         lap = Laplace(k=2, capacity=2)

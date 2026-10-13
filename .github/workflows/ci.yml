@@ -45,17 +45,37 @@ jobs:
       - name: Typecheck
         run: mypy morel/
 
-      - name: Security audit
-        run: pip-audit --strict
-
       - name: Build
         run: |
           pip install build twine
           python -m build
           twine check dist/*
 
+      - name: Verify built wheel
+        run: make audit-artifact
+
+      - name: Audit installed wheel environment
+        run: |
+          pip install --force-reinstall --no-deps dist/*.whl
+          pip-audit --strict --local
+
+      - name: Security audit
+        run: pip-audit --strict --disable-pip --requirement requirements.lock
+
       - name: Test
         run: pytest tests/ -n auto --timeout=120
+
+      - name: Verify published test metrics
+        run: python scripts/check_verification.py
+
+      - name: Verify documentation examples
+        run: python scripts/check_docs.py
+
+      - name: Critical module coverage
+        run: make audit-critical
+
+      - name: Failure-injection gate
+        run: make fault-injection
 
       - name: Upload coverage
         if: matrix.python-version == '3.11' && matrix.os == 'ubuntu-latest'
@@ -106,3 +126,70 @@ jobs:
           cache: pip
       - run: pip install -e ".[dev]"
       - run: pytest tests/ -m gpu --timeout=60 -v
+
+  site:
+    name: site build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: site/pnpm-lock.yaml
+      - name: Install pnpm
+        run: npm install --global pnpm@9.15.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - name: Frontend unit tests
+        run: pnpm test:unit
+      - run: pnpm build
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser smoke tests
+        run: pnpm test:e2e --project=chromium
+
+  container:
+    name: container smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build runtime image
+        run: docker build --tag morel:ci .
+      - name: Scan runtime image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: morel:ci
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+      - name: Exercise production health contract
+        run: |
+          container_id=$(docker run --detach --publish 18080:8080 \
+            --env MOREL_ENV=production \
+            --env MOREL_AUTH_TOKEN_READ=ci-read-token-123456 \
+            --env MOREL_AUTH_TOKEN_ADMIN=ci-admin-token-654321 \
+            morel:ci serve --workers 2)
+          cleanup() {
+            docker rm --force "$container_id" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:18080/health >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          curl --fail --silent http://127.0.0.1:18080/health
+          ready_status=$(curl --silent --output /tmp/morel-ready.json \
+            --write-out '%{http_code}' http://127.0.0.1:18080/health/ready)
+          test "$ready_status" = 503
+          for attempt in $(seq 1 20); do
+            curl --fail --silent http://127.0.0.1:18080/health >/dev/null
+          done
+          docker logs "$container_id"

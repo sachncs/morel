@@ -133,10 +133,6 @@ def download(category: str, dest: Path | str, *, timeout: float = TIMEOUT) -> li
     Returns
     -------
         The list of decompressed file paths.
-
-    Returns
-    -------
-        The list of decompressed file paths.
     """
     return pull(BASE, category, dest, timeout=timeout)
 

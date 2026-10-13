@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import threading
 import time
-from typing import ClassVar
 
 import pytest
 import torch.nn as nn
@@ -12,11 +11,14 @@ import torch.nn as nn
 from morel.serve.auth import (
     admin,
     assert_,
+    assert_production,
     require,
     token,
     viewer,
 )
 from morel.serve.lock import RWLock
+from morel.serve.preflight import validate as validate_preflight
+from morel.serve.ratelimit import Limiter
 from morel.serve.update import Updater
 
 
@@ -101,11 +103,95 @@ class Checker:
         with pytest.raises(Cfg):
             assert_()
 
+    def production_requires_two_scopes(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Production mode cannot silently expose either HTTP scope."""
+        from morel.core.errors import Cfg
+
+        monkeypatch.setenv("MOREL_ENV", "production")
+        monkeypatch.delenv("MOREL_AUTH_TOKEN", raising=False)
+        monkeypatch.delenv("MOREL_AUTH_TOKEN_READ", raising=False)
+        monkeypatch.delenv("MOREL_AUTH_TOKEN_ADMIN", raising=False)
+        with pytest.raises(Cfg, match="MOREL_ENV=production"):
+            assert_production()
+
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "read-token-123456")
+        with pytest.raises(Cfg, match="MOREL_ENV=production"):
+            assert_production()
+
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "admin-token-123456")
+        assert_production()
+
+    def production_rejects_weak_or_shared_tokens(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Production credentials must be long enough and scope-separated."""
+        from morel.core.errors import Cfg
+
+        monkeypatch.setenv("MOREL_ENV", "production")
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "short")
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "admin-token-123456")
+        with pytest.raises(Cfg, match="at least 16"):
+            assert_production()
+
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "same-token-123456")
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "same-token-123456")
+        with pytest.raises(Cfg, match="must be different"):
+            assert_production()
+
+    def production_preflight(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Production startup rejects unsafe logging configuration."""
+        from morel.core.config import Config, Log
+        from morel.core.errors import Cfg
+
+        monkeypatch.setenv("MOREL_ENV", "production")
+        with pytest.raises(Cfg, match="structured logging"):
+            validate_preflight(Config(log=Log(structured=False)))
+        with pytest.raises(Cfg, match="DEBUG"):
+            validate_preflight(Config(log=Log(level="DEBUG")))
+        validate_preflight(Config(), environ={"MOREL_ENV": "development"})
+
+    def production_requires_model_bundle(self) -> None:
+        """Production workers cannot start without an inherited bundle path."""
+        from morel.core.config import Config, Log
+        from morel.core.errors import Cfg
+
+        environ = {"MOREL_ENV": "production"}
+        config = Config(log=Log(level="INFO", structured=True))
+        with pytest.raises(Cfg, match="MOREL_SERVE_MODEL_DIR"):
+            validate_preflight(config, environ=environ)
+        validate_preflight(config, environ=environ, model_dir="runs/completion")
+
     def noop(self) -> None:
         class Req:
-            headers: ClassVar[dict[str, str]] = {}
+            def __init__(self) -> None:
+                self.headers: dict[str, str] = {}
 
         require(Req(), scope="read")
+
+    def trusted_proxy(self) -> None:
+        """Forwarded addresses are honored only from configured proxies."""
+        from starlette.requests import Request
+
+        def request(peer: str, forwarded: str) -> Request:
+            scope = {
+                "type": "http",
+                "method": "GET",
+                "path": "/",
+                "headers": [(b"x-forwarded-for", forwarded.encode())],
+                "client": (peer, 1234),
+            }
+            return Request(scope)
+
+        limiter = Limiter()
+        limiter.configure(per_minute_read=60, per_minute_admin=10)
+        direct = request("203.0.113.10", "198.51.100.8")
+        assert limiter.client_key(direct) == "203.0.113.10"
+
+        limiter.configure(
+            per_minute_read=60,
+            per_minute_admin=10,
+            trusted_proxy_cidrs=("203.0.113.0/24",),
+        )
+        trusted = request("203.0.113.10", "198.51.100.8, 203.0.113.11")
+        assert limiter.client_key(trusted) == "198.51.100.8"
 
     def raises(self, monkeypatch: pytest.MonkeyPatch) -> None:
         from fastapi import HTTPException
@@ -113,7 +199,8 @@ class Checker:
         monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "real-token")
 
         class Req:
-            headers: ClassVar[dict[str, str]] = {"authorization": "Bearer wrong"}
+            def __init__(self) -> None:
+                self.headers = {"authorization": "Bearer wrong"}
 
         with pytest.raises(HTTPException):
             require(Req(), scope="read")

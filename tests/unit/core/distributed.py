@@ -63,3 +63,18 @@ class Checker:
         dist.cleanup()
         assert dist.initialized() is False
         assert dist.state.initialized is False
+
+    def init_failure_is_wrapped(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Third-party process-group failures become typed errors and clean state."""
+        from morel.core.errors import Error
+
+        monkeypatch.setenv("WORLD_SIZE", "2")
+        monkeypatch.setattr(dist.torch.distributed, "is_available", lambda: True)
+
+        def fail(**_: object) -> None:
+            raise RuntimeError("backend unavailable")
+
+        monkeypatch.setattr(dist.torch.distributed, "init_process_group", fail)
+        with pytest.raises(Error, match="failed to init distributed group"):
+            dist.init(backend="gloo")
+        assert dist.state.initialized is False

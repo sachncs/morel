@@ -50,3 +50,33 @@ class Checker:
     def empty(self, tmp_path: Path) -> None:
         with pytest.raises(Datum):
             store(tmp_path / "x.npz")
+
+    def malformed(self, tmp_path: Path) -> None:
+        broken = tmp_path / "broken.npz"
+        broken.write_bytes(b"not an npz archive")
+        with pytest.raises(Datum, match="invalid npz"):
+            load_npz(broken)
+
+    def invalid_graph(self, tmp_path: Path) -> None:
+        target = tmp_path / "bad-graph.npz"
+        np.savez(
+            target,
+            data=np.ones(2),
+            row=np.array([0, 3]),
+            col=np.array([0, 1]),
+            shape=np.array([2, 2]),
+        )
+        with pytest.raises(Datum, match="outside its shape"):
+            load_graph(target)
+
+    def invalid_graph_values(self, tmp_path: Path) -> None:
+        target = tmp_path / "bad-values.npz"
+        np.savez(
+            target,
+            data=np.array([np.nan]),
+            row=np.array([0.0]),
+            col=np.array([0]),
+            shape=np.array([2, 2]),
+        )
+        with pytest.raises(Datum, match="integer arrays"):
+            load_graph(target)

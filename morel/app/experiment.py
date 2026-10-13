@@ -27,6 +27,7 @@ from morel.data import build_mask
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import cooccurrence
 from morel.data.manifest import Manifest
+from morel.data.store import save_graph, store
 from morel.eval import ablate, conditions, ndcg, recall, results
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, Fit
@@ -163,12 +164,36 @@ class Experiment:
             weight_decay=self.config.completion.weight_decay,
             amp=self.config.completion.amp,
             device=self.config.device,
+            checkpoint_config_hash=cfg_hash,
             monitor=None,
             checkpoint_dir=self.dir,
         )
         epochs = self.resolved()
         history = trainer.fit(
             loader, val_loader, epochs=epochs, patience=self.config.completion.patience
+        )
+
+        manifest = Manifest(
+            dataset="synthetic",
+            version="0",
+            code="morel.experiment",
+            seed=seed_value,
+            extractor="synthetic",
+            cfg_hash=cfg_hash,
+            parents=[],
+            extras={"items": self.items, "users": self.users, "epochs": epochs},
+        )
+        store(self.dir / "features.npz", manifest_obj=manifest, **dataset["features"])
+        np.save(self.dir / "mask.npy", dataset["mask"])
+        save_graph(self.dir / "item_graph.npz", dataset["item_adj"], manifest_obj=manifest)
+        save_graph(self.dir / "bipartite.npz", dataset["ui"], manifest_obj=manifest)
+        pipeline.warmup()
+        if pipeline.cadj is None:
+            raise RuntimeError("pipeline lost its item graph during artifact creation")
+        store(
+            self.dir / "pe.npz",
+            manifest_obj=manifest,
+            encoding=pipeline.encoder(pipeline.cadj).numpy(),
         )
 
         metrics_path = self.dir / "metrics.jsonl"
@@ -187,20 +212,6 @@ class Experiment:
                 + "\n"
             )
 
-        manifest = Manifest(
-            dataset="synthetic",
-            version="0",
-            code="morel.experiment",
-            seed=seed_value,
-            extractor="synthetic",
-            cfg_hash=cfg_hash,
-            parents=[],
-            extras={
-                "items": self.items,
-                "users": self.users,
-                "epochs": epochs,
-            },
-        )
         manifest_path = self.dir / "manifest.json"
         manifest_path.write_text(manifest.json(), encoding="utf-8")
 
@@ -305,6 +316,7 @@ class Rank:
             weight_decay=self.config.recommendation.weight_decay,
             amp=self.config.recommendation.amp,
             device=self.config.device,
+            checkpoint_config_hash=cfg_hash,
             monitor=None,
             checkpoint_dir=self.dir,
         )
@@ -589,9 +601,7 @@ class Robust:
                 index=index_t,
                 training=False,
             )
-            completed = torch.cat(
-                [output.completed[name] for name in ("visual", "text")], dim=-1
-            )
+            completed = torch.cat([output.completed[name] for name in ("visual", "text")], dim=-1)
             scores = pipeline.recommender(
                 torch.arange(self.users), index_t, dataset["ui"], item_features=completed
             )

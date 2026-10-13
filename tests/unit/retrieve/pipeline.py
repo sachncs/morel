@@ -49,3 +49,22 @@ class Checker:
         mask = np.zeros((3, 2), dtype=np.float32)
         sub = retrieve(0, features, mask, g, anchors=1, iters=1)
         assert sub == {0}
+
+    def prepared(self, monkeypatch) -> None:
+        """A MAGE batch prepares catalog relevance once for all queries."""
+        import morel.retrieve.pipeline as module
+
+        calls = 0
+        original = module.prepare
+
+        def counted(features, mask):
+            nonlocal calls
+            calls += 1
+            return original(features, mask)
+
+        monkeypatch.setattr(module, "prepare", counted)
+        g = path(5)
+        features = {"visual": np.eye(5, dtype=np.float32)}
+        mask = np.ones((5, 1), dtype=np.float32)
+        batch([0, 1, 2], features, mask, g, anchors=2, iters=2)
+        assert calls == 1

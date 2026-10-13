@@ -1,5 +1,10 @@
 # morel — End-to-End Refactor Plan
 
+> **Maintenance note (2026-10-13):** This document is a historical planning
+> snapshot and contains pre-audit counts and superseded implementation claims.
+> The authoritative current issue inventory, status map, verification evidence,
+> and remaining remediation plan are in [`AUDIT.md`](AUDIT.md).
+
 > **Status:** Approved by repository owner. Execution proceeds phase by phase; each phase
 > keeps the verification gates green (`ruff check`, `ruff format --check`, `mypy morel/`,
 > `pytest -q`, `morel render-fidelity`) before the next phase begins.

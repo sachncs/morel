@@ -30,7 +30,8 @@ users, items = 20, 50
 ui = bipartite(
     rng.integers(0, users, size=200),
     rng.integers(0, items, size=200),
-    users, items,
+    users,
+    items,
 )
 ```
 
@@ -54,9 +55,9 @@ data.
 ### 3. Build the item co-occurrence graph
 
 ```python
-from morel.data.build import item_cooccurrence
+from morel.data.build import cooccurrence
 
-adjacency = item_cooccurrence(ui)
+adjacency = cooccurrence(ui)
 ```
 
 This returns the symmetric item–item adjacency `sign(Uᵀ U)` with
@@ -69,10 +70,10 @@ context for each query item.
 from morel import Config, Pipeline
 
 pipeline = Pipeline(Config(), dims={"visual": 16, "text": 8})
-pipeline.attach_corpus(features, mask, adjacency)
+pipeline.attach(features, mask, adjacency)
 ```
 
-The pipeline is the orchestrator. `attach_corpus` registers the
+The pipeline is the orchestrator. `attach` registers the
 feature tensors, mask, and adjacency with the pipeline so every
 later forward call can find them.
 

@@ -123,6 +123,9 @@ Training-loop hyperparameters. The ``*val`` fields must be in
 | ``workers`` | ``int``  | ``1`` | Number of uvicorn workers. |
 | ``auth``    | ``bool`` | ``False`` | Whether auth is enabled (read-only; configure via env vars). |
 
+| ``metrics_enabled`` | ``bool`` | ``True`` | Expose the Prometheus metrics endpoint. |
+| ``metrics_path`` | ``str`` | ``/metrics`` | Prometheus endpoint path. |
+
 ## `log`
 
 | Field | Type | Default | Meaning |

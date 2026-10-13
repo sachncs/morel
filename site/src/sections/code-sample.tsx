@@ -65,7 +65,7 @@ function highlight(code: string): { token: string; cls?: string }[] {
             word,
           )
         ) {
-          out.push({ token: word, cls: "text-violet-600 dark:text-violet-300" });
+          out.push({ token: word, cls: "text-accent-700 dark:text-accent-300" });
         } else if (/^(torch|morel|numpy)$/.test(word) || /^[A-Z][A-Za-z0-9_]*$/.test(word)) {
           out.push({ token: word, cls: "text-sky-600 dark:text-sky-300" });
         } else {
@@ -161,7 +161,7 @@ export function CodeSample() {
         className="grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:items-start"
       >
         {/* Side panel */}
-        <div className="flex flex-col gap-6">
+        <div className="min-w-0 flex flex-col gap-6">
           <ul className="space-y-4">
             {[
               {
@@ -210,7 +210,7 @@ export function CodeSample() {
               Run the demo
             </LinkButton>
             <LinkButton
-              href={SITE.url + "docs/"}
+              href={SITE.docs}
               variant="secondary"
               size="md"
             >
@@ -220,8 +220,8 @@ export function CodeSample() {
         </div>
 
         {/* Code panel */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-1.5 rounded-full bg-ink-100 p-1 ring-1 ring-ink-200/60 dark:bg-white/5 dark:ring-white/10">
+        <div className="min-w-0 space-y-3">
+          <div className="flex min-w-0 items-center gap-1.5 overflow-x-auto rounded-full bg-ink-100 p-1 ring-1 ring-ink-200/60 dark:bg-white/5 dark:ring-white/10">
             {FILES.map((f) => (
               <button
                 key={f.name}

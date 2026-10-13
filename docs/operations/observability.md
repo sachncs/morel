@@ -47,6 +47,11 @@ scrape_configs:
       - targets: [morel-host:8080]
 ```
 
+Request rate limiting uses the direct peer address by default. When a
+trusted reverse proxy is present, set ``MOREL_TRUSTED_PROXY_CIDRS`` to its
+network(s); only then will the service use the right-most untrusted address
+from ``X-Forwarded-For``. Never trust that header from arbitrary clients.
+
 ### Counters
 
 | Name | Labels | Meaning |
@@ -75,6 +80,7 @@ In your own server module, attach new metrics to the same registry:
 
 ```python
 from morel.serve.metrics import REGISTRY
+
 
 @app.get("/internal")
 def my_endpoint() -> ...:
@@ -109,6 +115,7 @@ from fastapi import FastAPI
 from morel.serve import create
 
 app = create(loader)
+
 
 @app.middleware("http")
 async def trace(request, call_next):

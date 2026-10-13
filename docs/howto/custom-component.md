@@ -60,8 +60,7 @@ class SparseCodebook(nn.Module):
     the rest of the pipeline.
     """
 
-    def __init__(self, *, dim: int, size: int, router: nn.Module,
-                 seed: int | None = None) -> None:
+    def __init__(self, *, dim: int, size: int, router: nn.Module, seed: int | None = None) -> None:
         super().__init__()
         self.dim = dim
         self.size = size

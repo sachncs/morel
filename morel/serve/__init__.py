@@ -17,6 +17,7 @@ from morel.serve.auth import (
 )
 from morel.serve.loader import Loader
 from morel.serve.lock import Read, RWLock, Write, reader, writer
+from morel.serve.protocol import ServingPipeline, is_serving_pipeline
 from morel.serve.schema import (
     Done,
     Fill,
@@ -51,6 +52,7 @@ __all__ = [
     "Read",
     "Rollback",
     "Scope",
+    "ServingPipeline",
     "Signal",
     "Stats",
     "Step",
@@ -61,6 +63,7 @@ __all__ = [
     "assert_",
     "create",
     "dependency",
+    "is_serving_pipeline",
     "reader",
     "serialize",
     "token",

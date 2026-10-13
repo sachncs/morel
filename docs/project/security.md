@@ -34,7 +34,10 @@ The package:
 
 - Loads remote datasets via HTTPS with optional SHA256 verification.
 - Loads Sentence-Transformers and ResNet-50 weights from public model hubs.
-- Does **not** load arbitrary pickle files or remote code.
+- The production checkpoint path does **not** load arbitrary pickle files or
+  remote code. A legacy compatibility escape hatch exists for trusted,
+  operator-acknowledged checkpoints only; it is explicitly gated and must not
+  be used with untrusted artifacts.
 
 When loading artifacts:
 

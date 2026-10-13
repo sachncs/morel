@@ -19,56 +19,26 @@ The `morel serve` command starts a FastAPI application on
 - `POST /v1/rollback` — roll back the online updater (admin).
 - `GET /v1/stats` — read the updater's current state (admin).
 
-## Step 1 — register a factory
+## Step 1 — prepare a serving bundle
 
-`morel serve` will refuse to start unless a `Loader` has a `"default"`
-factory. The factory builds the live pipeline the first time an
-endpoint needs it. The cleanest way to do that is a small entry
-script:
+The server must load a completed run and its immutable corpus artifacts.
+Completion runs created by `morel train completion` contain the required
+`features.npz`, `mask.npy`, `item_graph.npz`, and `bipartite.npz` files,
+alongside the run's `best.pt` checkpoint.
+The loader verifies their config manifests before accepting requests.
+
+Start the server with:
 
 ```python
-# scripts/serve_app.py
-from pathlib import Path
-
-import numpy as np
-import scipy.sparse as sp
-import torch
-
-from morel import Config, Pipeline
-from morel.serve import Loader, create
-from morel.recommend import Light
-
-
-def build_pipeline(model_path: Path) -> Pipeline:
-    config = Config.load(model_path / "config.yaml")
-    pipeline = Pipeline(config, dims={"visual": config.encoder.visual_dim,
-                                      "text":    config.encoder.td})
-    state = torch.load(model_path / "checkpoints" / "best.pt",
-                       map_location="cpu", weights_only=True)
-    pipeline.load_state_dict(state["model"])
-    pipeline.eval()
-    return pipeline
-
-
-def main() -> None:
-    model_path = Path("runs/<timestamp>")
-    loader = Loader()
-    loader.register("default", lambda: build_pipeline(model_path))
-    app = create(loader)
-    import uvicorn
-
-    uvicorn.run(app, host="0.0.0.0", port=8080)
-
-
-if __name__ == "__main__":
-    main()
+python -m morel serve \
+    --model-dir runs/completion \
+    --host 0.0.0.0 \
+    --port 8080
 ```
 
-Run it with:
-
-```bash
-python scripts/serve_app.py
-```
+Without `--model-dir`, the process starts only as a liveness shell: model
+routes return `503` and readiness remains false. This fail-closed mode is
+useful for smoke-testing deployment wiring, but is not a production service.
 
 ## Step 2 — sanity-check the routes
 

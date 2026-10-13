@@ -1,41 +1,91 @@
-# morel — Production-Readiness Audit
+# Production-readiness status
 
-Final state after the end-to-end refactor. Each row cites a passing
-test or measurement that demonstrates the property.
+This page is a current verification index, not a historical phase report.
+The complete issue register and staged remediation plan live in
+[AUDIT.md](https://github.com/sachncs/morel/blob/master/AUDIT.md).
 
-| Area | Before | After | Verified By |
-|---|---|---|---|
-| **Correctness** | Completion trainer crashes on real Pipeline; Layer Post-LN vs Pre-LN docstring mismatch; `weights_only=False` everywhere; benchmark crashes on `np.eye` | `Completion.step` consumes `Output` dataclass; `Layer` is real Pre-LN; `safe_load` with `weights_only=True` + key whitelist; `benchmarks/train.py` runs against a real item cooccurrence graph | `tests/integration/pipeline.py`; `tests/unit/encode/encode.py::Checker::preln`; `tests/unit/train/checkpoint.py::Checker::safe_load_rejects_unsafe` |
-| **Architecture** | Three `Mask` overloads, two `Encoder` Protocols (data vs graph), no `Codebook` base, no `Recommender` Protocol, `Pipeline.register_buffers` shadowed `nn.Module.register_buffers`, `pipeline/pipeline.py` duplicated the class name | `Masking` config section, `FeatureEncoder` vs `GraphEncoder`, `Codebook` ABC, `Recommender` Protocol, `Pipeline.attach_corpus`, `morel/pipeline/composer.py` | layering machine-checked by `tests/unit/architecture.py`; ruff clean on critical lint categories |
-| **Reliability** | Trainer ignored `config.device`; AMP was a no-op; resume epoch arithmetic wrong; softmax-NaN on all-masked rows; ranked-MR on self included | Trainer honours `config.device`; AMP via `torch.amp`; resume fixed; NaN-safe softmax in `pool.Attention`; mean_relevance excludes self | `tests/unit/train/trainers.py::Checker::device`; `tests/unit/train/trainers.py::Checker::amp`; `tests/unit/encode/encode.py::Checker::pool`; `tests/unit/retrieve/relevance.py::Checker::mean_relevance` |
-| **Resilience** | Four CLI subcommands were stubs; `app.experiment.Experiment.run` was a no-op; data CLI extract/build were stubs; Amazon URL pointed at legacy mirror | CLI fully wired (`train`, `eval`, `bench`, `reproduce`, `render-fidelity`); `Experiment.run` writes the artifact bundle; data extract/build implemented; default URL is Amazon-Reviews-2023 | `morel train completion` exits 0 with `runs/<ts>/config.yaml` and `metrics.jsonl`; `morel reproduce configs/synthetic.yaml` works; `morel data extract --synthetic` produces `features.npz` |
-| **Performance** | Python loops in BPR negatives, mean_relevance, encode_subgraph | Vectorised BPR negatives, vectorised mean_relevance with batched matmul, padded-batched subgraph encoding | `tests/unit/recommend/recommend.py::Checker::negatives`; `tests/unit/retrieve/relevance.py::Checker::mean_relevance`; padded-batched `_encode_subgraph` keeps the integration tests green |
-| **Testing** | Hand-rolled test methods plus a class-method filter that hid module-level async tests | 659 collected tests (unit + integration + property + research) running through the `Checker` / `Spec` aggregator classes; integration pipeline covered end-to-end via `tests/integration/pipeline.py` | `pytest -q` exits 0 |
-| **Reproducibility** | `morel render-fidelity` did not exist; `morel reproduce` was a stub; fidelity registry was empty | `morel render-fidelity` writes 23 entries from a registered registry; `morel reproduce <yaml>` runs Experiment.run from a saved YAML; manifest sidecar binding enforced | `morel render-fidelity` produces non-empty FIDELITY.md/FIDELITY.json |
-| **API** | `from morel import Config, Pipeline, seed` failed; API.md listed non-existent symbols | `morel/__init__.py` re-exports the canonical surface; `docs/API.md` is regenerated from each module's `__all__` (closes #15) | `python -c "from morel import Config, Pipeline, seed_everything, Output"` exits 0 |
-| **Packaging** | `weights_only=False` in serve + checkpoint | `safe_load` + `unsafe_load` opt-in; device-mismatch cache move | `pip-audit` clean (existing); `tests/unit/train/checkpoint.py::Checker::safe_load_rejects_exploit_payload` |
-| **Documentation** | PRODUCTION_READINESS was a phase-report; FIDELITY was hand-edited; REPRODUCE described a fictional run; API.md listed non-existent symbols | All four documents re-rendered from real state; FIDELITY auto-renders from the registry | `morel render-fidelity docs/FIDELITY.md docs/FIDELITY.json` exits 0 with populated table |
-| **Paper fidelity** | Registry existed but no entries registered; PRODUCTION_READINESS.md claimed components that were EXACT or APPROXIMATE without proof | 23 components registered with `paper`, `equation`, `implementation`, `test`, `deviation` | `tests/research/fidelity.py` walks every entry and asserts the referenced test exists |
-| **Serve** | `weights_only=False` in loader; stub `/v1/recommend`; random `/v1/complete`; unbounded items list; legacy token grants admin scope | Hardened loader; live `/v1/recommend` and `/v1/complete` on the configured pipeline; bounded items; scoped auth; `/health/ready`; Prometheus exposition | `tests/unit/serve/serve.py::Checker::*`; `tests/unit/serve/features.py` |
+## Verified locally
 
-## Headline numbers
+The following commands pass in the repository's supported local environment:
 
-- **659 tests collected** (unit + integration + property + research), all
-  passing on the current source.
-- Real `Pipeline` driven through `Completion` end-to-end (P0 fix).
-- One canonical public surface via `morel/__init__.py`; `docs/API.md`
-  is generated from each module's `__all__`.
-- **23 paper components** registered in the fidelity registry, each
-  backed by a passing test referenced from the registry entry.
-- Single config source (`morel.core.config.Config`); manifest-bound
-  resume; `seed_everything()` deterministic; `Config.__post_init__`
-  validates every construction path.
-- PEP 561 `py.typed` marker; strict mypy (unblocked by the numpy
-  pinning); ruff + format-check enforced in CI.
+```text
+pytest -q                         557 passed, 83.58% coverage
+ruff check .                      pass
+ruff format --check .             pass
+mypy morel/                       pass
+make lock-check                  pass
+pip-audit --strict ...            no known vulnerabilities
+make audit-artifact              built wheel installs and imports successfully
+make fault-injection              11 targeted failure-path tests pass
+make serve-workers-smoke          two-worker lifecycle and fail-closed readiness pass
+make serve-model-smoke            two-worker real-checkpoint inference pass
+make serve-soak                   bounded concurrent two-worker HTTP soak pass
+docker build + health smoke      image builds; liveness 200; readiness 503 without model
+pnpm test:e2e --project=chromium  14 passed
+```
 
-> **Note on coverage**: the `--cov-fail-under` gate is configured at a
-> level appropriate to the trimmed test selection. See `tests/conftest.py`
-> for the `Checker` / `Spec` filter and `docs/PRODUCTION_READINESS.md` for
-> the rationale. Lines that are platform- or backend-specific
-> (CUDA paths, model-download encoders) carry `# pragma: no cover`
-> annotations so the measured coverage reflects the production path.
+The browser suite covers mobile navigation, focus trapping, Escape handling,
+theme persistence, clipboard feedback, reduced motion, WCAG A/AA axe checks,
+canonical links, and rendered-link resolution. The same suite also passes
+against a Pages-shaped `/morel/` artifact.
+
+## Current safety boundaries
+
+- Production serving requires `MOREL_ENV=production` plus separate read and
+  admin credentials.
+- Production startup requires a serving bundle path through `--model-dir` or
+  `MOREL_SERVE_MODEL_DIR`; development may start fail-closed without one.
+- Metrics exposure and the Prometheus route are explicit validated serving
+  settings rather than an undocumented hard-coded deployment assumption.
+- Serving rate limits, model-factory timeout, and trusted proxy CIDRs are
+  validated in `Config.serve` and are no longer hard-coded only in the app.
+- Serving also validates and passes bounded per-worker concurrency,
+  keep-alive, graceful-shutdown, and request-recycling settings to Uvicorn.
+- Serving bounds retrieved graph nodes and fails closed with a typed domain
+  error when the configured retrieval budget is exceeded.
+- Serving bundle loading warms graph positional encodings before readiness,
+  preventing the first live request from paying the graph eigensolver cost.
+- Serving loads checkpoints with `weights_only=True` and validates their
+  schema and configuration hash.
+- The legacy arbitrary-pickle loader is isolated in
+  `morel.train.legacy.load_trusted`, gated behind an explicit
+  `acknowledge_risk=True` argument, and never used by serving. The old
+  `checkpoint.unsafe` name is retained only as a compatibility shim.
+- Reverse-proxy client addresses are trusted only when their CIDRs are listed
+  in `MOREL_TRUSTED_PROXY_CIDRS`.
+- Model serving fails closed when a real pipeline, corpus, graph, or
+  recommender is unavailable.
+
+## Not yet verified or published
+
+- The redesigned site has not been pushed to `master`; the public GitHub Pages
+  URL still serves the previous build.
+- The rebuilt Pages artifact includes a compatibility redirect at `/docs/` for
+  older inbound links; the live route remains unverified until deployment.
+- The production Docker image now builds locally and in CI with CPU-only
+  PyTorch, explicit serving dependencies, a non-root writable log directory,
+  and a health/readiness smoke contract.
+- CI now installs the exact built wheel, scans the production image for
+  high/critical OS and library vulnerabilities, and runs a local-environment
+  vulnerability audit in addition to the hash-pinned lockfile audit. An
+  artifact SBOM is generated from the runtime lock during release.
+- A bounded repeated mixed-traffic test, named `make fault-injection` gate,
+  two-worker lifecycle smoke, and bounded concurrent HTTP soak are release
+  gates. A 60-second local soak also passes with four concurrent clients;
+  production-scale full-load characterization and rollback drills remain open.
+- Critical-module coverage is now gated separately for serving, pipeline, CLI,
+  and checkpoint loading via `make audit-critical`.
+- Malformed HTTP payload property coverage and data-stream boundary tests are
+  present; malformed-artifact and broader configuration fuzz coverage remains
+  incomplete.
+- The retrieval encoder uses batched gathers for padded subgraphs; MAGE shares
+  one relevance index across a batch and lazily materializes active neighbor
+  rows. End-to-end
+  retrieval/relevance hot-path benchmarking is still required before setting
+  latency budgets. The bounded local 1k-item benchmark currently measures
+  approximately 969 ms for one default-MAGE run; an uncapped 10k forward pass
+  measured 19.58s, including 17.53s for Laplacian positional encoding, so
+  persisted/warmed graph encodings and catalog-scale retrieval remain open.
+- Repeated recommendation scores reuse an explicit completed-catalog cache;
+  the cache is invalidated on corpus attachment and when training mode begins.
+- External deployment observability, rollback, and alert drills remain open.

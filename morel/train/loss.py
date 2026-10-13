@@ -49,7 +49,6 @@ class Reconstruction(Loss):
         aux: dict[str, torch.Tensor] | None = None,
     ) -> torch.Tensor:
         """Return the masked MSE reconstruction loss summed over modalities."""
-        del aux
         if not predictions:
             return torch.tensor(0.0)
         modalities = list(predictions.keys())
@@ -86,7 +85,6 @@ class BPR(Loss):
         aux: dict[str, torch.Tensor] | None = None,
     ) -> torch.Tensor:
         """Return the mean BPR ranking loss."""
-        del predictions, targets, mask
         return -torch.log(torch.sigmoid(self.pos - self.neg) + self.eps).mean()
 
 

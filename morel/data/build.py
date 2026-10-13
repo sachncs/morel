@@ -28,8 +28,18 @@ def bipartite(user: np.ndarray, item: np.ndarray, users: int, items: int) -> sp.
     -------
         Sparse CSR matrix of shape ``(users, items)`` with float32 ones.
     """
+    if user.ndim != 1 or item.ndim != 1:
+        raise Datum("user and item ids must be 1-D arrays")
     if user.shape != item.shape:
         raise Datum(f"shape mismatch: user {user.shape} vs item {item.shape}")
+    if users <= 0 or items <= 0:
+        raise Datum(f"graph dimensions must be positive, got users={users}, items={items}")
+    if not np.issubdtype(user.dtype, np.integer) or not np.issubdtype(item.dtype, np.integer):
+        raise Datum("user and item ids must use integer dtypes")
+    if user.size and (user.min() < 0 or user.max() >= users):
+        raise Datum(f"user ids must be in [0, {users})")
+    if item.size and (item.min() < 0 or item.max() >= items):
+        raise Datum(f"item ids must be in [0, {items})")
     data = np.ones(user.shape[0], dtype=np.float32)
     matrix = sp.csr_matrix((data, (user, item)), shape=(users, items))
     matrix.sum_duplicates()
@@ -134,6 +144,9 @@ def interactions(
                 except json.JSONDecodeError:
                     skipped_meta += 1
                     continue
+                if not isinstance(record, dict):
+                    skipped_meta += 1
+                    continue
                 asin = record.get("asin")
                 if asin is not None and asin in item2id:
                     item_meta[item2id[asin]] = record
@@ -172,9 +185,7 @@ def cooccurrence_stream(
     rows: list[int] = []
     cols: list[int] = []
     data: list[int] = []
-    for _user_chunk, item_chunk in stream(
-        review_path, min_edges=min_edges, chunk_size=chunk_size
-    ):
+    for _user_chunk, item_chunk in stream(review_path, min_edges=min_edges, chunk_size=chunk_size):
         # For each user the items they touched form a clique in the
         # item co-occurrence graph. Track pairs by keeping the items
         # in a small fixed buffer (one user's worth) before iterating.

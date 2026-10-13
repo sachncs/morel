@@ -93,7 +93,6 @@ class VQ(Codebook):
             Tuple of ``(quantized, indices)`` where ``quantized`` has straight-through
             gradient and ``indices`` are the chosen codebook indices.
         """
-        del training
         flat = hidden.view(-1, self.dim)
         distances = (
             flat.pow(2).sum(dim=-1, keepdim=True)
@@ -186,7 +185,6 @@ class Noop(Codebook):
         self, hidden: torch.Tensor, *, training: bool = True
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Return the input unchanged with a uniform routing distribution."""
-        del training
         batch_shape = hidden.shape[:-1]
         probs = torch.full(
             (*batch_shape, self.size), 1.0 / self.size, device=hidden.device, dtype=hidden.dtype

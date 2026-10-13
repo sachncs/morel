@@ -81,8 +81,11 @@ def load_npz(
         raise Datum(f"npz artifact not found: {path}")
     if manifest.locate(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
-    with np.load(path, allow_pickle=False) as npz:
-        return {key: npz[key] for key in npz.files}
+    try:
+        with np.load(path, allow_pickle=False) as npz:
+            return {key: npz[key] for key in npz.files}
+    except (OSError, TypeError, ValueError, KeyError) as exc:
+        raise Datum(f"invalid npz artifact: {path}") from exc
 
 
 def save_graph(
@@ -126,12 +129,34 @@ def load_graph(target: Path | str, *, expected_config_hash: str | None = None) -
         raise Datum(f"graph artifact not found: {path}")
     if manifest.locate(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
-    with np.load(path, allow_pickle=False) as npz:
-        data = npz["data"]
-        row = npz["row"]
-        col = npz["col"]
-        shape = tuple(int(s) for s in npz["shape"])
-    coo = sp.coo_matrix((data, (row, col)), shape=shape)
+    try:
+        with np.load(path, allow_pickle=False) as npz:
+            data = npz["data"]
+            row = npz["row"]
+            col = npz["col"]
+            raw_shape = npz["shape"]
+        if any(array.ndim != 1 for array in (data, row, col)):
+            raise Datum(f"graph arrays must be one-dimensional: {path}")
+        if len(row) != len(col) or len(data) != len(row):
+            raise Datum(f"graph arrays have inconsistent lengths: {path}")
+        if not all(np.issubdtype(array.dtype, np.integer) for array in (row, col, raw_shape)):
+            raise Datum(f"graph coordinates and shape must be integer arrays: {path}")
+        if not np.issubdtype(data.dtype, np.number) or not np.isfinite(data).all():
+            raise Datum(f"graph weights must be finite numeric values: {path}")
+        if raw_shape.ndim != 1 or raw_shape.size != 2:
+            raise Datum(f"graph shape must contain two dimensions: {path}")
+        shape = tuple(int(size) for size in raw_shape)
+        if any(size < 0 for size in shape):
+            raise Datum(f"graph shape cannot be negative: {path}")
+        if len(row) and (
+            np.any(row < 0) or np.any(col < 0) or np.any(row >= shape[0]) or np.any(col >= shape[1])
+        ):
+            raise Datum(f"graph coordinates are outside its shape: {path}")
+        coo = sp.coo_matrix((data, (row, col)), shape=shape)
+    except Datum:
+        raise
+    except (OSError, TypeError, ValueError, KeyError) as exc:
+        raise Datum(f"invalid graph artifact: {path}") from exc
     return coo.tocsr()
 
 

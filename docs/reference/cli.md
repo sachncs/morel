@@ -74,6 +74,16 @@ morel train completion [--config CFG] [--epochs N] [--items N] [--users N]
 morel train recommendation [--config CFG] [--epochs N] [--items N] [--users N]
 ```
 
+### `morel serve`
+
+```bash
+morel serve --model-dir RUN_DIR [--host HOST] [--port PORT] [--workers N] [--config CFG]
+```
+
+`RUN_DIR` must contain the config, checkpoint, feature, mask, and graph
+artifacts produced by a completed training run. Omitting it starts a
+fail-closed liveness shell whose model routes return `503`.
+
 ## `morel eval`
 
 ### `morel eval rank`
@@ -123,11 +133,12 @@ deterministically.
 ## `morel serve`
 
 ```bash
-morel serve [--host HOST] [--port PORT] [--workers N] [--config CFG]
+morel serve --model-dir RUN_DIR [--host HOST] [--port PORT] [--workers N] [--config CFG]
 ```
 
-Starts the FastAPI inference server. Configuration of rate limits and
-auth happens via the env vars documented in
+Starts the FastAPI inference server from a validated run artifact bundle.
+Without ``--model-dir`` it starts a fail-closed liveness shell. Configuration
+of rate limits and auth happens via the env vars documented in
 [How-to: serve](../howto/serve.md).
 
 ## `morel render-fidelity`

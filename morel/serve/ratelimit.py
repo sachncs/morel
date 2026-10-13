@@ -10,11 +10,13 @@ from __future__ import annotations
 import threading
 import time
 from collections.abc import Callable
+from ipaddress import IPv4Network, IPv6Network, ip_address, ip_network
 from typing import Literal
 
 from fastapi import HTTPException, Request
 
 Scope = Literal["read", "admin"]
+Network = IPv4Network | IPv6Network
 
 
 class Limiter:
@@ -33,11 +35,48 @@ class Limiter:
         self._buckets: dict[str, dict[str, tuple[float, float, float]]] = {}
         self._lock = threading.Lock()
         self._ttl: float = 600.0
+        self._trusted_proxies: tuple[Network, ...] = ()
 
-    def configure(self, *, per_minute_read: int, per_minute_admin: int) -> None:
-        """Set the per-minute budgets for both scopes."""
+    def configure(
+        self,
+        *,
+        per_minute_read: int,
+        per_minute_admin: int,
+        trusted_proxy_cidrs: tuple[str, ...] = (),
+    ) -> None:
+        """Set budgets and the explicitly trusted reverse-proxy networks.
+
+        Forwarded headers are ignored unless the direct peer belongs to one
+        of ``trusted_proxy_cidrs``. This keeps clients from spoofing a source
+        address when the service is exposed directly.
+        """
         self.per_minute_read = max(1, int(per_minute_read))
         self.per_minute_admin = max(1, int(per_minute_admin))
+        self._trusted_proxies = tuple(
+            ip_network(cidr, strict=False) for cidr in trusted_proxy_cidrs
+        )
+
+    def client_key(self, request: Request) -> str:
+        """Return the caller address used for rate limiting.
+
+        When a trusted proxy is the direct peer, the right-most untrusted
+        address in ``X-Forwarded-For`` is selected. If the chain is malformed
+        or contains only trusted addresses, the direct peer remains the key.
+        """
+        peer = request.client.host if request.client is not None else "unknown"
+        peer_address = _parse_address(peer)
+        if peer_address is None or not self._is_trusted(peer_address):
+            return peer
+        forwarded = request.headers.get("x-forwarded-for", "")
+        chain = [candidate.strip() for candidate in forwarded.split(",") if candidate.strip()]
+        for candidate in reversed(chain):
+            address = _parse_address(candidate)
+            if address is not None and not self._is_trusted(address):
+                return str(address)
+        return peer
+
+    def _is_trusted(self, address: object) -> bool:
+        return any(address in network for network in self._trusted_proxies)
 
     def allow(self, ip: str, scope: Scope) -> tuple[bool, float]:
         """Charge one token from the caller's bucket.
@@ -68,11 +107,10 @@ class Limiter:
         for ip in list(self._buckets.keys()):
             scopes = self._buckets[ip]
             stale = True
-            for tokens, last, last_used in scopes.values():
+            for _tokens, _last, last_used in scopes.values():
                 if last_used >= stale_before:
                     stale = False
                     break
-                del tokens, last  # placate unused-variable linters; we only read last_used
             if stale:
                 self._buckets.pop(ip, None)
 
@@ -80,17 +118,26 @@ class Limiter:
 limiter = Limiter()
 
 
-def ratelimit_dependency(scope: Scope) -> Callable[[Request], None]:
+def ratelimit_dependency(
+    scope: Scope, limiter_instance: Limiter | None = None
+) -> Callable[[Request], None]:
     """Return a FastAPI dependency that enforces the per-IP budget.
+
+    Args:
+        scope: Budget to charge.
+        limiter_instance: Limiter owned by one application instance. When
+            omitted, the module-level limiter is used for backwards
+            compatibility with direct callers.
 
     The dependency raises ``HTTPException(429, ...)`` with a
     ``Retry-After`` header attached when the caller's bucket is empty
     so naive clients (and most well-behaved ones) back off correctly.
     """
+    active_limiter = limiter if limiter_instance is None else limiter_instance
 
     def scoped(request: Request) -> None:
-        ip = request.client.host if request.client is not None else "test"
-        allowed, retry_after = limiter.allow(ip, scope)
+        key = active_limiter.client_key(request)
+        allowed, retry_after = active_limiter.allow(key, scope)
         if not allowed:
             response = HTTPException(
                 status_code=429,
@@ -101,6 +148,17 @@ def ratelimit_dependency(scope: Scope) -> Callable[[Request], None]:
         return
 
     return scoped
+
+
+def _parse_address(value: str) -> object | None:
+    """Parse an IP address from a proxy header value."""
+    value = value.strip().strip('"')
+    if value.startswith("[") and "]" in value:
+        value = value[1 : value.index("]")]
+    try:
+        return ip_address(value)
+    except ValueError:
+        return None
 
 
 __all__ = ["Limiter", "Scope", "limiter", "ratelimit_dependency"]

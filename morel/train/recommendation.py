@@ -70,6 +70,7 @@ class Recommendation(Trainer):
         checkpoint_dir: Path | str | None = None,
         device: str | torch.device | None = None,
         amp: bool = False,
+        checkpoint_config_hash: str | None = None,
     ) -> None:
         """Initialize the recommendation trainer.
 
@@ -100,6 +101,7 @@ class Recommendation(Trainer):
             grad_clip=config.grad_clip if hasattr(config, "grad_clip") else 1.0,
             device=device,
             amp=amp,
+            checkpoint_config_hash=checkpoint_config_hash,
         )
         self.ui = ui_graph
         self.users = ui_graph.shape[0]
@@ -141,9 +143,7 @@ class Recommendation(Trainer):
         # user); the next ``batch`` rows are negatives (one per user).
         bs = users.shape[0]
         pos_scores = scores[row_idx, torch.arange(bs, device=self.device)]
-        neg_scores = scores[
-            row_idx, torch.arange(bs, 2 * bs, device=self.device)
-        ]
+        neg_scores = scores[row_idx, torch.arange(bs, 2 * bs, device=self.device)]
         loss = bpr_loss(pos_scores, neg_scores)
         loss.backward()  # type: ignore[no-untyped-call]  # torch stubs leave this untyped
         self.clip(list(self.model.parameters()))
@@ -164,9 +164,7 @@ class Recommendation(Trainer):
                 row_idx = torch.arange(users.shape[0], device=self.device)
                 bs = users.shape[0]
                 pos_scores = scores[row_idx, torch.arange(bs, device=self.device)]
-                neg_scores = scores[
-                    row_idx, torch.arange(bs, 2 * bs, device=self.device)
-                ]
+                neg_scores = scores[row_idx, torch.arange(bs, 2 * bs, device=self.device)]
                 loss = bpr_loss(pos_scores, neg_scores)
                 total += float(loss.item())
                 count += 1

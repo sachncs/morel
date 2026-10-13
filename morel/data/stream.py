@@ -19,6 +19,25 @@ import scipy.sparse as sp
 from morel.core.errors import Datum
 
 
+def _positive_int(value: int, name: str) -> None:
+    """Validate a positive streaming parameter."""
+    if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
+        raise Datum(f"{name} must be a positive integer, got {value!r}")
+
+
+def _pair(record: object) -> tuple[str, str] | None:
+    """Extract a valid Amazon user/item pair from one decoded record."""
+    if not isinstance(record, dict):
+        return None
+    user = record.get("reviewerID")
+    item = record.get("asin")
+    if not isinstance(user, str) or not user.strip():
+        return None
+    if not isinstance(item, str) or not item.strip():
+        return None
+    return user, item
+
+
 def review(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict[str, Any]]]:
     """Yield chunks of JSON-decoded records from an Amazon review file.
 
@@ -34,22 +53,28 @@ def review(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict
     list[dict]
         A list of at most ``chunk_size`` parsed records.
     """
+    _positive_int(chunk_size, "chunk_size")
     target = Path(path)
     if not target.exists():
         raise Datum(f"review file not found: {target}")
     chunk: list[dict[str, Any]] = []
-    with target.open(encoding="utf-8") as handle:
-        for line in handle:
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError:
-                continue
-            chunk.append(record)
-            if len(chunk) >= chunk_size:
+    try:
+        with target.open(encoding="utf-8") as handle:
+            for line in handle:
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if not isinstance(record, dict):
+                    continue
+                chunk.append(record)
+                if len(chunk) >= chunk_size:
+                    yield chunk
+                    chunk = []
+            if chunk:
                 yield chunk
-                chunk = []
-        if chunk:
-            yield chunk
+    except (OSError, UnicodeError) as exc:
+        raise Datum(f"unable to read review file: {target}") from exc
 
 
 def stream(
@@ -75,16 +100,18 @@ def stream(
     tuple[np.ndarray, np.ndarray]
         ``(user_ids, item_ids)`` for each chunk after filtering.
     """
+    _positive_int(min_edges, "min_edges")
+    _positive_int(chunk_size, "chunk_size")
     rolling_window: deque[tuple[str, str]] = deque(maxlen=chunk_size * 4)
     degree_counter: Counter[str] = Counter()
     seen_pairs: set[tuple[str, str]] = set()
 
     for chunk in review(review_path, chunk_size=chunk_size):
         for record in chunk:
-            user = record.get("reviewerID")
-            item = record.get("asin")
-            if user is None or item is None:
+            pair = _pair(record)
+            if pair is None:
                 continue
+            user, item = pair
             key = (user, item)
             if key in seen_pairs:
                 continue
@@ -127,18 +154,24 @@ def confirmed(
     tuple[sp.csr_matrix, dict[str, int], dict[str, int]]
         ``(ui_graph, user_id_to_idx, item_id_to_idx)``.
     """
+    _positive_int(min_edges, "min_edges")
+    _positive_int(chunk_size, "chunk_size")
     review_path = Path(review_path)
     if not review_path.exists():
         raise Datum(f"review file not found: {review_path}")
 
     user_counts: Counter[str] = Counter()
     item_counts: Counter[str] = Counter()
+    counted: set[tuple[str, str]] = set()
     for chunk in review(review_path, chunk_size=chunk_size):
         for record in chunk:
-            user = record.get("reviewerID")
-            item = record.get("asin")
-            if user is None or item is None:
+            pair = _pair(record)
+            if pair is None:
                 continue
+            user, item = pair
+            if pair in counted:
+                continue
+            counted.add(pair)
             user_counts[user] += 1
             item_counts[item] += 1
 
@@ -149,10 +182,10 @@ def confirmed(
     seen: set[tuple[str, str]] = set()
     for chunk in review(review_path, chunk_size=chunk_size):
         for record in chunk:
-            user = record.get("reviewerID")
-            item = record.get("asin")
-            if user is None or item is None:
+            pair = _pair(record)
+            if pair is None:
                 continue
+            user, item = pair
             if user not in keep_users or item not in keep_items:
                 continue
             key = (user, item)
@@ -203,11 +236,22 @@ def cooc(
     sp.csr_matrix
         Symmetric ``(items, items)`` item co-occurrence adjacency.
     """
+    _positive_int(items, "items")
     rows: list[int] = []
     cols: list[int] = []
     data: list[int] = []
-    for _user_ids, item_ids in ui_chunks:
-        per_user_items = sorted({int(i) for i in item_ids})
+    for user_ids, item_ids in ui_chunks:
+        users_array = np.asarray(user_ids)
+        items_array = np.asarray(item_ids)
+        if users_array.ndim != 1 or items_array.ndim != 1:
+            raise Datum("stream chunks must contain one-dimensional id arrays")
+        if users_array.shape != items_array.shape:
+            raise Datum("stream user and item chunks must have equal lengths")
+        if items_array.size and not np.issubdtype(items_array.dtype, np.integer):
+            raise Datum("stream item ids must be integers")
+        if items_array.size and (np.any(items_array < 0) or np.any(items_array >= items)):
+            raise Datum("stream item id is outside the catalog bounds")
+        per_user_items = sorted({int(i) for i in items_array})
         for idx, a in enumerate(per_user_items):
             for b in per_user_items[idx + 1 :]:
                 rows.append(a)

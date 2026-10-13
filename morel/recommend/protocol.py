@@ -7,12 +7,13 @@ uniformly.
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 import scipy.sparse as sp
 import torch
 
 
+@runtime_checkable
 class Recommender(Protocol):
     """One downstream ranker.
 
@@ -35,4 +36,37 @@ class Recommender(Protocol):
         ...
 
 
-__all__ = ["Recommender"]
+@runtime_checkable
+class FeatureAware(Protocol):
+    """Optional capability for rankers that consume completed item features."""
+
+    def score_with_features(
+        self,
+        users: torch.Tensor,
+        items: torch.Tensor,
+        ui_graph: sp.csr_matrix | None,
+        item_features: torch.Tensor,
+    ) -> torch.Tensor:
+        """Score items after incorporating completed modality features."""
+        ...
+
+
+@runtime_checkable
+class Normalizes(Protocol):
+    """Optional capability for graph recommenders with cached normalization."""
+
+    def normalize(self, ui_graph: sp.csr_matrix) -> torch.Tensor:
+        """Prepare or retrieve normalized graph state."""
+        ...
+
+
+@runtime_checkable
+class Fits(Protocol):
+    """Optional capability for recommenders requiring corpus fitting."""
+
+    def fit(self, ui_graph: sp.csr_matrix) -> None:
+        """Fit graph-derived item state."""
+        ...
+
+
+__all__ = ["FeatureAware", "Fits", "Normalizes", "Recommender"]

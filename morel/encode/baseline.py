@@ -1,14 +1,15 @@
-"""Enc Protocol and simple baselines."""
+"""GraphEncoder protocol and simple baselines."""
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 import torch
 import torch.nn as nn
 
 
-class Enc(Protocol):
+@runtime_checkable
+class GraphEncoder(Protocol):
     """Graph encoder turns modality features into a hidden embedding.
 
     Attributes
@@ -24,6 +25,11 @@ class Enc(Protocol):
     ) -> torch.Tensor:
         """Return ``(B, hidden)`` embeddings."""
         ...
+
+
+# Compatibility alias for the original short name. New integrations should
+# depend on GraphEncoder so it cannot be confused with a raw feature encoder.
+Enc = GraphEncoder
 
 
 class Identity(nn.Module):
@@ -163,4 +169,4 @@ class Baseline(nn.Module):
         return encoded
 
 
-__all__ = ["Baseline", "Enc", "Identity", "Sum"]
+__all__ = ["Baseline", "Enc", "GraphEncoder", "Identity", "Sum"]

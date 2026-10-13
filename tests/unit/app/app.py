@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import torch
+
 from morel.app import Benchmark, Experiment, Reproduce
 from morel.core.config import Config
+from morel.serve.factory import from_run
 
 
 class Checker:
@@ -21,8 +24,12 @@ class Checker:
         assert (tmp_path / "config.yaml").exists()
         assert (tmp_path / "manifest.json").exists()
         assert (tmp_path / "metrics.jsonl").exists()
+        assert (tmp_path / "pe.npz").exists()
+        assert (tmp_path / "pe.npz.manifest.json").exists()
         assert (tmp_path / "FIDELITY.md").exists()
         assert (tmp_path / "report.md").exists()
+        pipeline = from_run(tmp_path)
+        assert tuple(pipeline.score(torch.tensor([0]), torch.arange(2)).shape) == (1, 2)
 
     def reproduce(self, tmp_path: Path) -> None:
         config_path = tmp_path / "config.yaml"

@@ -19,7 +19,6 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: [
-          "Inter",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
@@ -30,8 +29,7 @@ const config: Config = {
           "sans-serif",
         ],
         display: [
-          "InterDisplay",
-          "Inter",
+          "ui-sans-serif",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
@@ -42,7 +40,6 @@ const config: Config = {
           "sans-serif",
         ],
         mono: [
-          "JetBrains Mono",
           "ui-monospace",
           "SFMono-Regular",
           "Menlo",
@@ -68,28 +65,16 @@ const config: Config = {
           950: "#0a0a0e",
         },
         accent: {
-          50: "#eef0ff",
-          100: "#dee3ff",
-          200: "#c4cbff",
-          300: "#9ea6ff",
-          400: "#7a7eff",
-          500: "#5d57ff",
-          600: "#4a3df0",
-          700: "#3d2fd1",
-          800: "#3228a8",
-          900: "#2a2384",
-        },
-        violet: {
-          50: "#f6f3ff",
-          100: "#ebe5ff",
-          200: "#d8ccff",
-          300: "#b8a3ff",
-          400: "#9573ff",
-          500: "#7a4dff",
-          600: "#6934e6",
-          700: "#5826bf",
-          800: "#48219c",
-          900: "#3d1f7e",
+          50: "#fbf3e5",
+          100: "#f4e4c7",
+          200: "#e8ca98",
+          300: "#d6aa65",
+          400: "#c58e3d",
+          500: "#b87a2c",
+          600: "#9a5e1d",
+          700: "#7c4819",
+          800: "#633a1b",
+          900: "#4b2e1a",
         },
       },
       letterSpacing: {
@@ -107,12 +92,12 @@ const config: Config = {
       backgroundImage: {
         "grid-fade": "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0) 100%)",
         "hero-glow":
-          "radial-gradient(80% 60% at 50% 0%, rgba(99, 102, 241, 0.18) 0%, rgba(168, 85, 247, 0.10) 35%, rgba(0,0,0,0) 70%)",
+          "radial-gradient(80% 60% at 50% 0%, rgba(184, 122, 44, 0.16) 0%, rgba(111, 78, 55, 0.08) 35%, rgba(0,0,0,0) 70%)",
         "soft-glow":
-          "radial-gradient(40% 40% at 50% 50%, rgba(122, 77, 255, 0.18) 0%, rgba(0,0,0,0) 70%)",
+          "radial-gradient(40% 40% at 50% 50%, rgba(184, 122, 44, 0.16) 0%, rgba(0,0,0,0) 70%)",
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(255,255,255,0.04), 0 30px 80px -20px rgba(99,102,241,0.30)",
+        glow: "0 0 0 1px rgba(255,255,255,0.04), 0 30px 80px -20px rgba(184,122,44,0.22)",
         card: "0 1px 0 0 rgba(255,255,255,0.06) inset, 0 30px 60px -30px rgba(0,0,0,0.6)",
         ring: "0 0 0 1px rgba(255,255,255,0.08)",
       },

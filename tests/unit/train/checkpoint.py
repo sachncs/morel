@@ -10,6 +10,7 @@ import torch.nn as nn
 
 from morel.core.errors import Cfg, Model
 from morel.train.checkpoint import State, hash_config, load, unsafe
+from morel.train.legacy import load_trusted
 from morel.train.monitor import Monitor
 
 
@@ -85,6 +86,16 @@ class Checker:
         with pytest.raises(Model):
             load(bad_path)
 
+    def schema(self, tmp_path: Path) -> None:
+        """Safe loading rejects malformed metadata before model hydration."""
+        bad_path = tmp_path / "malformed.pt"
+        torch.save(
+            {"model": {"weight": torch.zeros(1)}, "epoch": -1, "metric": 0.0},
+            bad_path,
+        )
+        with pytest.raises(Model, match="invalid epoch"):
+            load(bad_path)
+
     def exploit(self, tmp_path: Path) -> None:
         """Unsafe is the explicit opt-in for non-tensor payloads."""
         payload_path = tmp_path / "ok.pt"
@@ -92,8 +103,19 @@ class Checker:
             {"model": {"x": torch.zeros(1)}, "obj": Marker},
             payload_path,
         )
-        payload = unsafe(payload_path)
+        with pytest.warns(RuntimeWarning, match="executes pickle"):
+            payload = unsafe(payload_path, acknowledge_risk=True)
         assert "obj" in payload
+
+    def unsafe_requires_acknowledgement(self, tmp_path: Path) -> None:
+        """The legacy arbitrary-pickle path cannot be called accidentally."""
+        with pytest.raises(Cfg, match="acknowledge_risk=True"):
+            unsafe(tmp_path / "checkpoint.pt")
+
+    def trusted_boundary(self, tmp_path: Path) -> None:
+        """The explicit legacy module exposes the same guarded boundary."""
+        with pytest.raises(Cfg, match="acknowledge_risk=True"):
+            load_trusted(tmp_path / "checkpoint.pt")
 
     def dict(self, tmp_path: Path) -> None:
         p = tmp_path / "scalar.pt"

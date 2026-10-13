@@ -6,6 +6,8 @@ modalities jointly observed for both nodes i and v.
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+
 import numpy as np
 
 from morel.core.errors import Shape
@@ -20,6 +22,76 @@ def scale(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     norms = np.linalg.norm(matrix, axis=1, keepdims=True)
     safe = np.where(norms == 0.0, 1.0, norms)
     return matrix / safe, (norms.flatten() > 0)
+
+
+@dataclass(frozen=True)
+class RelevanceIndex:
+    """Pre-normalized feature state for repeated relevance queries.
+
+    MAGE evaluates many add/remove candidates for one query. Keeping the
+    normalized modality matrices in this immutable value avoids rescanning
+    and normalizing the entire catalog for every candidate.
+    """
+
+    normalized: dict[str, np.ndarray]
+    valid: dict[str, np.ndarray]
+    mask: np.ndarray
+    _query_scores: dict[int, np.ndarray] = field(default_factory=dict, repr=False, compare=False)
+    _query_usable: dict[int, np.ndarray] = field(default_factory=dict, repr=False, compare=False)
+
+    def _scores_for_query(self, i: int) -> np.ndarray:
+        """Return cached relevance from query ``i`` to every catalog item."""
+        cached = self._query_scores.get(int(i))
+        if cached is not None:
+            return cached
+        scores = np.zeros(self.mask.shape[0], dtype=np.float64)
+        denominators = np.zeros(self.mask.shape[0], dtype=np.float64)
+        for mod_idx, name in enumerate(self.normalized):
+            normalized = self.normalized[name]
+            valid = self.valid[name]
+            if not valid[i] or self.mask[i, mod_idx] <= 0:
+                continue
+            available = (self.mask[:, mod_idx] > 0) & valid
+            if not available.any():
+                continue
+            scores[available] += normalized[available] @ normalized[i]
+            denominators[available] += 1.0
+        result = np.divide(
+            scores,
+            denominators,
+            out=np.zeros_like(scores),
+            where=denominators > 0,
+        )
+        self._query_scores[int(i)] = result
+        self._query_usable[int(i)] = denominators > 0
+        return result
+
+    def score(self, i: int, nodes: np.ndarray) -> float:
+        """Return mean relevance for ``i`` over ``nodes``."""
+        if nodes.size == 0:
+            return 0.0
+        candidates = np.asarray(nodes, dtype=np.int64)
+        candidates = candidates[candidates != i]
+        if candidates.size == 0:
+            return 0.0
+        values = self._scores_for_query(int(i))[candidates]
+        usable = self._query_usable[int(i)][candidates]
+        return float(values[usable].mean()) if usable.any() else 0.0
+
+
+def prepare(features: dict[str, np.ndarray], mask: np.ndarray) -> RelevanceIndex:
+    """Build reusable normalized state for repeated relevance calculations."""
+    if not features:
+        raise Shape("features dict is empty")
+    if mask.ndim != 2 or mask.shape[1] != len(features):
+        raise Shape(f"mask shape {mask.shape} incompatible with {len(features)} modalities")
+    normalized: dict[str, np.ndarray] = {}
+    valid: dict[str, np.ndarray] = {}
+    for name, values in features.items():
+        values_normalized, values_valid = scale(values.astype(np.float64, copy=False))
+        normalized[name] = values_normalized
+        valid[name] = values_valid
+    return RelevanceIndex(normalized=normalized, valid=valid, mask=mask)
 
 
 def relevance(
@@ -98,36 +170,7 @@ def rel(
     float
         Mean relevance. Returns 0.0 if no candidates.
     """
-    if nodes.size == 0:
-        return 0.0
-    candidates = np.asarray([int(v) for v in nodes if int(v) != i], dtype=np.int64)
-    if candidates.size == 0:
-        return 0.0
-    n_candidates = candidates.size
-    modalities = list(features.keys())
-    sims = np.zeros(n_candidates, dtype=np.float64)
-    denom_per_node = np.zeros(n_candidates, dtype=np.float64)
-    for mod_idx, name in enumerate(modalities):
-        feats = features[name]
-        normalized, valid = scale(feats.astype(np.float64, copy=False))
-        query_norm = normalized[i] if valid[i] else None
-        if query_norm is None:
-            continue
-        cand_norms = normalized[candidates]
-        cand_valid = valid[candidates]
-        available = (mask[i, mod_idx] > 0) & (mask[candidates, mod_idx] > 0) & cand_valid
-        if not available.any():
-            continue
-        available_indices = np.where(available)[0]
-        sims_per = cand_norms[available_indices] @ query_norm
-        sims[available_indices] += sims_per
-        denom_per_node[available_indices] += 1
-    denom_per_node[denom_per_node == 0] = 1
-    final = sims / denom_per_node
-    valid = denom_per_node > 0
-    if not valid.any():
-        return 0.0
-    return float(final[valid].mean())
+    return prepare(features, mask).score(i, nodes)
 
 
-__all__ = ["rel", "relevance"]
+__all__ = ["RelevanceIndex", "prepare", "rel", "relevance", "scale"]

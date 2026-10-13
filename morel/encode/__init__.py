@@ -3,7 +3,7 @@
 import torch.nn as nn
 
 from morel.core.errors import Cfg
-from morel.encode.baseline import Baseline, Enc, Identity, Sum
+from morel.encode.baseline import Baseline, Enc, GraphEncoder, Identity, Sum
 from morel.encode.input import Input
 from morel.encode.layer import Layer
 from morel.encode.pool import CLS, Attention, Mean, Token
@@ -66,6 +66,7 @@ __all__ = [
     "Attention",
     "Baseline",
     "Enc",
+    "GraphEncoder",
     "Identity",
     "Input",
     "Layer",

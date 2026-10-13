@@ -30,8 +30,8 @@ class Spec(Protocol):
 
 
 @dataclass(frozen=True)
-class Mask:
-    """Immutable mask value object with the Mask Protocol.
+class ModalityMask:
+    """Immutable value object describing modality availability.
 
     Attributes
     ----------
@@ -76,7 +76,7 @@ class Mask:
         return self.data
 
 
-def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> Mask:
+def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> ModalityMask:
     """Independent Bernoulli masking with at-least-one repair.
 
     Args:
@@ -87,7 +87,7 @@ def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> Mask:
 
     Returns
     -------
-        A ``Mask`` with shape ``(items, modalities)``.
+        A ``ModalityMask`` with shape ``(items, modalities)``.
     """
     if not 0.0 <= ratio <= 1.0:
         raise Datum(f"ratio must be in [0, 1], got {ratio}")
@@ -105,10 +105,10 @@ def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> Mask:
         first_keep = np.where(no_kept, 0, first_keep)
         rows = np.where(needs_repair)[0]
         base[rows, first_keep] = 1.0
-    return Mask(data=base)
+    return ModalityMask(data=base)
 
 
-def block(items: int, modalities: int, block_size: int, *, seed: int) -> Mask:
+def block(items: int, modalities: int, block_size: int, *, seed: int) -> ModalityMask:
     """Block masking: contiguous modality spans are masked together.
 
     Args:
@@ -119,7 +119,7 @@ def block(items: int, modalities: int, block_size: int, *, seed: int) -> Mask:
 
     Returns
     -------
-        A ``Mask``.
+        A ``ModalityMask``.
     """
     if block_size <= 0 or block_size > modalities:
         raise Datum(f"block_size must be in [1, {modalities}], got {block_size}")
@@ -128,10 +128,10 @@ def block(items: int, modalities: int, block_size: int, *, seed: int) -> Mask:
     for i in range(items):
         start = int(rng.integers(0, modalities - block_size + 1))
         base[i, start : start + block_size] = 0.0
-    return Mask(data=base)
+    return ModalityMask(data=base)
 
 
-def structured(pattern: np.ndarray) -> Mask:
+def structured(pattern: np.ndarray) -> ModalityMask:
     """Use a fixed pattern (e.g. ground-truth modality availability) as the mask.
 
     Args:
@@ -139,13 +139,13 @@ def structured(pattern: np.ndarray) -> Mask:
 
     Returns
     -------
-        A ``Mask``.
+        A ``ModalityMask``.
     """
     pattern = pattern.astype(np.float32, copy=False)
-    return Mask(data=pattern)
+    return ModalityMask(data=pattern)
 
 
-def stack(masks: list[Mask]) -> np.ndarray:
+def stack(masks: list[ModalityMask]) -> np.ndarray:
     """Stack a list of masks into a 3-D array ``(len(masks), items, modalities)``."""
     if not masks:
         raise Datum("stack requires at least one mask")
@@ -153,4 +153,10 @@ def stack(masks: list[Mask]) -> np.ndarray:
     return np.stack(arrays, axis=0)
 
 
-__all__ = ["Mask", "Spec", "bernoulli", "block", "stack", "structured"]
+# Compatibility alias for callers of the original public name. New code should
+# use ModalityMask to distinguish this value object from configuration/protocol
+# concepts that describe masking behavior.
+Mask = ModalityMask
+
+
+__all__ = ["Mask", "ModalityMask", "Spec", "bernoulli", "block", "stack", "structured"]

@@ -9,6 +9,7 @@ from morel.data.acquire import download, fetch
 from morel.data.build import bipartite, cooccurrence, interactions, kcore
 from morel.data.extract import (
     Feature,
+    FeatureEncoder,
     Random,
     Sentence,
     Vision,
@@ -30,7 +31,7 @@ from morel.data.manifest import (
 from morel.data.manifest import (
     save as save_manifest,
 )
-from morel.data.mask import Mask, bernoulli, block, stack, structured
+from morel.data.mask import Mask, ModalityMask, bernoulli, block, stack, structured
 from morel.data.store import load_graph, load_npz, save_graph, store
 from morel.data.stream import (
     confirmed,
@@ -43,7 +44,7 @@ from morel.data.validate import interactions as validate_interactions
 from morel.data.validate import mask as check
 
 
-def assemble(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> Feature:
+def assemble(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> FeatureEncoder:
     """Build the feature encoder selected by ``config.encoder.{text,visual}``.
 
     Args:
@@ -55,7 +56,7 @@ def assemble(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> Feature:
 
     Returns
     -------
-        A :class:`Feature` instance.
+        A :class:`FeatureEncoder` instance.
 
     Raises
     ------
@@ -74,18 +75,18 @@ def assemble(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> Feature:
 
 
 #: Map from config name to encoder class for introspection.
-EXTRACTORS: dict[str, type[Feature]] = {
+EXTRACTORS: dict[str, type[FeatureEncoder]] = {
     "random": Random,
     "sentence-transformers/all-MiniLM-L6-v2": Sentence,
     "resnet50": Vision,
 }
 
 
-def build_mask(kind: str, *, items: int, modalities: int, ratio: float, seed: int) -> Mask:
+def build_mask(kind: str, *, items: int, modalities: int, ratio: float, seed: int) -> ModalityMask:
     """Build the masking strategy selected by ``config.masking.kind``.
 
     Args:
-        kind: Mask name. One of ``"bernoulli"``, ``"block"``.
+        kind: Masking strategy name. One of ``"bernoulli"``, ``"block"``.
         items: Number of items to mask.
         modalities: Number of modalities per item.
         ratio: Fraction of modalities to drop.
@@ -93,7 +94,7 @@ def build_mask(kind: str, *, items: int, modalities: int, ratio: float, seed: in
 
     Returns
     -------
-        A :class:`Mask` instance.
+        A :class:`ModalityMask` instance.
 
     Raises
     ------
@@ -125,6 +126,7 @@ __all__ = [
     "Feature",
     "Manifest",
     "Mask",
+    "ModalityMask",
     "Random",
     "Sentence",
     "Vision",

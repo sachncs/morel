@@ -15,6 +15,7 @@ from __future__ import annotations
 import threading
 import time
 
+import torch
 import torch.nn as nn
 
 from morel.serve.update import Updater
@@ -97,6 +98,40 @@ class Checker:
             stop.set()
             for thread in threads:
                 thread.join(timeout=TIMEOUT)
+
+    def update_is_atomic(self) -> None:
+        """Inference readers cannot enter while a loss step mutates weights."""
+        live = updater()
+        started = threading.Event()
+        release = threading.Event()
+
+        def mutating_step(batch) -> float:
+            started.set()
+            with torch.no_grad():
+                live.pipeline.weight.add_(1.0)
+            release.wait(timeout=TIMEOUT)
+            return 0.5
+
+        live.loss_step = mutating_step
+        live.accept(1, 2, "click")
+        update_thread = threading.Thread(target=live.tick)
+        update_thread.start()
+        assert started.wait(timeout=TIMEOUT)
+
+        reader_acquired = threading.Event()
+
+        def reader() -> None:
+            with live.lock.read():
+                reader_acquired.set()
+
+        reader_thread = threading.Thread(target=reader)
+        reader_thread.start()
+        time.sleep(0.05)
+        assert not reader_acquired.is_set(), "reader entered during an in-flight update"
+        release.set()
+        update_thread.join(timeout=TIMEOUT)
+        reader_thread.join(timeout=TIMEOUT)
+        assert reader_acquired.is_set()
 
     def feedback(self) -> None:
         """stats() must not raise or report nonsense while events arrive."""

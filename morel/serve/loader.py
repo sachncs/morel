@@ -39,6 +39,7 @@ class Loader:
             that gates the factory invocation.
         factories: Mapping from cache key to a registered factory
             callable. ``None`` is not allowed as a factory result.
+        validators: Optional result validators keyed like ``factories``.
     """
 
     def __init__(
@@ -62,18 +63,23 @@ class Loader:
         if factory_timeout <= 0:
             raise ValueError("factory_timeout must be positive")
         self.capacity = capacity
-        self.building_capacity = (
-            capacity if building_capacity is None else int(building_capacity)
-        )
+        self.building_capacity = capacity if building_capacity is None else int(building_capacity)
         if self.building_capacity <= 0:
             raise ValueError("building_capacity must be positive")
         self.factory_timeout = float(factory_timeout)
         self.cache: OrderedDict[str, Any] = OrderedDict()
         self.factories: dict[str, Callable[[], Any]] = {}
+        self.validators: dict[str, Callable[[object], bool]] = {}
         self.lock = threading.Lock()
         self.building: OrderedDict[str, threading.Condition] = OrderedDict()
 
-    def register(self, key: str, factory: Callable[[], Any]) -> None:
+    def register(
+        self,
+        key: str,
+        factory: Callable[[], Any],
+        *,
+        validator: Callable[[object], bool] | None = None,
+    ) -> None:
         """Register ``factory`` to build the pipeline for ``key``.
 
         Re-registering an existing key replaces the factory and evicts
@@ -84,13 +90,22 @@ class Loader:
             key: Cache key the factory builds for.
             factory: Callable returning the pipeline object. Must return
                 a non-``None`` value.
+            validator: Optional runtime contract check applied to the factory
+                result before it is cached. Startup callers should supply a
+                validator for every production extension point.
         """
         if not isinstance(key, str) or not key:
             raise ValueError("key must be a non-empty string")
         if not callable(factory):
             raise ValueError("factory must be callable")
+        if validator is not None and not callable(validator):
+            raise ValueError("validator must be callable")
         with self.lock:
             self.factories[key] = factory
+            if validator is None:
+                self.validators.pop(key, None)
+            else:
+                self.validators[key] = validator
             self.cache.pop(key, None)
 
     def get(self, key: str, factory: Callable[[], Any] | None = None) -> Any:
@@ -115,23 +130,28 @@ class Loader:
             if key in self.cache:
                 self.cache.move_to_end(key)
                 return self.cache[key]
-            cond = self.building.get(key)
-            if cond is None:
-                cond = threading.Condition(self.lock)
-                self.building[key] = cond
-                first = True
-                if len(self.building) > self.building_capacity:
-                    self.building.popitem(last=False)
-                    cond = self.building[key]
-            else:
-                first = False
             build_factory = factory if factory is not None else self.factories.get(key)
             if build_factory is None:
                 raise Model(f"no factory registered for loader key {key!r}")
+            validator = self.validators.get(key)
+            cond = self.building.get(key)
+            if cond is None:
+                if len(self.building) >= self.building_capacity:
+                    raise Model(
+                        "loader has reached its concurrent build limit; "
+                        "retry after an in-flight factory completes"
+                    )
+                cond = threading.Condition(self.lock)
+                self.building[key] = cond
+                first = True
+            else:
+                first = False
         if not first:
             with cond:
                 deadline = _Deadline.after(self.factory_timeout)
                 while key not in self.cache:
+                    if key not in self.building:
+                        raise Model(f"loader factory for {key!r} failed")
                     remaining = deadline.remaining()
                     if remaining <= 0:
                         raise Model(
@@ -150,11 +170,15 @@ class Loader:
             model = build_factory()
             if model is None:
                 raise Model(f"loader factory returned None for key {key!r}")
-        except BaseException:
-            with self.lock:
-                self.building.pop(key, None)
-            with cond:
-                cond.notify_all()
+            if validator is not None and not validator(model):
+                raise Model(f"loader factory returned an incompatible value for key {key!r}")
+        except Exception:
+            self._abort_build(key, cond)
+            raise
+        except (KeyboardInterrupt, SystemExit):
+            # Do not leave waiters blocked when the process is interrupted
+            # during a factory call. Cancellation is intentionally preserved.
+            self._abort_build(key, cond)
             raise
         if deadline.expired():
             # The factory only completed after the per-key timeout.
@@ -179,6 +203,13 @@ class Loader:
             cond.notify_all()
         return model
 
+    def _abort_build(self, key: str, cond: threading.Condition) -> None:
+        """Remove a failed build and wake callers waiting for its result."""
+        with self.lock:
+            self.building.pop(key, None)
+        with cond:
+            cond.notify_all()
+
     def registered(self) -> list[str]:
         """Return the keys with a registered factory."""
         with self.lock:
@@ -189,6 +220,7 @@ class Loader:
         with self.lock:
             self.cache.clear()
             self.factories.clear()
+            self.validators.clear()
             self.building.clear()
 
     def keys(self) -> list[str]:

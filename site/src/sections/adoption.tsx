@@ -31,12 +31,12 @@ export function Adoption() {
             className={cn(
               "ring-edge relative flex flex-col rounded-2xl p-7 sm:p-8",
               plan.highlight
-                ? "bg-gradient-to-br from-accent-500/[0.08] via-white to-violet-500/[0.06] ring-1 dark:from-accent-500/[0.12] dark:via-ink-900/60 dark:to-violet-500/[0.10]"
+                ? "bg-gradient-to-br from-accent-500/[0.08] via-white to-accent-700/[0.06] ring-1 dark:from-accent-500/[0.12] dark:via-ink-900/60 dark:to-accent-700/[0.10]"
                 : "bg-white/70 dark:bg-ink-900/40",
             )}
           >
             {plan.highlight && (
-              <span className="absolute -top-3 left-7 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent-500 to-violet-500 px-3 py-1 text-[11px] font-medium text-white shadow-glow">
+              <span className="absolute -top-3 left-7 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent-500 to-accent-700 px-3 py-1 text-[11px] font-medium text-white shadow-glow">
                 Recommended
               </span>
             )}

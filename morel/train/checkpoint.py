@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from pickle import UnpicklingError
@@ -12,6 +13,7 @@ from typing import Any
 import torch
 
 from morel.core.errors import Cfg, Model
+from morel.train.legacy import load_trusted
 
 ALLOWED = {"model", "optimizer", "epoch", "metric", "rng", "cfg_hash", "extras"}
 
@@ -58,22 +60,48 @@ def load(target: Path | str) -> dict[str, Any]:
     unknown = set(payload.keys()) - ALLOWED
     if unknown:
         raise Model(f"checkpoint at {path} has unknown keys: {sorted(unknown)}")
+    model = payload.get("model")
+    if not isinstance(model, dict) or not all(
+        isinstance(key, str) and isinstance(value, torch.Tensor) for key, value in model.items()
+    ):
+        raise Model(f"checkpoint at {path} has an invalid tensor model state")
+    optimizer = payload.get("optimizer")
+    if optimizer is not None and not isinstance(optimizer, dict):
+        raise Model(f"checkpoint at {path} has an invalid optimizer state")
+    rng = payload.get("rng")
+    if rng is not None and not isinstance(rng, dict):
+        raise Model(f"checkpoint at {path} has an invalid RNG state")
+    epoch = payload.get("epoch", 0)
+    if isinstance(epoch, bool) or not isinstance(epoch, int) or epoch < 0:
+        raise Model(f"checkpoint at {path} has an invalid epoch")
+    metric = payload.get("metric", 0.0)
+    if (
+        isinstance(metric, bool)
+        or not isinstance(metric, (int, float))
+        or not math.isfinite(metric)
+    ):
+        raise Model(f"checkpoint at {path} has an invalid metric")
+    cfg_hash = payload.get("cfg_hash", "")
+    if not isinstance(cfg_hash, str):
+        raise Model(f"checkpoint at {path} has an invalid config hash")
+    extras = payload.get("extras", {})
+    if not isinstance(extras, dict):
+        raise Model(f"checkpoint at {path} has invalid extras")
     return payload
 
 
-def unsafe(target: Path | str) -> dict[str, Any]:
-    """Load a checkpoint allowing arbitrary pickle deserialization.
+def unsafe(target: Path | str, *, acknowledge_risk: bool = False) -> dict[str, Any]:
+    """Compatibility shim for :func:`morel.train.legacy.load_trusted`.
 
-    Use only for trusted, in-house checkpoints that contain non-Tensor
-    state (e.g., custom optimizer buffers from older versions).
+    Prefer importing ``load_trusted`` from ``morel.train.legacy`` so the
+    security-sensitive boundary is visible in code review. This name remains
+    temporarily available for callers migrating from older morel releases.
+
+    Raises
+    ------
+        Cfg: If ``acknowledge_risk`` is not explicitly true.
     """
-    path = Path(target)
-    if not path.exists():
-        raise FileNotFoundError(path)
-    payload = torch.load(path, map_location="cpu", weights_only=False)
-    if not isinstance(payload, dict):
-        raise Model(f"checkpoint at {path} must be a dict, got {type(payload).__name__}")
-    return payload
+    return load_trusted(target, acknowledge_risk=acknowledge_risk)
 
 
 @dataclass

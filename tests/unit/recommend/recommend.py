@@ -8,8 +8,9 @@ import scipy.sparse as sp
 import torch
 
 from morel.core.errors import Datum, Model
-from morel.recommend import MF, Light, Pop, bpr, negatives
+from morel.recommend import KIND, MF, Light, Pop, bpr, build, negatives
 from morel.recommend.bpr import distinct, to_ranks
+from morel.recommend.protocol import FeatureAware, Recommender
 
 
 class Checker:
@@ -29,6 +30,28 @@ class Checker:
         with pytest.raises(ValueError, match="users and items must be positive"):
             Light(users=0, items=5)
 
+    def contracts(self) -> None:
+        """Every registered ranker satisfies the same scoring protocol."""
+        ui = sp.csr_matrix(np.eye(3, 4, dtype=np.float32))
+        for name in KIND:
+            ranker = build(name, users=3, items=4, embed=8, layers=1, seed=0)
+            assert isinstance(ranker, Recommender)
+            scores = ranker(torch.arange(3), torch.arange(4), ui)
+            assert scores.shape == (3, 4)
+
+    def feature_contract(self) -> None:
+        """Feature-aware rankers expose the completed-feature capability explicitly."""
+        light = Light(users=3, items=4, embed=8, layers=1, feature_dim=5, seed=0)
+        assert isinstance(light, FeatureAware)
+        ui = sp.csr_matrix(np.eye(3, 4, dtype=np.float32))
+        scores = light.score_with_features(
+            torch.arange(3),
+            torch.arange(4),
+            ui,
+            torch.zeros(4, 5),
+        )
+        assert scores.shape == (3, 4)
+
     def layers(self) -> None:
         with pytest.raises(ValueError, match="layers must be non-negative"):
             Light(users=5, items=5, layers=-1)
@@ -39,6 +62,17 @@ class Checker:
         light(torch.arange(3), torch.arange(4), ui)
         with pytest.raises(IndexError):
             light(torch.tensor([0, 99]), torch.arange(4))
+
+    def empty(self) -> None:
+        """Empty query batches return shaped tensors instead of calling max()."""
+        light = Light(users=3, items=4)
+        assert light(torch.empty(0, dtype=torch.long), torch.arange(4)).shape == (0, 4)
+        assert light(torch.arange(3), torch.empty(0, dtype=torch.long)).shape == (3, 0)
+
+    def negative(self) -> None:
+        light = Light(users=3, items=4)
+        with pytest.raises(IndexError):
+            light(torch.tensor([-1]), torch.tensor([0]))
 
     def positive(self) -> None:
         loss = bpr(torch.tensor([0.5]), torch.tensor([0.1]))

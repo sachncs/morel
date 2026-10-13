@@ -47,6 +47,7 @@ class Trainer(ABC):
         grad_clip: float | None = None,
         amp: bool = False,
         device: str | torch.device | None = None,
+        checkpoint_config_hash: str | None = None,
     ) -> None:
         """Initialize the trainer.
 
@@ -76,7 +77,7 @@ class Trainer(ABC):
             Path(checkpoint_dir).resolve() if checkpoint_dir is not None else None
         )
         self.peak: float = float("inf")
-        self.cfg_hash = hash_config(config)
+        self.cfg_hash = checkpoint_config_hash or hash_config(config)
         self.scaler = (
             torch.amp.GradScaler(self.device.type)
             if amp and self.device.type in {"cuda", "cpu"}

@@ -12,6 +12,7 @@ import datetime as dt
 import hashlib
 import json
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -56,9 +57,67 @@ class Manifest:
 
     @classmethod
     def parse_json(cls, text: str) -> Manifest:
-        """Deserialize from JSON."""
-        payload = json.loads(text)
-        return cls(**payload)
+        """Deserialize and validate a manifest JSON document.
+
+        Manifests are an input boundary: malformed sidecars must become the
+        domain-level :class:`Datum` error rather than leaking ``TypeError`` or
+        ``KeyError`` from dataclass construction into callers.
+        """
+        try:
+            payload = json.loads(text)
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise Datum("manifest is not valid JSON") from exc
+        if not isinstance(payload, Mapping):
+            raise Datum("manifest must contain a JSON object")
+
+        required = {
+            "dataset",
+            "version",
+            "code",
+            "seed",
+            "extractor",
+            "cfg_hash",
+            "parents",
+            "schema",
+            "timestamp",
+            "extras",
+        }
+        missing = sorted(required - payload.keys())
+        unknown = sorted(payload.keys() - required)
+        if missing:
+            raise Datum(f"manifest is missing fields: {', '.join(missing)}")
+        if unknown:
+            raise Datum(f"manifest contains unknown fields: {', '.join(unknown)}")
+
+        string_fields = ("dataset", "version", "code", "extractor", "cfg_hash", "timestamp")
+        if any(
+            not isinstance(payload[field], str) or not payload[field] for field in string_fields
+        ):
+            raise Datum("manifest string fields must be non-empty strings")
+        seed = payload["seed"]
+        schema = payload["schema"]
+        if isinstance(seed, bool) or not isinstance(seed, int):
+            raise Datum("manifest seed must be an integer")
+        if isinstance(schema, bool) or not isinstance(schema, int) or schema != VERSION:
+            raise Datum(f"unsupported manifest schema: {schema!r}")
+        parents = payload["parents"]
+        if not isinstance(parents, list) or any(not isinstance(parent, str) for parent in parents):
+            raise Datum("manifest parents must be a list of strings")
+        extras = payload["extras"]
+        if not isinstance(extras, dict):
+            raise Datum("manifest extras must be an object")
+        return cls(
+            dataset=payload["dataset"],
+            version=payload["version"],
+            code=payload["code"],
+            seed=seed,
+            extractor=payload["extractor"],
+            cfg_hash=payload["cfg_hash"],
+            parents=parents,
+            schema=schema,
+            timestamp=payload["timestamp"],
+            extras=extras,
+        )
 
 
 def locate(artifact: Path | str) -> Path:
@@ -105,7 +164,10 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
     sidecar = locate(artifact)
     if not sidecar.exists():
         raise Datum(f"manifest not found for {artifact}: {sidecar}")
-    manifest = Manifest.parse_json(sidecar.read_text(encoding="utf-8"))
+    try:
+        manifest = Manifest.parse_json(sidecar.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise Datum(f"unable to read manifest for {artifact}: {sidecar}") from exc
     if expected_config_hash is not None and manifest.cfg_hash != expected_config_hash:
         raise Datum(
             f"manifest config hash mismatch for {artifact}: "

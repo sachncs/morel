@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -58,3 +59,25 @@ class Checker:
     def path(self, tmp_path: Path) -> None:
         p = tmp_path / "data.npz"
         assert locate(p).name == "data.npz.manifest.json"
+
+    def malformed(self) -> None:
+        with pytest.raises(Datum, match="valid JSON"):
+            Manifest.parse_json("not-json")
+        with pytest.raises(Datum, match="missing fields"):
+            Manifest.parse_json("{}")
+
+    def invalid_types(self) -> None:
+        payload = {
+            "dataset": "Beauty",
+            "version": "1",
+            "code": "abc",
+            "seed": True,
+            "extractor": "text",
+            "cfg_hash": "hash",
+            "parents": [],
+            "schema": 1,
+            "timestamp": "2026-01-01T00:00:00+00:00",
+            "extras": {},
+        }
+        with pytest.raises(Datum, match="seed"):
+            Manifest.parse_json(json.dumps(payload))

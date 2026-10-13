@@ -122,10 +122,30 @@ def assert_() -> None:
         raise Cfg("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
 
 
+def assert_production() -> None:
+    """Require separate read and admin credentials in production mode.
+
+    Development and test processes remain unauthenticated unless explicitly
+    configured. A process declaring ``MOREL_ENV=production`` cannot silently
+    expose model or state-mutating endpoints without both scopes configured.
+    """
+    if os.environ.get("MOREL_ENV", "").strip().lower() != "production":
+        return
+    read = os.environ.get("MOREL_AUTH_TOKEN_READ", "").strip()
+    admin_token = os.environ.get("MOREL_AUTH_TOKEN_ADMIN", "").strip()
+    if not read or not admin_token:
+        raise Cfg("MOREL_ENV=production requires MOREL_AUTH_TOKEN_READ and MOREL_AUTH_TOKEN_ADMIN")
+    if len(read) < 16 or len(admin_token) < 16:
+        raise Cfg("production auth tokens must each contain at least 16 characters")
+    if hmac.compare_digest(read, admin_token):
+        raise Cfg("production read and admin auth tokens must be different")
+
+
 __all__ = [
     "Scope",
     "admin",
     "assert_",
+    "assert_production",
     "dependency",
     "require",
     "token",

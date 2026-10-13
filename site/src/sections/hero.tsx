@@ -3,7 +3,7 @@ import { ArrowRight, Github, Sparkles, Star } from "lucide-react";
 import { LinkButton } from "../components/button";
 import { Pill } from "../components/pill";
 import { PipelineDiagram } from "../components/pipeline-diagram";
-import { HERO_PILLS, SITE } from "../lib/content";
+import { HERO_PILLS, SITE, VERIFICATION } from "../lib/content";
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
@@ -31,7 +31,7 @@ export function Hero() {
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[820px]"
         style={{
           background:
-            "radial-gradient(60% 60% at 50% 0%, rgba(122,126,255,0.22) 0%, rgba(168,85,247,0.12) 40%, rgba(0,0,0,0) 75%)",
+            "radial-gradient(60% 60% at 50% 0%, rgba(184,122,44,0.22) 0%, rgba(111,78,55,0.12) 40%, rgba(0,0,0,0) 75%)",
         }}
       />
       {/* Subtle grid */}
@@ -50,7 +50,7 @@ export function Hero() {
           <motion.div variants={item}>
             <Pill tone="accent" className="mb-6">
               <Sparkles className="h-3 w-3" />
-              GRE-MC architecture · v1.0
+              GRE-MC architecture · API v{SITE.version}
             </Pill>
           </motion.div>
 
@@ -71,7 +71,7 @@ export function Hero() {
             modality completion. Feed it a user–item graph with incomplete
             per-item features, and it returns a trained recommender that
             finishes missing modalities before ranking — paper-faithful,
-            deterministic, production-ready.
+            deterministic, and ready to validate.
           </motion.p>
 
           <motion.div
@@ -144,7 +144,9 @@ export function Hero() {
           <span aria-hidden className="h-1 w-1 rounded-full bg-ink-300 dark:bg-ink-700" />
           <span>arxiv {SITE.arxiv}</span>
           <span aria-hidden className="h-1 w-1 rounded-full bg-ink-300 dark:bg-ink-700" />
-          <span>482 tests · 80% coverage</span>
+          <span>
+            {VERIFICATION.tests} tests · {VERIFICATION.coverage.toFixed(2)}% coverage · verified {VERIFICATION.lastVerified}
+          </span>
         </motion.div>
       </div>
     </section>

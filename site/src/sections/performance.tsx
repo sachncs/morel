@@ -1,35 +1,18 @@
-import { motion, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
-import { Activity, GaugeCircle, Sparkles, TestTube2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Activity, GaugeCircle, TestTube2 } from "lucide-react";
 import { Section } from "../components/section";
-import { STATS } from "../lib/content";
+import { SITE, STATS, VERIFICATION } from "../lib/content";
 import { cn, formatNumber } from "../lib/utils";
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 function CountUp({ to, suffix = "", decimals = 0 }: { to: number; suffix?: string; decimals?: number }) {
-  const ref = useRef<HTMLSpanElement | null>(null);
-  const inView = useInView(ref, { once: true, margin: "-80px" });
-  const [value, setValue] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    const duration = 1400;
-    const start = performance.now();
-    let raf = 0;
-    const step = (now: number) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setValue(eased * to);
-      if (t < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [inView, to]);
-
+  // Keep the published value truthful before, during, and after viewport
+  // animation. Metrics must never appear as zero while an observer or RAF is
+  // delayed, throttled, or disabled by the browser.
   return (
-    <span ref={ref} className="tabular-nums">
-      {formatNumber(Number(value.toFixed(decimals)))}
+    <span className="tabular-nums">
+      {formatNumber(Number(to.toFixed(decimals)))}
       {suffix}
     </span>
   );
@@ -39,16 +22,12 @@ const FEATURED = [
   {
     icon: Activity,
     label: "Recall@10",
-    baseline: 0.6145,
-    morel: 0.7342,
-    unit: "",
+    detail: "Compare against a LightGCN baseline on your catalog.",
   },
   {
     icon: GaugeCircle,
     label: "NDCG@10",
-    baseline: 0.6364,
-    morel: 0.7488,
-    unit: "",
+    detail: "Report the masking policy, split, and dataset version.",
   },
 ] as const;
 
@@ -63,7 +42,7 @@ export function Performance() {
           <span className="gradient-text">don't move on you.</span>
         </>
       }
-      description="We benchmark every release against the previous one. A 20% regression in any suite fails CI. Numbers below are from the synthetic benchmark suite that ships with the repo."
+      description="The repository ships reproducible benchmark fixtures for forward passes, retrieval, dataset construction, and training. Run them locally on representative hardware before setting a latency budget."
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {STATS.map((s, i) => (
@@ -79,7 +58,11 @@ export function Performance() {
               {s.label}
             </p>
             <p className="mt-3 text-4xl font-semibold tracking-tight text-ink-900 dark:text-white">
-              <CountUp to={parseFloat(s.value)} suffix={s.value.includes("%") ? "%" : ""} />
+              <CountUp
+                to={parseFloat(s.value)}
+                decimals={s.value.includes(".") ? 2 : 0}
+                suffix={s.value.includes("%") ? "%" : ""}
+              />
             </p>
           </motion.div>
         ))}
@@ -87,7 +70,6 @@ export function Performance() {
 
       <div className="mt-10 grid gap-4 lg:grid-cols-2">
         {FEATURED.map((row, i) => {
-          const delta = ((row.morel - row.baseline) / row.baseline) * 100;
           return (
             <motion.div
               key={row.label}
@@ -97,46 +79,20 @@ export function Performance() {
               transition={{ duration: 0.7, delay: i * 0.08, ease }}
               className="ring-edge relative overflow-hidden rounded-2xl bg-white/70 p-6 dark:bg-ink-900/40 sm:p-8"
             >
-              <div className="flex items-start justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <row.icon className="mt-1 h-5 w-5 shrink-0 text-accent-500" />
                 <div>
                   <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-ink-500 dark:text-ink-400">
                     {row.label}
                   </p>
-                  <p className="mt-3 text-5xl font-semibold tracking-tight text-ink-900 dark:text-white">
-                    <CountUp to={row.morel} decimals={4} />
+                  <p className="mt-3 text-2xl font-semibold tracking-tight text-ink-900 dark:text-white">
+                    Measure locally
                   </p>
                   <p className="mt-2 text-sm text-ink-600 dark:text-ink-300">
-                    Baseline LightGCN:{" "}
-                    <span className="font-mono text-ink-500 dark:text-ink-400">
-                      {row.baseline.toFixed(4)}
-                    </span>
+                    {row.detail}
                   </p>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 ring-1 ring-emerald-500/20 dark:text-emerald-300">
-                  <Sparkles className="h-3 w-3" />+{delta.toFixed(1)}%
-                </div>
               </div>
-              {/* Sparkline */}
-              <svg viewBox="0 0 400 80" className="mt-6 h-16 w-full">
-                <defs>
-                  <linearGradient id="perf-line" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#7a7eff" stopOpacity="0.2" />
-                    <stop offset="100%" stopColor="#c4a8ff" stopOpacity="1" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M 0 60 L 50 56 L 100 48 L 150 44 L 200 38 L 250 30 L 300 24 L 350 18 L 400 12"
-                  fill="none"
-                  stroke="url(#perf-line)"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 0 60 L 50 56 L 100 48 L 150 44 L 200 38 L 250 30 L 300 24 L 350 18 L 400 12 L 400 80 L 0 80 Z"
-                  fill="url(#perf-line)"
-                  opacity="0.12"
-                />
-              </svg>
             </motion.div>
           );
         })}
@@ -154,7 +110,16 @@ export function Performance() {
         <code className="rounded-md bg-ink-100 px-2 py-0.5 font-mono text-xs text-ink-700 dark:bg-white/5 dark:text-ink-200">
           pytest benchmarks/ --benchmark-only
         </code>
+        <span className="text-xs">(last verified {VERIFICATION.lastVerified})</span>
       </motion.div>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-ink-500 dark:text-ink-400">
+        <a className="underline decoration-ink-300 underline-offset-4 hover:text-accent-600" href={SITE.benchmarks}>
+          Benchmark methodology
+        </a>
+        <a className="underline decoration-ink-300 underline-offset-4 hover:text-accent-600" href={SITE.readiness}>
+          Readiness evidence
+        </a>
+      </div>
     </Section>
   );
 }

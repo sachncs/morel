@@ -121,10 +121,18 @@ class Light(nn.Module):
             Model: If ``item_features`` is supplied but no projection was
                 configured, or if its shape does not match.
         """
-        if users.max() >= self.users:
-            raise IndexError(f"user index {int(users.max())} >= {self.users}")
-        if items.max() >= self.items:
-            raise IndexError(f"item index {int(items.max())} >= {self.items}")
+        if users.ndim != 1 or items.ndim != 1:
+            raise ValueError("users and items must be 1-D id tensors")
+        if users.numel() == 0 or items.numel() == 0:
+            return torch.empty(
+                (users.shape[0], items.shape[0]),
+                dtype=self.user_emb.weight.dtype,
+                device=self.user_emb.weight.device,
+            )
+        if users.min() < 0 or users.max() >= self.users:
+            raise IndexError(f"user indices must be in [0, {self.users})")
+        if items.min() < 0 or items.max() >= self.items:
+            raise IndexError(f"item indices must be in [0, {self.items})")
         adj_norm = self.normalize(ui_graph)
         item_emb = self.item_emb.weight
         if item_features is not None:
@@ -148,6 +156,16 @@ class Light(nn.Module):
         u_emb = final[: self.users]
         i_emb = final[self.users :]
         return u_emb[users] @ i_emb[items].t()
+
+    def score_with_features(
+        self,
+        users: torch.Tensor,
+        items: torch.Tensor,
+        ui_graph: sp.csr_matrix | None,
+        item_features: torch.Tensor,
+    ) -> torch.Tensor:
+        """Score with completed item features through the explicit capability."""
+        return self.forward(users, items, ui_graph, item_features=item_features)
 
     def normalize(self, ui_graph: sp.csr_matrix | None) -> torch.Tensor:
         """Compute or fetch the cached normalized adjacency tensor.

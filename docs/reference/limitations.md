@@ -12,7 +12,8 @@ This document enumerates known boundaries of the implementation.
 - **Modality auto-detection** — modality names and dimensions are
   configured; there is no inference of modality presence from data.
 - **Multilingual sentence encoders** — only `sentence-transformers` is
-  supported; custom encoders plug in via the `Encoder` Protocol.
+  supported; custom raw-modality encoders plug in via the `FeatureEncoder`
+  Protocol.
 
 ## Approximations vs. paper
 

@@ -1,4 +1,4 @@
-"""Tests for morel.data.stream streaming primitives."""
+"""Tests for streaming data ingestion boundaries."""
 
 from __future__ import annotations
 
@@ -8,90 +8,62 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from morel.data.stream import (
-    confirmed,
-    cooc,
-    review,
-    stream,
-)
-
-
-def write(tmp_path: Path, records: list[dict]) -> Path:
-    path = tmp_path / "reviews.json"
-    with path.open("w", encoding="utf-8") as handle:
-        for record in records:
-            handle.write(json.dumps(record) + "\n")
-    return path
+from morel.core.errors import Datum
+from morel.data.stream import confirmed, cooc
 
 
 class Checker:
-    """Aggregated test methods for this module."""
+    """Aggregated tests for malformed and bounded stream inputs."""
 
-    def records(self, tmp_path: Path) -> None:
-        records = [
-            {"reviewerID": "u1", "asin": "i1"},
-            {"reviewerID": "u1", "asin": "i2"},
-            {"reviewerID": "u2", "asin": "i1"},
-            {"reviewerID": "u2", "asin": "i2"},
-        ]
-        path = write(tmp_path, records)
-        chunks = list(review(path, chunk_size=2))
-        flat = [r for chunk in chunks for r in chunk]
-        assert len(flat) == len(records)
+    def malformed_records(self, tmp_path: Path) -> None:
+        """Non-object, malformed, and incomplete lines are ignored safely."""
+        from morel.data.stream import review, stream
 
-    def raises(self, tmp_path: Path) -> None:
-        from morel.core.errors import Datum
-
-        with pytest.raises(Datum):
-            list(review(tmp_path / "nope.json"))
-
-    def memory(self, tmp_path: Path) -> None:
-        records = [
-            {"reviewerID": "u1", "asin": "i1"},
-            {"reviewerID": "u1", "asin": "i2"},
-            {"reviewerID": "u1", "asin": "i3"},
-            {"reviewerID": "u2", "asin": "i1"},
-            {"reviewerID": "u2", "asin": "i2"},
-            {"reviewerID": "u3", "asin": "i1"},
-        ]
-        path = write(tmp_path, records)
-        ui, _, _ = confirmed(path, min_edges=2, chunk_size=2)
-        assert ui.nnz >= 4
-
-    def construction(self) -> None:
-        chunks = iter(
-            [
-                (np.array([0, 0]), np.array([0, 1])),
-                (np.array([1, 1]), np.array([1, 2])),
-            ]
+        path = tmp_path / "reviews.json"
+        path.write_text(
+            "\n".join(
+                [
+                    "[]",
+                    "not-json",
+                    json.dumps({"reviewerID": "u1"}),
+                    json.dumps({"reviewerID": "u1", "asin": "i1"}),
+                ]
+            ),
+            encoding="utf-8",
         )
-        cooc_matrix = cooc(chunks, items=3)
-        assert cooc_matrix.shape == (3, 3)
-        # user 0 -> items {0, 1}: cooc_matrix(0, 1) += 1
-        # user 1 -> items {1, 2}: cooc_matrix(1, 2) += 1
-        assert cooc[0, 1] == 1
-        assert cooc[1, 0] == 1
-        assert cooc[1, 2] == 1
-        assert cooc[2, 1] == 1
-        assert cooc[0, 0] == 0
-        assert cooc[0, 2] == 0
-        assert cooc[2, 2] == 0
+        chunks = list(review(path, chunk_size=2))
+        assert chunks == [[{"reviewerID": "u1"}, {"reviewerID": "u1", "asin": "i1"}]]
+        assert list(stream(path, min_edges=1, chunk_size=2))
 
-    def pairs(self, tmp_path: Path) -> None:
-        records = [
-            {"reviewerID": "u1", "asin": "i1"},
-            {"reviewerID": "u1", "asin": "i2"},
-            {"reviewerID": "u1", "asin": "i3"},
-            {"reviewerID": "u2", "asin": "i1"},
-            {"reviewerID": "u2", "asin": "i2"},
-            {"reviewerID": "u3", "asin": "i1"},
-        ]
-        path = write(tmp_path, records)
-        emitted = []
-        for user_ids, item_ids in stream(path, min_edges=2, chunk_size=10):
-            emitted.append((user_ids, item_ids))
-        assert len(emitted) >= 1
-        assert all(isinstance(u, np.ndarray) for u, _ in emitted)
+    def invalid_parameters(self, tmp_path: Path) -> None:
+        from morel.data.stream import review, stream
 
+        path = tmp_path / "reviews.json"
+        path.write_text("{}\n", encoding="utf-8")
+        with pytest.raises(Datum, match="positive integer"):
+            list(review(path, chunk_size=0))
+        with pytest.raises(Datum, match="positive integer"):
+            list(stream(path, min_edges=0))
+        with pytest.raises(Datum, match="positive integer"):
+            confirmed(path, chunk_size=0)
 
-__test__ = False
+    def invalid_graph_chunk(self) -> None:
+        with pytest.raises(Datum, match="catalog bounds"):
+            cooc(iter([(np.array([0]), np.array([4]))]), items=4)
+        with pytest.raises(Datum, match="equal lengths"):
+            cooc(iter([(np.array([0]), np.array([0, 1]))]), items=4)
+
+    def duplicate_edges_do_not_inflate_kcore(self, tmp_path: Path) -> None:
+        """The exact two-pass filter counts unique user-item edges only."""
+        path = tmp_path / "duplicates.json"
+        path.write_text(
+            "\n".join(
+                [
+                    json.dumps({"reviewerID": "u1", "asin": "i1"}),
+                    json.dumps({"reviewerID": "u1", "asin": "i1"}),
+                ]
+            ),
+            encoding="utf-8",
+        )
+        with pytest.raises(Datum, match="empty interaction"):
+            confirmed(path, min_edges=2)

@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from typing import cast
 
 import numpy as np
 import scipy.sparse as sp
@@ -23,6 +24,7 @@ from morel.core.seed import deterministic
 from morel.encode import build as build_encode
 from morel.graph import Laplace
 from morel.recommend import KIND as RECOMMEND_KIND
+from morel.recommend import FeatureAware, Fits, Normalizes
 from morel.recommend import build as build_recommend
 from morel.retrieve import Result, batch
 from morel.route import build as build_route
@@ -155,9 +157,56 @@ class Pipeline(nn.Module):
                     f"available: {', '.join(sorted(RECOMMEND_KIND))}"
                 )
         self.recommender: nn.Module | None = None
+        self.ui_graph: sp.csr_matrix | None = None
         self.cfeat: dict[str, np.ndarray] | None = None
         self.cmask: np.ndarray | None = None
         self.cadj: sp.csr_matrix | None = None
+        self._score_cache: tuple[torch.device, torch.Tensor] | None = None
+        self._retrieval_max_nodes: int | None = None
+
+    def _invalidate_score_cache(self) -> None:
+        """Drop completed catalog features cached by the serving score path."""
+        self._score_cache = None
+
+    def set_retrieval_budget(self, max_nodes: int | None) -> None:
+        """Set an optional serving budget for retrieved subgraph size.
+
+        A bounded serving budget prevents a large or adversarial catalog graph
+        from turning one request into unbounded CPU or memory work. ``None``
+        retains the research/training behavior without a serving cap.
+
+        Args:
+            max_nodes: Positive maximum node count, or ``None`` to disable.
+
+        Raises
+        ------
+        ValueError: If ``max_nodes`` is not positive when provided.
+        """
+        if max_nodes is not None and (isinstance(max_nodes, bool) or max_nodes <= 0):
+            raise ValueError("max_nodes must be positive or None")
+        self._retrieval_max_nodes = max_nodes
+
+    @torch.no_grad()
+    def warmup(self) -> None:
+        """Materialize serving-time graph state before accepting requests.
+
+        The graph positional encoding can be expensive for a large catalog.
+        Serving callers should invoke this during startup so the first live
+        request does not pay an unbounded graph-eigensolver cost.
+
+        Raises
+        ------
+        Model: If no item graph has been attached.
+        """
+        if self.cadj is None:
+            raise Model("pipeline has no attached item graph to warm up")
+        self.encoder(self.cadj)
+
+    def train(self, mode: bool = True) -> Pipeline:
+        """Switch train/eval mode and invalidate inference features for training."""
+        if mode:
+            self._invalidate_score_cache()
+        return super().train(mode)
 
     def wire(self, ui_graph: sp.csr_matrix, *, feature_dim: int | None = None) -> None:
         """Attach the downstream ranker named by ``config.recommend.kind``.
@@ -179,6 +228,7 @@ class Pipeline(nn.Module):
         """
         users = ui_graph.shape[0]
         items = ui_graph.shape[1]
+        self.ui_graph = ui_graph.tocsr(copy=True)
         recommender = build_recommend(
             self.config.recommend.kind,
             users=users,
@@ -188,12 +238,10 @@ class Pipeline(nn.Module):
             feature_dim=feature_dim,
             seed=self.config.seed,
         )
-        prime = getattr(recommender, "normalize", None)
-        if callable(prime):
-            prime(ui_graph)
-        fit = getattr(recommender, "fit", None)
-        if callable(fit):
-            fit(ui_graph)
+        if isinstance(recommender, Normalizes):
+            recommender.normalize(ui_graph)
+        if isinstance(recommender, Fits):
+            recommender.fit(ui_graph)
         self.recommender = recommender
 
     def attach(
@@ -204,13 +252,105 @@ class Pipeline(nn.Module):
     ) -> None:
         """Bind full-graph data for on-the-fly retrieval.
 
-        Unlike :meth:`torch.nn.Module.register_buffers`, this does not register
-        PyTorch tensors with the autograd engine. It only stores the corpus
-        attributes used by retrieval during :meth:`forward`.
+        The boundary owns immutable snapshots of the supplied arrays and
+        sparse matrix. Callers may therefore reuse or mutate their input
+        buffers without changing a live serving pipeline behind its back.
+
+        Raises
+        ------
+        ValueError: If feature names, shapes, mask dimensions, or adjacency
+            dimensions do not match the configured corpus.
         """
-        self.cfeat = features
-        self.cmask = mask
-        self.cadj = adjacency
+        if not features:
+            raise ValueError("features must contain at least one modality")
+        expected = set(self.dims)
+        actual = set(features)
+        if actual != expected:
+            missing = ", ".join(sorted(expected - actual)) or "-"
+            extra = ", ".join(sorted(actual - expected)) or "-"
+            raise ValueError(f"feature modalities mismatch: missing={missing}, extra={extra}")
+        count: int | None = None
+        snapshot: dict[str, np.ndarray] = {}
+        for name, width in self.dims.items():
+            value = np.asarray(features[name])
+            if value.ndim != 2 or value.shape[1] != width:
+                raise ValueError(
+                    f"feature {name!r} must have shape (items, {width}), got {value.shape}"
+                )
+            if count is None:
+                count = int(value.shape[0])
+            elif value.shape[0] != count:
+                raise ValueError("all feature modalities must contain the same item count")
+            snapshot[name] = np.array(value, dtype=np.float32, copy=True, order="C")
+        mask_snapshot = np.array(mask, dtype=np.float32, copy=True, order="C")
+        if mask_snapshot.ndim != 2 or mask_snapshot.shape != (count, len(self.dims)):
+            raise ValueError(
+                f"mask must have shape ({count}, {len(self.dims)}), got {mask_snapshot.shape}"
+            )
+        if adjacency is not None:
+            adjacency_snapshot = adjacency.tocsr(copy=True)
+            if adjacency_snapshot.shape != (count, count):
+                raise ValueError(
+                    f"adjacency must have shape ({count}, {count}), got {adjacency_snapshot.shape}"
+                )
+        else:
+            adjacency_snapshot = None
+        self.cfeat = snapshot
+        self.cmask = mask_snapshot
+        self.cadj = adjacency_snapshot
+        self._invalidate_score_cache()
+
+    @torch.no_grad()
+    def score(self, users: torch.Tensor, items: torch.Tensor) -> torch.Tensor:
+        """Score users against items using attached corpus and completion state.
+
+        This is the serving-safe ranking path. It refuses to fall back to
+        ID-only scores when the corpus or interaction graph is missing, and it
+        feeds completed item representations into rankers that support them.
+
+        Args:
+            users: User ids with shape ``(B_u,)``.
+            items: Item ids with shape ``(B_i,)``.
+
+        Returns
+        -------
+            Score matrix with shape ``(B_u, B_i)``.
+
+        Raises
+        ------
+            Model: If the pipeline has not been wired or attached.
+        """
+        if self.recommender is None or self.ui_graph is None:
+            raise Model("pipeline has no wired recommender and user-item graph")
+        if self.cfeat is None or self.cmask is None or self.cadj is None:
+            raise Model("pipeline has no attached feature corpus and item graph")
+        model_device = next(self.parameters()).device
+        users = users.to(model_device)
+        items = items.to(model_device)
+        if not self.cfeat:
+            raise Model("pipeline feature corpus is empty")
+        first = next(iter(self.cfeat.values()))
+        count = int(first.shape[0])
+        if any(int(value.shape[0]) != count for value in self.cfeat.values()):
+            raise Model("pipeline feature corpus has inconsistent item counts")
+        cached = self._score_cache
+        if cached is None or cached[0] != model_device:
+            index = torch.arange(count, dtype=torch.long, device=model_device)
+            features = {
+                name: torch.from_numpy(np.asarray(value, dtype=np.float32)).to(model_device)
+                for name, value in self.cfeat.items()
+            }
+            mask = torch.from_numpy(np.asarray(self.cmask, dtype=np.float32)).to(model_device)
+            output = self(features, mask, self.cadj, index=index, training=False)
+            completed = torch.cat([output.completed[name] for name in self.dims], dim=-1)
+            self._score_cache = (model_device, completed)
+        else:
+            completed = cached[1]
+        recommender = self.recommender
+        graph = None if isinstance(recommender, Normalizes) else self.ui_graph
+        if isinstance(recommender, FeatureAware):
+            return recommender.score_with_features(users, items, graph, completed)
+        return cast(torch.Tensor, recommender(users, items, graph))
 
     def forward(
         self,
@@ -277,6 +417,7 @@ class Pipeline(nn.Module):
                     anchors=self.config.retrieve.anchors,
                     iters=self.config.retrieve.iters,
                     kind=self.config.retrieve.kind,
+                    max_nodes=self._retrieval_max_nodes,
                 )
                 subgraph_indices = result.nodes
                 subgraph_mask = result.mask
@@ -332,27 +473,35 @@ class Pipeline(nn.Module):
         peak = max(int(result.cap), 1)
         batch = int(result.batch)
         modalities = list(self.dims.keys())
-        node_features: dict[str, torch.Tensor] = {}
-        node_mask = torch.zeros(batch, peak, len(modalities), device=device)
-        pe = torch.zeros(batch, peak, pe_full.shape[-1], device=device)
-        attention = torch.zeros(batch, peak, dtype=torch.bool, device=device)
-        for name in modalities:
-            node_features[name] = torch.zeros(batch, peak, self.dims[name], device=device)
-
-        for b in range(batch):
-            size = int(result.sizes[b])
-            if size == 0:
-                attention[b, 0] = True
-                node_mask[b, 0, :] = 1.0
-                continue
-            node_ids_np = result.nodes[b, :size]
-            for name in modalities:
-                node_features[name][b, :size] = (
-                    torch.from_numpy(corpus_features[name][node_ids_np]).to(device).float()
+        # ``Result.nodes`` is already a padded, rectangular index matrix. A
+        # single gather per modality replaces the previous query/modality
+        # Python loops; invalid padded positions remain harmless because the
+        # attention mask excludes them below.
+        if result.cap:
+            node_ids = torch.from_numpy(result.nodes).long().to(device)
+            node_features = {
+                name: torch.from_numpy(corpus_features[name][result.nodes]).to(
+                    device=device, dtype=torch.float32
                 )
-            node_mask[b, :size] = torch.from_numpy(corpus_mask[node_ids_np]).to(device).float()
-            pe[b, :size] = pe_full[node_ids_np]
-            attention[b, :size] = torch.from_numpy(result.mask[b, :size]).bool().to(device)
+                for name in modalities
+            }
+            node_mask = torch.from_numpy(corpus_mask[result.nodes]).to(
+                device=device, dtype=torch.float32
+            )
+            pe = pe_full[node_ids]
+            attention = torch.from_numpy(result.mask).bool().to(device)
+        else:
+            node_features = {
+                name: torch.zeros(batch, peak, self.dims[name], device=device)
+                for name in modalities
+            }
+            node_mask = torch.zeros(batch, peak, len(modalities), device=device)
+            pe = torch.zeros(batch, peak, pe_full.shape[-1], device=device)
+            attention = torch.zeros(batch, peak, dtype=torch.bool, device=device)
+        empty = torch.from_numpy(result.sizes == 0).to(device)
+        if bool(empty.any()):
+            attention[empty, 0] = True
+            node_mask[empty, 0, :] = 1.0
 
         hidden: torch.Tensor = self.transformer(
             node_features,

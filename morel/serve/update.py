@@ -278,21 +278,15 @@ class Updater:
         replay_sample = replay[:n_replay] if n_replay else []
         step_batch = replay_sample + train_batch
 
-        # Snapshot the pre-update model state under the write lock so it
-        # can be restored if this update diverges. ``rollback[K]`` is the
-        # model state at version K; the training step modifies the model
-        # in place and we record the post-commit state afterwards.
+        # Keep the complete update transaction under the model write lock.
+        # Training steps mutate parameters in place; releasing the lock during
+        # the step would let inference observe a partially-updated model.
+        # ``rollback[K]`` is the model state at version K.
         with self.lock.write():
             pre_snapshot = copy.deepcopy(self.pipeline.state_dict())
-
-        # Training happens outside the lock so inference readers are not
-        # blocked for the duration of a step. Readers can therefore observe
-        # partial weight updates during this window; that is the project's
-        # documented trade-off, not a regression introduced by the
-        # pre-snapshot.
-        loss = float(self.loss_step(step_batch))
-        valid_loss = self.assess(val_batch)
-        committed, version_after = self.apply(loss, valid_loss, pre_snapshot)
+            loss = float(self.loss_step(step_batch))
+            valid_loss = self.assess(val_batch)
+            committed, version_after = self._apply_locked(loss, valid_loss, pre_snapshot)
         return Outcome(
             committed=committed,
             loss=loss,
@@ -319,28 +313,37 @@ class Updater:
         can restore to it on a later call.
         """
         with self.lock.write():
-            if not math.isfinite(loss):
-                self.cooldown = time.time() + 60.0
-                log.warning("divergence: non-finite loss; rolling back and cooling down")
-                self.pipeline.load_state_dict(pre_snapshot)
-                return False, self.version
-            if valid_loss is not None and not math.isfinite(valid_loss):
-                self.cooldown = time.time() + 60.0
-                log.warning("divergence: non-finite valid loss; rolling back and cooling down")
-                self.pipeline.load_state_dict(pre_snapshot)
-                return False, self.version
-            if self.window and loss > 3 * (sum(self.window) / len(self.window)):
-                self.cooldown = time.time() + 60.0
-                log.warning("divergence: loss explosion; rolling back and cooling down")
-                self.pipeline.load_state_dict(pre_snapshot)
-                return False, self.version
-            self.version += 1
-            self.window.append(loss)
-            self.last = loss
-            self.valid = valid_loss
-            self.updates += 1
-            self.rollback.append(copy.deepcopy(self.pipeline.state_dict()))
-            return True, self.version
+            return self._apply_locked(loss, valid_loss, pre_snapshot)
+
+    def _apply_locked(
+        self,
+        loss: float,
+        valid_loss: float | None,
+        pre_snapshot: dict[str, Any],
+    ) -> tuple[bool, int]:
+        """Apply an update while the model write lock is already held."""
+        if not math.isfinite(loss):
+            self.cooldown = time.time() + 60.0
+            log.warning("divergence: non-finite loss; rolling back and cooling down")
+            self.pipeline.load_state_dict(pre_snapshot)
+            return False, self.version
+        if valid_loss is not None and not math.isfinite(valid_loss):
+            self.cooldown = time.time() + 60.0
+            log.warning("divergence: non-finite valid loss; rolling back and cooling down")
+            self.pipeline.load_state_dict(pre_snapshot)
+            return False, self.version
+        if self.window and loss > 3 * (sum(self.window) / len(self.window)):
+            self.cooldown = time.time() + 60.0
+            log.warning("divergence: loss explosion; rolling back and cooling down")
+            self.pipeline.load_state_dict(pre_snapshot)
+            return False, self.version
+        self.version += 1
+        self.window.append(loss)
+        self.last = loss
+        self.valid = valid_loss
+        self.updates += 1
+        self.rollback.append(copy.deepcopy(self.pipeline.state_dict()))
+        return True, self.version
 
 
 __all__ = [

@@ -8,16 +8,38 @@ mask for downstream sequence models.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
 
 import numpy as np
 import scipy.sparse as sp
 import torch
 
-from morel.core.errors import Cfg
+from morel.core.errors import Cfg, Net
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.anchor import query as anchor_query
 from morel.retrieve.bfs import bfs as bfs_distances
 from morel.retrieve.mage import expand as mage_expand
+from morel.retrieve.relevance import RelevanceIndex, prepare
+
+
+@runtime_checkable
+class RetrievalStrategy(Protocol):
+    """Callable contract shared by every registered retrieval strategy."""
+
+    def __call__(
+        self,
+        query: int,
+        features: dict[str, np.ndarray],
+        mask: np.ndarray,
+        adj: sp.csr_matrix,
+        *,
+        anchors: int,
+        iters: int,
+        fallback: str,
+        relevance_index: RelevanceIndex | None = None,
+        max_nodes: int | None = None,
+    ) -> set[int]:
+        """Return a subgraph containing the requested query item."""
 
 
 @dataclass(frozen=True)
@@ -70,12 +92,24 @@ def mage(
     anchors: int,
     iters: int,
     fallback: str,
+    relevance_index: RelevanceIndex | None = None,
+    max_nodes: int | None = None,
 ) -> set[int]:
     """Anchor retrieval followed by MAGE expansion; the method's default."""
     anchor_set = for_q(query, features, mask, anchors=anchors)
     if not anchor_set:
         return {int(query)}
-    return mage_expand(adj, list(anchor_set), query, features, mask, iters=iters, fallback=fallback)
+    return mage_expand(
+        adj,
+        list(anchor_set),
+        query,
+        features,
+        mask,
+        iters=iters,
+        fallback=fallback,
+        relevance_index=relevance_index,
+        max_nodes=max_nodes,
+    )
 
 
 def acs(
@@ -87,9 +121,10 @@ def acs(
     anchors: int,
     iters: int,
     fallback: str,
+    relevance_index: RelevanceIndex | None = None,
+    max_nodes: int | None = None,
 ) -> set[int]:
     """Anchor retrieval followed by the Anchor Connecting Subgraph, without MAGE."""
-    del iters
     anchor_set = for_q(query, features, mask, anchors=anchors)
     if not anchor_set:
         return {int(query)}
@@ -105,9 +140,10 @@ def anchor(
     anchors: int,
     iters: int,
     fallback: str,
+    relevance_index: RelevanceIndex | None = None,
+    max_nodes: int | None = None,
 ) -> set[int]:
     """Anchors only, with no graph expansion; the no-expansion ablation."""
-    del adj, iters, fallback
     return for_q(query, features, mask, anchors=anchors)
 
 
@@ -120,13 +156,14 @@ def bfs(
     anchors: int,
     iters: int,
     fallback: str,
+    relevance_index: RelevanceIndex | None = None,
+    max_nodes: int | None = None,
 ) -> set[int]:
     """Graph neighbourhood of the query within ``iters`` hops, ignoring features.
 
     Uses only the graph, so subgraph selection does not depend on the modality
     features at all.
     """
-    del features, mask, anchors, fallback
     distances = bfs_distances(adj, [int(query)])
     return {int(node) for node, hops in distances.items() if hops <= max(int(iters), 1)}
 
@@ -140,6 +177,8 @@ def none(
     anchors: int,
     iters: int,
     fallback: str,
+    relevance_index: RelevanceIndex | None = None,
+    max_nodes: int | None = None,
 ) -> set[int]:
     """Return the query alone: the no-retrieval ablation.
 
@@ -147,12 +186,11 @@ def none(
     and no graph context. This is the condition ``eval.ablations`` calls
     ``noretry``.
     """
-    del features, mask, adj, anchors, iters, fallback
     return {int(query)}
 
 
 #: Map from config name to strategy function. Module-local; no global registry.
-KIND: dict[str, object] = {
+KIND: dict[str, RetrievalStrategy] = {
     "mage": mage,
     "acs": acs,
     "anchor": anchor,
@@ -171,6 +209,8 @@ def retrieve(
     iters: int = 10,
     fallback: str = "anchors",
     kind: str = "mage",
+    relevance_index: RelevanceIndex | None = None,
+    max_nodes: int | None = None,
 ) -> set[int]:
     """Retrieve and expand a subgraph for one query item.
 
@@ -200,7 +240,7 @@ def retrieve(
     observed = [name for idx, name in enumerate(features.keys()) if mask[query, idx] > 0]
     if not observed and kind != "bfs":
         return {int(query)}
-    subgraph = strategy(  # type: ignore[operator]
+    subgraph = strategy(
         query,
         features,
         mask,
@@ -208,9 +248,15 @@ def retrieve(
         anchors=anchors,
         iters=iters,
         fallback=fallback,
+        relevance_index=relevance_index,
+        max_nodes=max_nodes,
     )
     subgraph = set(subgraph)
     subgraph.add(int(query))
+    if max_nodes is not None and len(subgraph) > max_nodes:
+        raise Net(
+            f"retrieved subgraph has {len(subgraph)} nodes, exceeding serving budget {max_nodes}"
+        )
     return subgraph
 
 
@@ -224,10 +270,23 @@ def batch(
     iters: int = 10,
     fallback: str = "anchors",
     kind: str = "mage",
+    max_nodes: int | None = None,
 ) -> Result:
     """Batched retrieval that returns padded tensors for downstream models."""
+    relevance_index = prepare(features, mask) if kind == "mage" else None
     subgraphs = [
-        retrieve(q, features, mask, adj, anchors=anchors, iters=iters, fallback=fallback, kind=kind)
+        retrieve(
+            q,
+            features,
+            mask,
+            adj,
+            anchors=anchors,
+            iters=iters,
+            fallback=fallback,
+            kind=kind,
+            relevance_index=relevance_index,
+            max_nodes=max_nodes,
+        )
         for q in queries
     ]
     sizes = np.array([len(s) for s in subgraphs], dtype=np.int64)

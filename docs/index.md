@@ -35,7 +35,7 @@ hide:
           <span class="morel-pill morel-pill-strong">Python 3.10+</span>
           <span class="morel-pill">MIT license</span>
           <span class="morel-pill">arxiv 2605.00670</span>
-          <span class="morel-pill">482 tests · 80% coverage</span>
+          <span class="morel-pill">557 tests · 83.58% coverage</span>
           <span class="morel-pill">FastAPI inference</span>
           <span class="morel-pill">Prometheus metrics</span>
         </div>
@@ -526,11 +526,11 @@ hide:
             <span class="morel-data__hint">pytest</span>
           </div>
           <div class="morel-data__metric">
-            <span class="morel-data__value">670</span>
+            <span class="morel-data__value">557</span>
             <span class="morel-data__suffix">tests</span>
           </div>
           <div class="morel-bar"><span class="morel-bar__fill" style="width: 98%"></span></div>
-          <p style="margin:0;font-size:0.82rem;color:var(--morel-text-mute);">Unit, integration, property, and research tests; 482 currently pass under the Checker / Spec filter.</p>
+          <p style="margin:0;font-size:0.82rem;color:var(--morel-text-mute);">Unit, integration, property, and research tests; 557 currently pass under the configured collection rules.</p>
         </div>
         <div class="morel-data">
           <div class="morel-data__head">
@@ -538,10 +538,10 @@ hide:
             <span class="morel-data__hint">pytest-cov</span>
           </div>
           <div class="morel-data__metric">
-            <span class="morel-data__value">80.55</span>
+            <span class="morel-data__value">83.58</span>
             <span class="morel-data__suffix">%</span>
           </div>
-          <div class="morel-bar"><span class="morel-bar__fill" style="width: 80.55%"></span></div>
+          <div class="morel-bar"><span class="morel-bar__fill" style="width: 83.58%"></span></div>
           <p style="margin:0;font-size:0.82rem;color:var(--morel-text-mute);">Tracked by pytest-cov with a 70 % CI gate.</p>
         </div>
         <div class="morel-data">

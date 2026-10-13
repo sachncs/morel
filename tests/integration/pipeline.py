@@ -9,7 +9,7 @@ import torch
 from torch.utils.data import DataLoader
 
 from morel.core.config import Config
-from morel.core.errors import Net
+from morel.core.errors import Model, Net
 from morel.pipeline import Pipeline
 from morel.train.completion import Completion, Fit
 from tests.shared import Corpus, build_path_graph, make_completion_collate
@@ -80,6 +80,42 @@ class Checker:
         assert out.completed["visual"].shape == (n, 4)
         assert out.completed["text"].shape == (n, 2)
         assert torch.isfinite(out.completed["text"]).all()
+
+    def serving_score(self) -> None:
+        """The serving score path uses attached corpus and completed features."""
+        rng = np.random.default_rng(3)
+        n = 12
+        features = {
+            "visual": rng.normal(size=(n, 4)).astype(np.float32),
+            "text": rng.normal(size=(n, 2)).astype(np.float32),
+        }
+        mask = np.ones((n, 2), dtype=np.float32)
+        item_graph = build_path_graph(n)
+        ui = sp.csr_matrix(
+            np.asarray(
+                [[1 if (u + i) % 3 == 0 else 0 for i in range(n)] for u in range(4)],
+                dtype=np.float32,
+            )
+        )
+        pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
+        pipeline.attach(features, mask, item_graph)
+        pipeline.wire(ui, feature_dim=6)
+        scores = pipeline.score(torch.arange(4), torch.arange(n))
+        cached = pipeline._score_cache
+        assert cached is not None
+        cached_features = cached[1]
+        repeated = pipeline.score(torch.tensor([0]), torch.arange(n))
+        assert pipeline._score_cache is not None
+        assert pipeline._score_cache[1] is cached_features
+        assert scores.shape == (4, n)
+        assert repeated.shape == (1, n)
+        assert torch.isfinite(scores).all()
+
+    def serving_score_requires_state(self) -> None:
+        """A pipeline without attached serving state fails explicitly."""
+        pipeline = Pipeline(Config(), dims={"visual": 4, "text": 2})
+        with pytest.raises(Model, match="no wired recommender"):
+            pipeline.score(torch.zeros(1, dtype=torch.long), torch.zeros(1, dtype=torch.long))
 
     def rejects(self) -> None:
         """Pipeline raises Net when an adjacency with self-loops is passed."""

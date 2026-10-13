@@ -2,6 +2,7 @@ site_name: morel
 site_description: Robust multimodal recommendation via graph retrieval-enhanced modality completion.
 site_author: Sachin
 site_url: https://sachncs.github.io/morel/
+site_dir: .mkdocs-site
 copyright: >
   Copyright © 2024–2026 Sachin. Released under the MIT License.
 
@@ -120,6 +121,7 @@ nav:
       - operations/pages.md
   - Project:
       - project/index.md
+      - Engineering guide: engineering.md
       - project/changelog.md
       - project/security.md
       - project/contributing.md

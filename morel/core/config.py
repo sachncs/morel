@@ -7,6 +7,7 @@ Every section is validated on construction.
 from __future__ import annotations
 
 import hashlib
+import math
 import os
 from dataclasses import asdict, dataclass, field, fields, is_dataclass
 from pathlib import Path
@@ -255,12 +256,34 @@ class Serve:
         port: Server port.
         workers: Number of workers.
         auth: Whether auth is enabled.
+        rate_limit_per_minute: Read-request budget per client per minute.
+        admin_limit_per_minute: Admin-request budget per client per minute.
+        factory_timeout: Maximum seconds allowed for a lazy model build.
+        trusted_proxy_cidrs: Proxy networks allowed to provide forwarded client IPs.
+        limit_concurrency: Maximum number of concurrent connections/tasks per worker.
+        limit_max_requests: Optional request count after which a worker is recycled.
+        timeout_keep_alive: Keep-alive timeout in seconds.
+        timeout_graceful_shutdown: Maximum graceful shutdown duration in seconds.
+        retrieval_max_nodes: Maximum retrieved nodes per serving query.
+        metrics_enabled: Whether to expose the Prometheus metrics endpoint.
+        metrics_path: HTTP path for the Prometheus metrics endpoint.
     """
 
     host: str = "0.0.0.0"
     port: int = 8080
     workers: int = 1
     auth: bool = False
+    rate_limit_per_minute: int = 60
+    admin_limit_per_minute: int = 10
+    factory_timeout: float = 60.0
+    trusted_proxy_cidrs: tuple[str, ...] = ()
+    limit_concurrency: int = 1000
+    limit_max_requests: int | None = 10_000
+    timeout_keep_alive: int = 5
+    timeout_graceful_shutdown: int = 30
+    retrieval_max_nodes: int = 4096
+    metrics_enabled: bool = True
+    metrics_path: str = "/metrics"
 
 
 @dataclass(frozen=True)
@@ -335,26 +358,178 @@ class Config:
 
     def validate(self) -> None:
         """Raise Cfg on invalid values."""
-        if self.seed < 0:
-            raise Cfg(f"seed must be non-negative, got {self.seed}")
-        if not 0.0 <= self.masking.ratio <= 1.0:
-            raise Cfg(f"masking.ratio must be in [0, 1], got {self.masking.ratio}")
-        if self.route.p <= 0:
-            raise Cfg(f"route.p must be positive, got {self.route.p}")
-        if self.codebook.size <= 0:
-            raise Cfg(f"codebook.size must be positive, got {self.codebook.size}")
-        if self.encode.hidden <= 0:
-            raise Cfg(f"encode.hidden must be positive, got {self.encode.hidden}")
-        if any(k <= 0 for k in self.eval.ks):
-            raise Cfg(f"eval.ks must all be positive, got {self.eval.ks}")
-        if not 0.0 <= self.completion.val <= 1.0:
-            raise Cfg("completion.val must be in [0, 1]")
-        if not 0.0 <= self.recommendation.val <= 1.0:
-            raise Cfg("recommendation.val must be in [0, 1]")
+        sections = {
+            "data": (self.data, Data),
+            "encoder": (self.encoder, Encoder),
+            "masking": (self.masking, Masking),
+            "retrieve": (self.retrieve, Retrieve),
+            "encode": (self.encode, Encode),
+            "route": (self.route, Route),
+            "codebook": (self.codebook, Codebook),
+            "complete": (self.complete, Complete),
+            "recommend": (self.recommend, Recommend),
+            "completion": (self.completion, Completion),
+            "recommendation": (self.recommendation, Recommendation),
+            "eval": (self.eval, Eval),
+            "serve": (self.serve, Serve),
+            "log": (self.log, Log),
+        }
+        for name, (value, expected) in sections.items():
+            if not isinstance(value, expected):
+                raise Cfg(f"{name} must be a {expected.__name__} section")
+
+        def text(value: Any, name: str) -> None:
+            if not isinstance(value, str) or not value.strip():
+                raise Cfg(f"{name} must be a non-empty string, got {value!r}")
+
+        def number(value: Any, name: str, *, minimum: float = 0.0, strict: bool = False) -> None:
+            if isinstance(value, bool) or not isinstance(value, (int, float)):
+                raise Cfg(f"{name} must be a finite number, got {value!r}")
+            if not math.isfinite(float(value)):
+                raise Cfg(f"{name} must be finite, got {value!r}")
+            invalid = value <= minimum if strict else value < minimum
+            if invalid:
+                operator = ">" if strict else ">="
+                raise Cfg(f"{name} must be {operator} {minimum}, got {value!r}")
+
+        def integer(value: Any, name: str, *, minimum: int = 0, strict: bool = False) -> None:
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise Cfg(f"{name} must be an integer, got {value!r}")
+            invalid = value <= minimum if strict else value < minimum
+            if invalid:
+                operator = ">" if strict else ">="
+                raise Cfg(f"{name} must be {operator} {minimum}, got {value!r}")
+
+        def fraction(value: Any, name: str) -> None:
+            number(value, name)
+            if value > 1.0:
+                raise Cfg(f"{name} must be in [0, 1], got {value!r}")
+
+        text(self.device, "device")
+        text(self.data.raw, "data.raw")
+        text(self.data.processed, "data.processed")
+        text(self.data.category, "data.category")
+        text(self.encoder.text, "encoder.text")
+        text(self.encoder.visual, "encoder.visual")
+        text(self.masking.kind, "masking.kind")
+        text(self.retrieve.kind, "retrieve.kind")
+        text(self.encode.kind, "encode.kind")
+        text(self.route.kind, "route.kind")
+        text(self.codebook.kind, "codebook.kind")
+        text(self.complete.kind, "complete.kind")
+        text(self.recommend.kind, "recommend.kind")
+        text(self.log.directory, "log.directory")
+
+        integer(self.seed, "seed")
+        integer(self.data.min, "data.min", minimum=0)
+        integer(self.data.seed, "data.seed")
+        integer(self.masking.seed, "masking.seed")
+        text(self.serve.host, "serve.host")
+        integer(self.serve.port, "serve.port", minimum=1)
+        if self.serve.port > 65_535:
+            raise Cfg(f"serve.port must be in [1, 65535], got {self.serve.port}")
+        integer(self.serve.workers, "serve.workers", minimum=1)
+        if not isinstance(self.serve.auth, bool):
+            raise Cfg(f"serve.auth must be a boolean, got {self.serve.auth!r}")
+        integer(self.serve.rate_limit_per_minute, "serve.rate_limit_per_minute", minimum=1)
+        integer(self.serve.admin_limit_per_minute, "serve.admin_limit_per_minute", minimum=1)
+        number(self.serve.factory_timeout, "serve.factory_timeout", minimum=0.0, strict=True)
+        if not isinstance(self.serve.trusted_proxy_cidrs, (tuple, list)) or any(
+            not isinstance(cidr, str) or not cidr.strip() for cidr in self.serve.trusted_proxy_cidrs
+        ):
+            raise Cfg("serve.trusted_proxy_cidrs must contain non-empty strings")
+        integer(self.serve.limit_concurrency, "serve.limit_concurrency", minimum=1)
+        if self.serve.limit_max_requests is not None:
+            integer(self.serve.limit_max_requests, "serve.limit_max_requests", minimum=1)
+        integer(self.serve.timeout_keep_alive, "serve.timeout_keep_alive", minimum=1)
+        integer(
+            self.serve.timeout_graceful_shutdown,
+            "serve.timeout_graceful_shutdown",
+            minimum=1,
+        )
+        integer(self.serve.retrieval_max_nodes, "serve.retrieval_max_nodes", minimum=1)
+        if not isinstance(self.serve.metrics_enabled, bool):
+            raise Cfg(
+                f"serve.metrics_enabled must be a boolean, got {self.serve.metrics_enabled!r}"
+            )
+        text(self.serve.metrics_path, "serve.metrics_path")
+        if not self.serve.metrics_path.startswith("/"):
+            raise Cfg("serve.metrics_path must start with '/'")
+        integer(self.encoder.td, "encoder.td", minimum=1)
+        integer(self.encoder.visual_dim, "encoder.visual_dim", minimum=1)
+        integer(self.encoder.batch, "encoder.batch", minimum=1)
+        integer(self.retrieve.anchors, "retrieve.anchors", minimum=1)
+        integer(self.retrieve.iters, "retrieve.iters")
+        integer(self.encode.layers, "encode.layers", minimum=1)
+        integer(self.encode.heads, "encode.heads", minimum=1)
+        integer(self.encode.pe, "encode.pe")
+        number(self.encode.dropout, "encode.dropout")
+        if self.encode.dropout >= 1.0:
+            raise Cfg(f"encode.dropout must be in [0, 1), got {self.encode.dropout}")
+        integer(self.route.p, "route.p", minimum=1)
+        number(self.route.tau, "route.tau", minimum=0.0, strict=True)
+        integer(self.codebook.size, "codebook.size", minimum=1)
+        integer(self.complete.hidden, "complete.hidden", minimum=1)
+        integer(self.recommend.embed, "recommend.embed", minimum=1)
+        integer(self.recommend.layers, "recommend.layers")
+        text(self.log.level, "log.level")
+        if self.log.level.upper() not in {"CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"}:
+            raise Cfg(f"unsupported log.level: {self.log.level!r}")
+        fraction(self.masking.ratio, "masking.ratio")
+        integer(self.encode.hidden, "encode.hidden", minimum=1)
+        for name, value in {
+            "completion.lr": self.completion.lr,
+            "completion.weight_decay": self.completion.weight_decay,
+            "completion.usage": self.completion.usage,
+            "completion.balance": self.completion.balance,
+            "completion.grad_clip": self.completion.grad_clip,
+            "recommendation.lr": self.recommendation.lr,
+            "recommendation.weight_decay": self.recommendation.weight_decay,
+            "recommendation.grad_clip": self.recommendation.grad_clip,
+        }.items():
+            number(value, name)
+        for name, value in {
+            "completion.epochs": self.completion.epochs,
+            "completion.batch": self.completion.batch,
+            "completion.patience": self.completion.patience,
+            "recommendation.epochs": self.recommendation.epochs,
+            "recommendation.batch": self.recommendation.batch,
+            "recommendation.negatives": self.recommendation.negatives,
+            "recommendation.patience": self.recommendation.patience,
+        }.items():
+            integer(value, name, minimum=1)
+        if not isinstance(self.eval.ks, (tuple, list)) or any(
+            isinstance(k, bool) or not isinstance(k, int) or k <= 0 for k in self.eval.ks
+        ):
+            raise Cfg(f"eval.ks must be positive integers, got {self.eval.ks!r}")
+        if not isinstance(self.eval.robustness, (tuple, list)):
+            raise Cfg(f"eval.robustness must be a sequence, got {self.eval.robustness!r}")
+        for ratio in self.eval.robustness:
+            fraction(ratio, "eval.robustness")
+        fraction(self.completion.val, "completion.val")
+        fraction(self.recommendation.val, "recommendation.val")
 
     def hash(self) -> str:
-        """Return a stable SHA256 of the configuration for manifest binding."""
-        canonical = yaml.safe_dump(self.dump(), sort_keys=True, allow_unicode=True)
+        """Return a stable SHA256 of model/data settings for artifact binding.
+
+        Operational serving controls are deliberately excluded: changing a
+        worker's concurrency or shutdown budget must not invalidate an
+        otherwise identical model bundle or its feature manifests.
+        """
+        payload = self.dump()
+        serve = payload.get("serve")
+        if isinstance(serve, dict):
+            for key in (
+                "limit_concurrency",
+                "limit_max_requests",
+                "timeout_keep_alive",
+                "timeout_graceful_shutdown",
+                "retrieval_max_nodes",
+                "metrics_enabled",
+                "metrics_path",
+            ):
+                serve.pop(key, None)
+        canonical = yaml.safe_dump(payload, sort_keys=True, allow_unicode=True)
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     def dump(self) -> dict[str, Any]:
@@ -401,10 +576,27 @@ class Config:
         return cls(**result)
 
     @classmethod
+    def from_dict(cls, payload: dict[str, Any]) -> Config:
+        """Build a configuration from a nested mapping.
+
+        This descriptive alias keeps the public configuration API readable
+        at call sites while retaining :meth:`parse` as the canonical parser.
+        """
+        return cls.parse(payload)
+
+    @classmethod
     def load(cls, path: Path | str) -> Config:
         """Load configuration from a YAML file."""
         text = Path(path).read_text(encoding="utf-8")
         return cls.parse(yaml.load(text, Loader=yaml.SafeLoader))
+
+    @classmethod
+    def from_yaml(cls, path: Path | str) -> Config:
+        """Load a configuration from YAML.
+
+        This descriptive alias is equivalent to :meth:`load`.
+        """
+        return cls.load(path)
 
     @classmethod
     def env(cls) -> Config:
@@ -439,13 +631,23 @@ def coerce(cls: type, payload: dict[str, Any]) -> dict[str, Any]:
     replaced with their ``coerce``-d dicts so that ``cls(**...)``
     constructs them in turn.
     """
+    if not isinstance(payload, dict):
+        raise Cfg(f"{cls.__name__} section must be a mapping")
+    known = {f.name for f in fields(cls)}
+    unknown = set(payload) - known
+    if unknown:
+        names = ", ".join(repr(name) for name in sorted(unknown))
+        raise Cfg(f"unknown {cls.__name__} config key(s): {names}")
+
     out: dict[str, Any] = {}
     for f in fields(cls):
         if f.name not in payload:
             continue
         value = payload[f.name]
         f_type = resolve(f.type)
-        if isinstance(f_type, type) and is_dataclass(f_type) and isinstance(value, dict):
+        if isinstance(f_type, type) and is_dataclass(f_type):
+            if not isinstance(value, dict):
+                raise Cfg(f"{f.name} section must be a mapping")
             out[f.name] = coerce(f_type, value)
         else:
             out[f.name] = value

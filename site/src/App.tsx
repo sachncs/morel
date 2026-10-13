@@ -23,13 +23,13 @@ export default function App() {
           <TrustedBy />
           <Overview />
           <Features />
-          <Architecture />
           <CodeSample />
           <Performance />
+          <GetStarted />
+          <Architecture />
           <UseCases />
           <Adoption />
           <Faq />
-          <GetStarted />
         </main>
         <Footer />
       </div>

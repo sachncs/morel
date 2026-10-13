@@ -51,7 +51,7 @@ export function Overview() {
             transition={{ duration: 0.6, delay: i * 0.06, ease }}
             className="ring-edge group relative flex flex-col rounded-2xl bg-white/70 p-6 transition hover:bg-white dark:bg-ink-900/40 dark:hover:bg-ink-900/60"
           >
-            <div className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500/15 to-violet-500/10 text-accent-600 ring-1 ring-accent-500/15 dark:text-accent-300">
+            <div className="mb-5 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-accent-500/15 to-accent-700/10 text-accent-600 ring-1 ring-accent-500/15 dark:text-accent-300">
               <c.icon className="h-5 w-5" strokeWidth={1.6} />
             </div>
             <h3 className="text-display-sm font-semibold tracking-tight text-ink-900 dark:text-white">
@@ -66,7 +66,7 @@ export function Overview() {
 
       <div className="mt-10 flex items-center justify-center">
         <a
-          href={SITE.url + "docs/"}
+          href={SITE.docs}
           className="group inline-flex items-center gap-1.5 text-sm font-medium text-accent-600 transition hover:text-accent-700 dark:text-accent-300 dark:hover:text-accent-200"
         >
           Read the documentation

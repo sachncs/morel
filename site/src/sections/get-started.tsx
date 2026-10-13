@@ -25,7 +25,7 @@ export function GetStarted() {
           className="pointer-events-none absolute inset-0 opacity-50"
           style={{
             background:
-              "radial-gradient(50% 60% at 20% 0%, rgba(122,126,255,0.30) 0%, rgba(0,0,0,0) 70%), radial-gradient(40% 50% at 90% 100%, rgba(168,85,247,0.30) 0%, rgba(0,0,0,0) 70%)",
+              "radial-gradient(50% 60% at 20% 0%, rgba(184,122,44,0.28) 0%, rgba(0,0,0,0) 70%), radial-gradient(40% 50% at 90% 100%, rgba(111,78,55,0.32) 0%, rgba(0,0,0,0) 70%)",
           }}
         />
         <svg
@@ -89,25 +89,25 @@ export function GetStarted() {
               <code>
                 <span className="text-ink-500"># 1. Get the code</span>
                 {"\n"}
-                <span className="text-violet-300">git clone</span>{" "}
+                <span className="text-accent-300">git clone</span>{" "}
                 <span className="text-emerald-300">https://github.com/sachncs/morel</span>
                 {"\n"}
-                <span className="text-violet-300">cd</span> morel
+                <span className="text-accent-300">cd</span> morel
                 {"\n\n"}
                 <span className="text-ink-500"># 2. Sandbox it</span>
                 {"\n"}
-                <span className="text-violet-300">python3</span> -m venv .venv
+                <span className="text-accent-300">python3</span> -m venv .venv
                 {"\n"}
-                <span className="text-violet-300">source</span> .venv/bin/activate
+                <span className="text-accent-300">source</span> .venv/bin/activate
                 {"\n\n"}
                 <span className="text-ink-500"># 3. Install</span>
                 {"\n"}
-                <span className="text-violet-300">pip</span> install -e{" "}
+                <span className="text-accent-300">pip</span> install -e{" "}
                 <span className="text-emerald-300">".[dev]"</span>
                 {"\n\n"}
                 <span className="text-ink-500"># 4. Run the demo</span>
                 {"\n"}
-                <span className="text-violet-300">python</span> examples/demo.py
+                <span className="text-accent-300">python</span> examples/demo.py
               </code>
             </pre>
           </div>

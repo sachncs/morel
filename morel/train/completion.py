@@ -53,6 +53,7 @@ class Completion(Trainer):
         checkpoint_dir: Path | str | None = None,
         device: str | torch.device | None = None,
         amp: bool = False,
+        checkpoint_config_hash: str | None = None,
     ) -> None:
         """Initialize the completion trainer.
 
@@ -78,6 +79,7 @@ class Completion(Trainer):
             grad_clip=config.grad_clip if hasattr(config, "grad_clip") else 1.0,
             device=device,
             amp=amp,
+            checkpoint_config_hash=checkpoint_config_hash,
         )
         self.train = config
         self.reconstruction = reconstruction

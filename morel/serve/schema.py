@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
 from pydantic import BaseModel, Field
 
@@ -11,6 +11,8 @@ from pydantic import BaseModel, Field
 # and runs a forward pass over all of them, so the bound is what keeps a
 # single attacker from forcing an OOM by sending items=range(10**7).
 MAX_ITEMS_PER_REQUEST = 10_000
+MAX_MODALITIES_PER_REQUEST = 64
+MAX_MODALITY_NAME_LENGTH = 128
 
 
 class Fill(BaseModel):
@@ -20,16 +22,19 @@ class Fill(BaseModel):
     ----------
         items: Item ids to complete. Bounded by
             :data:`MAX_ITEMS_PER_REQUEST`.
-        modalities: Optional subset of modality names; defaults to all.
+        modalities: Optional subset of modality names; defaults to all. The
+            list and each name are bounded for predictable request handling.
     """
 
     items: list[int] = Field(
         ...,
+        min_length=1,
         max_length=MAX_ITEMS_PER_REQUEST,
         description=f"Item ids to complete. Capped at {MAX_ITEMS_PER_REQUEST} per request.",
     )
-    modalities: list[str] | None = Field(
+    modalities: list[Annotated[str, Field(max_length=MAX_MODALITY_NAME_LENGTH)]] | None = Field(
         default=None,
+        max_length=MAX_MODALITIES_PER_REQUEST,
         description="Optional subset of modality names; defaults to all.",
     )
 
@@ -56,8 +61,10 @@ class Query(BaseModel):
         top: Number of top items to return.
     """
 
-    user: int = Field(..., description="User id.")
-    top: int = Field(default=20, description="Number of top items to return.")
+    user: int = Field(..., ge=0, description="User id.")
+    top: int = Field(
+        default=20, ge=1, le=MAX_ITEMS_PER_REQUEST, description="Number of top items to return."
+    )
 
 
 class Pick(BaseModel):
@@ -103,6 +110,8 @@ def serialize(completed: dict[str, Any]) -> dict[str, list[list[float]]]:
 
 
 __all__ = [
+    "MAX_MODALITIES_PER_REQUEST",
+    "MAX_MODALITY_NAME_LENGTH",
     "Done",
     "Fill",
     "Health",

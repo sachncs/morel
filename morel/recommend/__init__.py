@@ -6,7 +6,7 @@ from morel.core.errors import Cfg
 from morel.recommend.baseline import MF, Pop
 from morel.recommend.bpr import bpr, distinct, negatives, to_ranks
 from morel.recommend.light import Light
-from morel.recommend.protocol import Recommender
+from morel.recommend.protocol import FeatureAware, Fits, Normalizes, Recommender
 
 
 def build(
@@ -39,7 +39,7 @@ def build(
         ValueError: If ``kind`` is not a known ranker name.
     """
     if kind == "light":
-        return Light(
+        ranker: nn.Module = Light(
             users=users,
             items=items,
             embed=embed,
@@ -47,11 +47,15 @@ def build(
             feature_dim=feature_dim,
             seed=seed,
         )
-    if kind == "mf":
-        return MF(users=users, items=items, embed=embed, seed=seed)
-    if kind == "pop":
-        return Pop(users=users, items=items)
-    raise Cfg(f"unknown recommender '{kind}'; available: light, mf, pop")
+    elif kind == "mf":
+        ranker = MF(users=users, items=items, embed=embed, seed=seed)
+    elif kind == "pop":
+        ranker = Pop(users=users, items=items)
+    else:
+        raise Cfg(f"unknown recommender '{kind}'; available: light, mf, pop")
+    if not isinstance(ranker, Recommender):
+        raise Cfg(f"recommender '{kind}' does not satisfy the Recommender contract")
+    return ranker
 
 
 #: Map from config name to ranker class for introspection.
@@ -65,7 +69,10 @@ KIND: dict[str, type[nn.Module]] = {
 __all__ = [
     "KIND",
     "MF",
+    "FeatureAware",
+    "Fits",
     "Light",
+    "Normalizes",
     "Pop",
     "Recommender",
     "bpr",

@@ -13,8 +13,8 @@ function StageVisual({ stage }: { stage: number }) {
         <svg viewBox="0 0 600 320" className="h-auto w-full">
           <defs>
             <linearGradient id="ar-stage1" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
           </defs>
           <g>
@@ -36,7 +36,7 @@ function StageVisual({ stage }: { stage: number }) {
                 cx="280"
                 cy={40 + i * 36}
                 r="9"
-                fill="#c4a8ff"
+                fill="#e1bd7a"
                 opacity={i === 2 || i === 5 ? 0.45 : 0.9}
               />
             ))}
@@ -54,8 +54,8 @@ function StageVisual({ stage }: { stage: number }) {
             <g>
               {[2, 5].map((i) => (
                 <g key={i}>
-                  <rect x="269" y={31 + i * 36} width="22" height="18" rx="4" fill="none" stroke="#7a7eff" strokeDasharray="2 2" opacity="0.7" />
-                  <text x="280" y={44 + i * 36} textAnchor="middle" fontSize="9" fontFamily="ui-monospace, monospace" fill="#5d57ff">M=0</text>
+                  <rect x="269" y={31 + i * 36} width="22" height="18" rx="4" fill="none" stroke="#c58e3d" strokeDasharray="2 2" opacity="0.7" />
+                  <text x="280" y={44 + i * 36} textAnchor="middle" fontSize="9" fontFamily="ui-monospace, monospace" fill="#9a5e1d">M=0</text>
                 </g>
               ))}
             </g>
@@ -65,7 +65,7 @@ function StageVisual({ stage }: { stage: number }) {
             <text x="280" y="295" textAnchor="middle" fontSize="11" fontFamily="ui-sans-serif, system-ui" fill="#8a8a98">
               Items (n=7)
             </text>
-            <text x="500" y="50" textAnchor="end" fontSize="11" fontFamily="ui-monospace, monospace" fill="#5d57ff">
+            <text x="500" y="50" textAnchor="end" fontSize="11" fontFamily="ui-monospace, monospace" fill="#9a5e1d">
               mask = bernoulli(0.4)
             </text>
           </g>
@@ -76,12 +76,12 @@ function StageVisual({ stage }: { stage: number }) {
         <svg viewBox="0 0 600 320" className="h-auto w-full">
           <defs>
             <linearGradient id="ar-stage2" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
             <radialGradient id="ar-stage2-halo" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#7a7eff" stopOpacity="0.5" />
-              <stop offset="100%" stopColor="#7a7eff" stopOpacity="0" />
+              <stop offset="0%" stopColor="#c58e3d" stopOpacity="0.5" />
+              <stop offset="100%" stopColor="#c58e3d" stopOpacity="0" />
             </radialGradient>
           </defs>
           <g stroke="url(#ar-stage2)" strokeWidth="0.8" fill="none">
@@ -98,8 +98,8 @@ function StageVisual({ stage }: { stage: number }) {
           </g>
           <circle cx="300" cy="160" r="60" fill="url(#ar-stage2-halo)" />
           <circle cx="300" cy="160" r="14" fill="#fff" stroke="url(#ar-stage2)" strokeWidth="2" />
-          <text x="300" y="164" textAnchor="middle" fontSize="11" fontWeight="600" fill="#5d57ff" fontFamily="ui-sans-serif, system-ui">q</text>
-          <g fill="#c4a8ff">
+          <text x="300" y="164" textAnchor="middle" fontSize="11" fontWeight="600" fill="#9a5e1d" fontFamily="ui-sans-serif, system-ui">q</text>
+          <g fill="#e1bd7a">
             {[
               [120, 60], [480, 60], [120, 260], [480, 260],
               [200, 40], [400, 40], [200, 280], [400, 280],
@@ -118,8 +118,8 @@ function StageVisual({ stage }: { stage: number }) {
         <svg viewBox="0 0 600 320" className="h-auto w-full">
           <defs>
             <linearGradient id="ar-stage3" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#7a7eff" />
-              <stop offset="100%" stopColor="#c4a8ff" />
+              <stop offset="0%" stopColor="#c58e3d" />
+              <stop offset="100%" stopColor="#e1bd7a" />
             </linearGradient>
           </defs>
           <g>
@@ -152,8 +152,8 @@ function StageVisual({ stage }: { stage: number }) {
         <svg viewBox="0 0 600 320" className="h-auto w-full">
           <defs>
             <linearGradient id="ar-stage4" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#7a7eff" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#c4a8ff" stopOpacity="1" />
+              <stop offset="0%" stopColor="#c58e3d" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#e1bd7a" stopOpacity="1" />
             </linearGradient>
           </defs>
           <g>
@@ -173,7 +173,7 @@ function StageVisual({ stage }: { stage: number }) {
                 <text x="22" y="252" textAnchor="middle" fontSize="10" fontFamily="ui-monospace, monospace" fill="#8a8a98">
                   #{row.rank}
                 </text>
-                <text x="22" y={16} textAnchor="middle" fontSize="10" fontWeight="600" fontFamily="ui-monospace, monospace" fill="#5d57ff">
+                <text x="22" y={16} textAnchor="middle" fontSize="10" fontWeight="600" fontFamily="ui-monospace, monospace" fill="#9a5e1d">
                   {row.score.toFixed(2)}
                 </text>
               </g>
@@ -224,7 +224,7 @@ export function Architecture() {
                     className={cn(
                       "mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-mono text-xs transition",
                       isActive
-                        ? "bg-gradient-to-br from-accent-500 to-violet-500 text-white shadow-glow"
+                        ? "bg-gradient-to-br from-accent-500 to-accent-700 text-white shadow-glow"
                         : "bg-ink-100 text-ink-600 ring-1 ring-ink-200/60 dark:bg-white/5 dark:text-ink-300 dark:ring-white/10",
                     )}
                   >

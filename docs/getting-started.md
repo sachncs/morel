@@ -88,7 +88,7 @@ import numpy as np
 import torch
 
 from morel import Config, Pipeline
-from morel.data.build import bipartite, item_cooccurrence
+from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 from morel.recommend import Light
 
@@ -99,7 +99,8 @@ users, items = 20, 50
 ui = bipartite(
     rng.integers(0, users, size=200),
     rng.integers(0, items, size=200),
-    users, items,
+    users,
+    items,
 )
 
 # Per-item features with 40% of modalities masked out.
@@ -111,13 +112,13 @@ mask = bernoulli(items, 2, 0.4, seed=42).to_numpy()
 
 # Build the GRE-MC pipeline and attach the corpus.
 pipeline = Pipeline(Config(), dims={"visual": 16, "text": 8})
-pipeline.attach_corpus(features, mask, item_cooccurrence(ui))
+pipeline.attach(features, mask, cooccurrence(ui))
 
 # Complete the missing modalities and score users.
 output = pipeline(
     {k: torch.from_numpy(v) for k, v in features.items()},
     torch.from_numpy(mask),
-    item_cooccurrence(ui),
+    cooccurrence(ui),
     index=torch.arange(items),
     training=False,
 )
@@ -165,9 +166,9 @@ Run the smoke test that ships with the repo:
 python -m pytest tests/unit -x
 ```
 
-The full suite (482 tests, 80.55 % coverage at the time of writing)
-takes about a minute on a workstation and is what CI runs on every
-push.
+The current local verification baseline is 557 tests with 83.58 % coverage;
+run `pytest -q` to obtain the authoritative result for your environment.
+CI runs the same suite with the repository's configured quality gates.
 
 ## Where to go next
 

@@ -7,7 +7,8 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import Net
-from morel.retrieve.mage import expand
+from morel.retrieve.bfs import neighbors_map
+from morel.retrieve.mage import _articulation_points, expand
 
 
 @pytest.fixture
@@ -49,8 +50,21 @@ class Checker:
         with pytest.raises(Net):
             expand(g, [1, 3], 0, features, mask, iters=0)
 
+    def budget(self, setup) -> None:
+        """Oversized serving neighborhoods fail closed before MAGE expansion."""
+        features, mask, g = setup
+        with pytest.raises(Net, match="exceeding serving budget"):
+            expand(g, [1, 3], 0, features, mask, iters=3, max_nodes=2)
+
     def loop(self, setup) -> None:
         features, mask, _ = setup
         g_loopy = sp.csr_matrix(np.eye(3, dtype=np.float32))
         with pytest.raises(Net, match="graph has self-loops"):
             expand(g_loopy, [0, 2], 0, features, mask[:3], iters=3)
+
+    def articulation(self) -> None:
+        """Removal candidates use cut vertices rather than repeated BFS checks."""
+        path = sp.csr_matrix(np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]], dtype=np.float32))
+        triangle = sp.csr_matrix(np.array([[0, 1, 1], [1, 0, 1], [1, 1, 0]], dtype=np.float32))
+        assert _articulation_points({0, 1, 2}, neighbors_map(path)) == {1}
+        assert _articulation_points({0, 1, 2}, neighbors_map(triangle)) == set()

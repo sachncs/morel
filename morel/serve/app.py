@@ -2,16 +2,23 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, cast
+import os
+import time
+import uuid
+from typing import TYPE_CHECKING, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
+from morel import __version__
 from morel.core.errors import Error
 from morel.serve import auth
 from morel.serve.loader import Loader
-from morel.serve.metrics import REGISTRY, metrics_response
-from morel.serve.ratelimit import limiter, ratelimit_dependency
+from morel.serve.metrics import Registry, metrics_response
+from morel.serve.protocol import ServingPipeline, is_serving_pipeline
+from morel.serve.ratelimit import Limiter, ratelimit_dependency
 from morel.serve.schema import (
     MAX_ITEMS_PER_REQUEST,
     Done,
@@ -24,7 +31,7 @@ from morel.serve.schema import (
 )
 
 if TYPE_CHECKING:
-    from morel.pipeline import Pipeline
+    pass
 
 
 class Ask(BaseModel):
@@ -92,6 +99,9 @@ def create(
     *,
     rate_limit_per_minute: int = 60,
     admin_limit_per_minute: int = 10,
+    trusted_proxy_cidrs: tuple[str, ...] | None = None,
+    metrics_enabled: bool = True,
+    metrics_path: str = "/metrics",
 ) -> FastAPI:
     """Create a FastAPI app.
 
@@ -107,31 +117,99 @@ def create(
             an empty loader is created and every request returns ``503``.
         rate_limit_per_minute: Read-endpoint budget per IP per minute.
         admin_limit_per_minute: Admin-endpoint budget per IP per minute.
+        trusted_proxy_cidrs: Networks allowed to supply ``X-Forwarded-For``.
+        metrics_enabled: Whether to expose the Prometheus endpoint.
+        metrics_path: Path at which Prometheus metrics are exposed.
 
     Returns
     -------
         Configured :class:`FastAPI` instance.
     """
-    app = FastAPI(title="morel inference", version="0.1.0")
+    auth.assert_()  # noqa: PT009 - this is the public auth configuration check
+    auth.assert_production()
+    app = FastAPI(title="morel inference", version=__version__)
+    app.state.metrics_registry = Registry()
     app.state.loader = loader or Loader()
     app.state.updater_enabled = True
     app.state.pipeline_factory = None
-    limiter.configure(
+    proxy_cidrs = (
+        trusted_proxy_cidrs
+        if trusted_proxy_cidrs is not None
+        else tuple(
+            value.strip()
+            for value in os.environ.get("MOREL_TRUSTED_PROXY_CIDRS", "").split(",")
+            if value.strip()
+        )
+    )
+    request_limiter = Limiter()
+    request_limiter.configure(
         per_minute_read=rate_limit_per_minute,
         per_minute_admin=admin_limit_per_minute,
+        trusted_proxy_cidrs=proxy_cidrs,
     )
+    read_limit = ratelimit_dependency("read", request_limiter)
+    admin_limit = ratelimit_dependency("admin", request_limiter)
+
+    @app.exception_handler(HTTPException)
+    async def http_error(request: Request, exc: HTTPException) -> JSONResponse:
+        """Return one stable error envelope for expected HTTP failures."""
+        request_id = getattr(request.state, "request_id", "unknown")
+        detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "error": {
+                    "code": f"http_{exc.status_code}",
+                    "message": detail,
+                    "request_id": request_id,
+                }
+            },
+            headers={**(exc.headers or {}), "X-Request-ID": request_id},
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
+        """Return validation failures without leaking an unstable traceback."""
+        request_id = getattr(request.state, "request_id", "unknown")
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "code": "request_validation_failed",
+                    "message": "request payload failed validation",
+                    "request_id": request_id,
+                    "fields": [
+                        {
+                            "loc": list(error.get("loc", ())),
+                            "msg": str(error.get("msg", "invalid value")),
+                            "type": str(error.get("type", "value_error")),
+                        }
+                        for error in exc.errors()
+                    ],
+                }
+            },
+            headers={"X-Request-ID": request_id},
+        )
 
     @app.middleware("http")
     async def observe(request: Request, call_next: Any) -> Any:
         """Count every request and serve Prometheus-formatted /metrics."""
-        if request.url.path == "/metrics":
-            return metrics_response(REGISTRY)
+        incoming = request.headers.get("X-Request-ID", "").strip()
+        request_id = incoming if 0 < len(incoming) <= 128 else uuid.uuid4().hex
+        request.state.request_id = request_id
+        registry: Registry = request.app.state.metrics_registry
+        if metrics_enabled and request.url.path == metrics_path:
+            response = metrics_response(registry)
+            response.headers["X-Request-ID"] = request_id
+            return response
+        started = time.perf_counter()
         response = await call_next(request)
-        REGISTRY.observe_request(
+        response.headers["X-Request-ID"] = request_id
+        registry.observe_request(
             endpoint=request.url.path,
             method=request.method,
             status=response.status_code,
-            elapsed=max(0.0, response.headers.get("x-elapsed", 0) if False else 0.0),
+            elapsed=max(0.0, time.perf_counter() - started),
         )
         return response
 
@@ -143,7 +221,7 @@ def create(
         -------
             Health: Service status and version.
         """
-        return Health(status="ok", version="0.1.0")
+        return Health(status="ok", version=__version__)
 
     @app.get("/health/ready")
     def readiness() -> dict[str, Any]:
@@ -158,21 +236,28 @@ def create(
             pipeline = app.state.loader.get("default")
         except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
+        if not is_serving_pipeline(pipeline):
+            raise HTTPException(
+                status_code=503,
+                detail="loaded factory returned an incompatible pipeline",
+            )
         return {
             "status": "ready",
             "loader_keys": app.state.loader.registered(),
             "items": int(getattr(pipeline, "items", 0)) if pipeline is not None else 0,
         }
 
-    @app.get("/metrics")
+    @app.get(metrics_path)
     def metrics() -> Any:  # body served by the middleware above
-        return metrics_response(REGISTRY)
+        if not metrics_enabled:
+            raise HTTPException(status_code=404, detail="metrics endpoint disabled")
+        return metrics_response(app.state.metrics_registry)
 
     @app.post("/v1/complete", response_model=Done)
     def complete(
         payload: Fill,
         _: None = Depends(auth.dependency("read")),
-        __: None = Depends(ratelimit_dependency("read")),
+        __: None = Depends(read_limit),
     ) -> Done:
         """Completion endpoint.
 
@@ -190,14 +275,20 @@ def create(
             pipeline = app.state.loader.get("default")
         except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
+        if not is_serving_pipeline(pipeline):
+            raise HTTPException(
+                status_code=503,
+                detail="loaded factory returned an incompatible pipeline",
+            )
         completed = run(pipeline, payload)
         return Done(completed=serialize(completed))
 
     @app.post("/v1/recommend", response_model=List)
     def recommend(
         payload: Query,
+        request: Request,
         _: None = Depends(auth.dependency("read")),
-        __: None = Depends(ratelimit_dependency("read")),
+        __: None = Depends(read_limit),
     ) -> List:
         """Recommendation endpoint.
 
@@ -210,14 +301,18 @@ def create(
             pipeline = app.state.loader.get("default")
         except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
-        items = suggest(pipeline, payload)
+        items = suggest(
+            pipeline,
+            payload,
+            request_id=getattr(request.state, "request_id", "unknown"),
+        )
         return List(items=items)
 
     @app.post("/v1/feedback", response_model=Tell)
     def feedback(
         payload: Ask,
         _: None = Depends(auth.dependency("admin")),
-        __: None = Depends(ratelimit_dependency("admin")),
+        __: None = Depends(admin_limit),
     ) -> Tell:
         """Feedback endpoint."""
         if not getattr(app.state, "updater_enabled", True):
@@ -232,7 +327,7 @@ def create(
     def rollback(
         steps: int = 1,
         _: None = Depends(auth.dependency("admin")),
-        __: None = Depends(ratelimit_dependency("admin")),
+        __: None = Depends(admin_limit),
     ) -> Rollback:
         """Rollback endpoint."""
         updater = getattr(app.state, "updater", None)
@@ -243,7 +338,7 @@ def create(
     @app.get("/v1/stats", response_model=Stats)
     def stats(
         _: None = Depends(auth.dependency("admin")),
-        __: None = Depends(ratelimit_dependency("admin")),
+        __: None = Depends(admin_limit),
     ) -> Stats:
         """Stats endpoint."""
         updater = getattr(app.state, "updater", None)
@@ -267,33 +362,43 @@ require_read = auth.dependency("read")
 require_admin = auth.dependency("admin")
 
 
-def run(pipeline: object, payload: Fill) -> dict[str, Any]:
-    """Run the completion forward pass on the loaded ``Pipeline``."""
+def run(pipeline: ServingPipeline, payload: Fill) -> dict[str, Any]:
+    """Run completion for item ids in the loaded corpus.
+
+    The serving contract requires a pipeline with an attached feature corpus,
+    modality mask, and item graph. It never fabricates zero-valued features.
+    """
     import numpy as np
-    import scipy.sparse as sp
     import torch
 
-    from morel.data.mask import bernoulli
-
     items = payload.items
-    if not items:
-        raise HTTPException(status_code=400, detail="items must be non-empty")
-    pipeline_obj = cast("Pipeline", pipeline)
-    dims = getattr(pipeline_obj, "dims", None)
-    if not dims:
+    corpus = pipeline.cfeat
+    corpus_mask = pipeline.cmask
+    adjacency = pipeline.cadj
+    if not isinstance(corpus, dict) or corpus_mask is None or adjacency is None:
         raise HTTPException(
             status_code=503,
-            detail="loaded pipeline reports no dims; cannot serve /v1/complete",
+            detail="loaded pipeline has no attached feature corpus",
         )
-    seed = int(getattr(payload, "seed", 0) or 0)
-    mask = bernoulli(len(items), len(dims), 0.4, seed=seed).numpy()
+    first = next(iter(corpus.values()), None)
+    if first is None:
+        raise HTTPException(status_code=503, detail="loaded pipeline feature corpus is empty")
+    count = int(first.shape[0])
+    indices = np.asarray(items, dtype=np.int64)
+    if np.any(indices < 0) or np.any(indices >= count):
+        raise HTTPException(status_code=422, detail=f"item ids must be in [0, {count})")
     features = {
-        name: torch.from_numpy(np.zeros((len(items), dim), dtype=np.float32))
-        for name, dim in dims.items()
+        name: torch.from_numpy(np.asarray(values, dtype=np.float32)[indices])
+        for name, values in corpus.items()
     }
-    mask_t = torch.from_numpy(mask)
-    adjacency = sp.csr_matrix((len(items), len(items)), dtype=np.float32)
-    output = pipeline_obj(features, mask_t, adjacency=adjacency, training=False)
+    mask_t = torch.from_numpy(np.asarray(corpus_mask, dtype=np.float32)[indices])
+    output = pipeline(
+        features,
+        mask_t,
+        adjacency=adjacency,
+        index=torch.from_numpy(indices),
+        training=False,
+    )
     if payload.modalities:
         return {
             name: tensor for name, tensor in output.completed.items() if name in payload.modalities
@@ -302,38 +407,70 @@ def run(pipeline: object, payload: Fill) -> dict[str, Any]:
     return completed
 
 
-def suggest(pipeline: object, payload: Query) -> list[Pick]:
+def suggest(
+    pipeline: ServingPipeline,
+    payload: Query,
+    *,
+    request_id: str = "unknown",
+) -> list[Pick]:
     """Return the top-``top`` items for a user via the loaded recommender.
 
-    Falls back to a uniform ranking only when the pipeline has no
-    ``recommender`` attribute — a deployment that never wired a ranker
-    cannot score users, and a flat ranking is the only honest answer
-    in that case (with an explicit log line so operators can see why).
+    Fails closed when the pipeline has no recommender. A deployment that
+    never wired a ranker must not return plausible-looking fabricated scores.
     """
     import logging
 
     log = logging.getLogger("morel.serve.recommend")
 
+    if not is_serving_pipeline(pipeline):
+        raise HTTPException(
+            status_code=503,
+            detail="loaded factory returned an incompatible pipeline",
+        )
     top = max(1, int(payload.top))
-    recommender = getattr(pipeline, "recommender", None)
+    recommender = pipeline.recommender
     if recommender is None:
-        log.warning(
-            "loaded pipeline has no .recommender attribute; returning uniform ranking",
+        log.error(
+            "loaded pipeline has no recommender; refusing to fabricate ranking",
             extra={"user": payload.user, "top": top},
         )
-        return [Pick(item=i, score=1.0 / (i + 1)) for i in range(top)]
+        raise HTTPException(
+            status_code=503,
+            detail="loaded pipeline has no recommender",
+        )
     import torch
 
+    score = getattr(pipeline, "score", None)
     item_count = int(getattr(recommender, "items", top))
+    user_count = int(getattr(recommender, "users", payload.user + 1))
+    if payload.user >= user_count:
+        raise HTTPException(status_code=422, detail=f"user id must be in [0, {user_count})")
+    if item_count <= 0:
+        raise HTTPException(status_code=503, detail="loaded recommender has no catalog items")
     item_ids = torch.arange(item_count, dtype=torch.long).unsqueeze(0)
     user_id = torch.tensor([int(payload.user)], dtype=torch.long)
     try:
         with torch.no_grad():
-            scores = recommender(user_id, item_ids).squeeze(0)
+            if callable(score):
+                scores = score(user_id, item_ids.squeeze(0)).squeeze(0)
+            else:
+                ui_graph = getattr(pipeline, "ui_graph", None)
+                if ui_graph is None:
+                    raise HTTPException(
+                        status_code=503,
+                        detail="loaded pipeline has no user-item graph",
+                    )
+                scores = recommender(user_id, item_ids, ui_graph).squeeze(0)
+    except HTTPException:
+        raise
     except Exception as exc:  # pragma: no cover - recommender-specific
+        log.exception(
+            "recommender scoring failed",
+            extra={"request_id": request_id, "user": payload.user, "top": top},
+        )
         raise HTTPException(
             status_code=503,
-            detail=f"recommender scoring failed: {exc}",
+            detail="recommender scoring failed; see server logs with the request id",
         ) from exc
     k = min(top, item_count)
     topk = torch.topk(scores, k=k)

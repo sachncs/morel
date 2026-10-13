@@ -17,5 +17,7 @@ pytest benchmarks/ --benchmark-only --benchmark-min-rounds=20 --benchmark-autosa
 
 ## Threshold
 
-CI runs `pytest benchmarks/` weekly and compares against the previous run.
-A 20% regression in any benchmark fails the build.
+The benchmark suite is an opt-in local gate. Record the machine, dependency
+lock, dataset scale, and command alongside results; do not compare timings
+across unlike hardware. CI validates the benchmark code and package gates,
+but does not claim a universal latency budget.

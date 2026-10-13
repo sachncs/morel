@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { LinkButton } from "./button";
 import { Logo } from "./logo";
 import { ThemeToggle } from "./theme-toggle";
@@ -12,12 +12,17 @@ const NAV_ITEMS = [
   { label: "Architecture", href: "#architecture" },
   { label: "Performance", href: "#performance" },
   { label: "Use cases", href: "#use-cases" },
-  { label: "Docs", href: SITE.url + "docs/" },
+  { label: "Docs", href: SITE.docs },
 ] as const;
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const wasOpen = useRef(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -28,10 +33,36 @@ export function Nav() {
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
+    if (open) closeButtonRef.current?.focus();
+    else if (wasOpen.current) menuButtonRef.current?.focus({ preventScroll: true });
+    wasOpen.current = open;
     return () => {
       document.body.style.overflow = "";
     };
   }, [open]);
+
+  const handleDialogKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      setOpen(false);
+      return;
+    }
+    if (event.key !== "Tab") return;
+
+    const focusable = event.currentTarget.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    if (!focusable?.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
 
   return (
     <header
@@ -92,6 +123,7 @@ export function Nav() {
         </div>
 
         <button
+          ref={menuButtonRef}
           type="button"
           aria-label="Open menu"
           onClick={() => setOpen(true)}
@@ -109,28 +141,36 @@ export function Nav() {
       <div
         className={cn(
           "fixed inset-0 z-50 md:hidden",
-          open ? "pointer-events-auto" : "pointer-events-none",
+          open ? "pointer-events-auto visible" : "pointer-events-none invisible",
         )}
         aria-hidden={!open}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site navigation"
+        ref={dialogRef}
       >
         <div
           className={cn(
             "absolute inset-0 bg-ink-950/40 backdrop-blur-sm transition-opacity",
             open ? "opacity-100" : "opacity-0",
           )}
+          aria-hidden="true"
           onClick={() => setOpen(false)}
         />
         <div
+          ref={panelRef}
           className={cn(
             "absolute inset-x-0 top-0 origin-top bg-white p-6 shadow-xl transition-transform dark:bg-ink-950",
             open ? "translate-y-0" : "-translate-y-4",
           )}
+          onKeyDownCapture={handleDialogKeyDown}
         >
           <div className="flex items-center justify-between">
             <Logo />
             <div className="flex items-center gap-2">
               <ThemeToggle />
               <button
+                ref={closeButtonRef}
                 type="button"
                 aria-label="Close menu"
                 onClick={() => setOpen(false)}

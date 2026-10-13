@@ -23,6 +23,13 @@ app = create(
 `create(...)` returns the configured `FastAPI` app. Pass it to any
 ASGI server (uvicorn, hypercorn, granian).
 
+The `morel serve --model-dir RUN_DIR` CLI eagerly loads and validates the
+complete bundle before Uvicorn opens its listening socket. Missing artifacts,
+incompatible configuration hashes, and unsafe checkpoints therefore fail
+startup instead of becoming a first-request outage. Omitting `--model-dir` is
+an intentional fail-closed mode for health/configuration checks; inference
+endpoints remain unavailable.
+
 ## Auth
 
 Set the env vars before starting the server:
@@ -33,13 +40,23 @@ Set the env vars before starting the server:
 | ``MOREL_AUTH_TOKEN_READ`` | read      | Same as above            |
 | ``MOREL_AUTH_TOKEN_ADMIN``| admin     | ``/v1/feedback``, ``/v1/rollback``, ``/v1/stats`` |
 
-A missing token disables auth. With a single ``MOREL_AUTH_TOKEN``
+A missing token disables auth for local development. With a single ``MOREL_AUTH_TOKEN``
 set, only read endpoints accept it; admin endpoints return 401.
 
 !!! danger "Production note"
     The legacy ``MOREL_AUTH_TOKEN`` is honored as a read-scope
     fallback. It does **not** grant admin scope. Set
     ``MOREL_AUTH_TOKEN_ADMIN`` explicitly to enable admin endpoints.
+
+For deployed services set ``MOREL_ENV=production``. Startup then requires
+both ``MOREL_AUTH_TOKEN_READ`` and ``MOREL_AUTH_TOKEN_ADMIN``; the process
+fails before serving traffic if either scope is missing. This prevents a
+production deployment from accidentally exposing read or state-mutating
+routes without credentials.
+
+Production tokens must be at least 16 characters and must be different from
+one another. The legacy ``MOREL_AUTH_TOKEN`` variable is not accepted as the
+production read credential.
 
 ## Rate limiting
 
@@ -65,6 +82,11 @@ The completion endpoint caps the ``items`` list at 10,000 ids (see
 ``MAX_ITEMS_PER_REQUEST`` in ``morel.serve.schema``). A request
 beyond that raises ``422`` from Pydantic's validator before the
 handler runs.
+
+The optional ``modalities`` selector is capped at 64 names, with each name
+limited to 128 characters. These bounds keep feature-selection requests
+predictable; deployments should still enforce an HTTP body-size limit at the
+reverse proxy.
 
 For an application-level body-size cap, front the service with
 nginx or envoy:

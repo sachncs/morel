@@ -1,0 +1,587 @@
+# Morel repository and product-site audit
+
+Date: 2026-10-13  
+Scope: repository, local Python package, local React site, and the deployed
+`https://sachncs.github.io/morel/` page.
+
+## Verification snapshot
+
+- `./.venv-audit/bin/python -m pytest -q`: **557 passed**, 83.58% coverage,
+  no warnings.
+- A clean dev install initially aborted before collection because
+  `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
+- `ruff check .`: passes.
+- `ruff format --check .`: passes.
+- `mypy morel/`: passes with no configuration warnings.
+- `make audit-critical`: passes with per-subsystem coverage floors for serving
+  (79%), pipeline (77%), CLI (71%), and checkpoint loading (84%).
+- The corrected forward benchmark uses a bounded 32-query batch; the local
+  1k-item case measures approximately **969 ms** for one default-MAGE run
+  after the MAGE connectivity optimization. A 10k-item single-iteration smoke
+  exceeded 20 seconds in the current environment, so catalog-scale retrieval
+  remains an explicit production blocker rather than an assumed SLO.
+- `pnpm build` in `site/`: passes after `pnpm install --frozen-lockfile`.
+- `make lock-check`: passes for the pinned Linux/Python 3.11 target; lock
+  regeneration now uses explicit upgrade semantics.
+- `pip-audit --strict --disable-pip --requirement requirements.lock`: passes
+  with no known vulnerabilities in the runtime lock.
+- `make audit-artifact`: passes; installs the exact built wheel into an isolated
+  target directory, imports it, validates its embedded version, and checks the
+  console entry point. CI additionally audits the environment after installing
+  that wheel.
+- `docker build --tag morel:local-smoke .` and the production container smoke
+  contract pass locally: `/health` returns 200 and `/health/ready` returns 503
+  without a model bundle while running as the non-root image user.
+- The serving suite includes a bounded mixed HTTP load test with concurrent
+  valid, malformed, oversized, and unknown-modality requests, plus isolation
+  coverage proving separate app instances do not share rate-limit buckets.
+- The serving suite also repeats mixed traffic across five rounds, and the CI
+  container smoke starts two Uvicorn workers and probes liveness repeatedly.
+- Multi-worker serving now uses an importable Uvicorn factory instead of an
+  in-memory app object, which avoids Uvicorn's worker-supervisor refusal and
+  validates each worker's model bundle before readiness.
+- Added `make serve-workers-smoke`, a repeatable local two-worker lifecycle
+  gate that checks liveness, fail-closed readiness, repeated probes, and clean
+  shutdown without requiring a model artifact.
+- Added `make serve-soak`, a bounded concurrent process-level HTTP gate that
+  mixes liveness, fail-closed readiness, malformed payload, and missing-model
+  requests against two real Uvicorn workers and requires clean shutdown.
+- The bounded soak also passed for 60 seconds with four concurrent clients:
+  1,520 liveness responses, 1,758 fail-closed readiness responses, 1,520
+  validation responses, and 1,282 expected rate-limit responses, with no
+  timeout or worker failure.
+- Added `make serve-model-smoke`, which loads the real `runs/completion`
+  bundle in two workers and verifies authenticated `/health`, readiness,
+  `/v1/complete`, and non-empty `/v1/recommend` responses.
+- Added validated serving resource controls for per-worker concurrency,
+  keep-alive, graceful shutdown, and request-count recycling. These are passed
+  to Uvicorn and excluded from the model-artifact hash so existing bundles
+  remain loadable.
+- Serving bundle loading now warms graph positional encodings before the
+  pipeline becomes ready, moving the expensive first-request computation into
+  controlled startup.
+- Production preflight now requires a model-bundle path for both the CLI and
+  inherited multi-worker runtime; development remains allowed to start
+  fail-closed without one.
+- Added a validated retrieval-node budget to serving and a shared MAGE
+  relevance index for batch requests; oversized retrievals now fail through a
+  typed domain error instead of consuming unbounded graph work.
+- Hardened streaming ingestion against malformed JSON shapes, invalid bounds,
+  malformed sparse chunks, duplicate-edge k-core inflation, and malformed
+  metadata records; added regression coverage for each boundary.
+- MAGE now materializes adjacency rows lazily for the active subgraph instead
+  of building a neighbor map for every catalog node on every query. The
+  bounded 1k benchmark remains valid; the 10k smoke exposed the next limit in
+  ACS/MAGE traversal and is retained as an open scale item.
+- Added `make fault-injection`, a named gate for loader timeout/failure,
+  request sanitization, updater atomicity, checkpoint rejection, and malformed
+  HTTP payload behavior.
+- Fixed `make audit-artifact` to select the newest wheel instead of installing
+  every stale wheel left in `dist/`, which previously made a valid build fail
+  with a misleading dependency-resolution conflict.
+- `pnpm test:e2e --project=chromium`: **14 passed** against the built site
+  preview, covering mobile navigation focus trapping, Escape/focus restore,
+  anchor navigation, theme persistence, clipboard feedback, reduced motion,
+  and canonical link targets, plus an axe WCAG A/AA audit with zero
+  violations and a rendered-link crawl with no broken destinations.
+- The same **14 tests pass** against a `GITHUB_PAGES=1` artifact served at
+  `/morel/`, including asset loading under the real Pages base path.
+- The site now puts code, measured verification, and quickstart before the
+  decorative architecture/adoption sections; performance claims link directly
+  to benchmark and readiness evidence, and the local browser/axe suite still
+  passes after the information-architecture change.
+- `make site-test` and `make site-pages-test` now expose both browser gates as
+  repeatable local audit targets.
+- `pnpm test:unit`: **4 passed** frontend unit tests for class merging,
+  number formatting, verification metadata, and canonical link configuration.
+- `make docs-check` now scans the README, MkDocs pages, and site code sample
+  for removed public API names and known stale configuration claims.
+- CI now builds the site and runs the browser smoke suite on pull requests and
+  pushes; the Pages deployment workflow now gates publishing on the same
+  base-path browser suite.
+- Smoke-tested successfully: `morel data extract --synthetic`, `morel data
+  build --synthetic`, `morel render-fidelity`, and `morel eval rank`.
+- Rebuilt and smoke-tested the production container with explicit production
+  credentials: `/health` returns 200, `/health/ready` returns 503 without a
+  model bundle, and `/metrics` returns 200; the image runs as the non-root
+  user.
+- Direct browser inspection confirms the deployed site is still the old build:
+  it shows the superseded production-ready copy, zeroed performance counters,
+  and `/morel/docs/` links that return 404. The redesign is local and has not
+  been published.
+
+## Implemented in the current worktree
+
+- Added `pytest-asyncio` to the development dependencies and cleared Ruff
+  formatting plus mypy's Laplacian return-type failure.
+- Made serving fail closed when a recommender is absent, added bounded query
+  validation, and recorded real request latency in Prometheus metrics.
+- Repaired documentation and GitHub links, removed false production-ready
+  wording from the landing page, and made initial performance counters truthful
+  instead of rendering zero before animation.
+- Reworked the logo into a morel-cap/mycelium graph mark, updated favicon,
+  package/docs/social assets, and shifted the palette from saturated purple to
+  warm mushroom gold and charcoal.
+- Added basic mobile dialog semantics, focus restoration, and Escape-to-close
+  behavior to the site navigation.
+- Added a validated, manifest-bound serving factory and `morel serve
+  --model-dir RUN_DIR`; completion runs now persist the feature/mask/graph
+  bundle required by real inference.
+- Production CLI startup now eagerly loads the registered run bundle before
+  opening the Uvicorn socket, while the reusable library loader remains lazy.
+- Removed `del`-based unused-variable workarounds across runtime and test code;
+  intentional unused parameters remain explicit in their signatures.
+- Bound training checkpoints to the top-level config hash and added an
+  end-to-end local smoke test that trains, reloads, and scores a run bundle.
+- Added a real `Pipeline.score()` path that uses attached corpus state,
+  completion output, the user-item graph, and model-device placement.
+- Added [engineering.md](docs/engineering.md) with Google-style Python,
+  semi-private naming, typed polymorphism, ownership, security, and review
+  rules.
+- Added request IDs, stable HTTP error envelopes, validation error handling,
+  and production startup checks requiring separate read/admin credentials.
+- Production auth now rejects legacy-only credentials, weak tokens, and shared
+  read/admin secrets; CI's container fixtures use distinct 16-character test
+  tokens.
+- Added a serving preflight contract: production startup rejects unstructured
+  or DEBUG logging before model loading and socket creation.
+- Bounded the completion request's optional modality selector to 64 names and
+  128 characters per name, closing an unbounded request-shape/resource
+  exposure at the HTTP schema boundary.
+- Added request-aware recommender diagnostics and early bounds checks for
+  unknown users and empty catalogs.
+- Sanitized recommender failure responses so exception details stay in
+  request-correlated server logs instead of reaching API clients.
+- Added trusted reverse-proxy CIDR handling for rate limiting; forwarded
+  client addresses are ignored unless explicitly configured and documented.
+- Isolated legacy arbitrary-pickle checkpoint loading in the explicit
+  `morel.train.legacy.load_trusted` module, retained the old name only as a
+  compatibility shim, and required an explicit risk acknowledgement; the
+  production-readiness report documents the trust boundary.
+- Added checkpoint schema validation for tensor state, metadata types,
+  finite metrics, non-negative epochs, and safe optional sections.
+- Hardened LightGCN empty/negative-id handling, simplified the all-masked
+  attention fallback, and made MRR linear in catalog width instead of sorting
+  every user row.
+- Made recommender variation points runtime-checkable through shared
+  `Recommender`, `Fits`, and `Normalizes` protocols, and added a contract test
+  covering every registered ranker.
+- Added a deterministic, hash-pinned lock refresh/check workflow, runtime
+  dependency auditing, and a site build job to CI.
+- Made the two encoder boundaries explicit as `FeatureEncoder` and
+  `GraphEncoder`, retained compatibility aliases for `Feature` and `Enc`, and
+  added architecture-contract tests proving both protocols are runtime usable.
+- Added Playwright smoke coverage at 360px, 768px, 1024px, and 1440px, and made the E2E command rebuild before
+  previewing, eliminating stale local preview state from browser verification.
+- Added deterministic desktop and mobile visual baselines for the redesigned
+  logo, palette, and first viewport, with reduced-motion capture settings.
+- Fixed the mobile navigation sheet so its closed state is explicitly invisible
+  rather than merely non-interactive; the visual baseline caught the leaked
+  panel pixels.
+- Added a real mobile-dialog focus trap and verified it at a 390px viewport.
+- Added rendered-link crawling and fixed a real 404 in the footer’s GitHub
+  Discussions link by replacing it with the repository’s Pull requests page.
+- Added a prefix-aware Pages preview server and gated the Pages deployment on
+  the `/morel/` artifact path, preventing root-hosting tests from masking base
+  path failures.
+- Removed the pytest collection warning caused by importing `ClassVar` into a
+  test module.
+- Removed unsupported hard-coded recommendation deltas from the product site;
+  performance cards now direct users to reproducible local evaluation, and
+  stale documentation counts were updated to the current 557/83.58 baseline.
+- Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
+  `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
+  section.
+- Removed `del`-based unused-variable workarounds across runtime and test code;
+  intentional unused parameters remain explicit in their signatures.
+- Expanded `Config.validate()` into a fail-closed schema boundary for nested
+  strings, supported kinds, finite numeric values, ranges, training budgets,
+  and evaluation ratios, with negative tests for malformed configuration.
+- Nested configuration parsing now rejects unknown keys and non-mapping
+  sections instead of silently dropping data or leaking `AttributeError`.
+- Narrowed CLI logging fallback handling to expected configuration, YAML, and
+  filesystem failures; cancellation and unexpected programming errors are no
+  longer silently swallowed there.
+- Added a dated `VERIFICATION` source for product-site metrics and synchronized
+  the current 557-test/83.58%-coverage evidence across the audit, docs, and site.
+- Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
+  with a YAML round-trip regression test, eliminating another public-example
+  API mismatch.
+- Corrected vectorized relevance aggregation so candidates with no jointly
+  observed modality are excluded from the mean instead of diluting it with
+  artificial zeros, with a regression test for the sparse-mask case.
+- Corrected stale README links to renamed documentation paths and added a
+  documentation gate that rejects broken repository-relative README links.
+  The security policy now distinguishes the safe production checkpoint path
+  from the explicitly acknowledged legacy pickle escape hatch.
+- Added Hypothesis property coverage for arbitrary JSON-shaped configuration
+  payloads and safely serializable checkpoint payloads, asserting malformed
+  inputs fail through domain errors rather than internal exceptions.
+- Added a runtime-checkable `ServingPipeline` protocol so incompatible loader
+  results fail closed with a stable 503 before serving code dereferences them.
+- Fixed loader failure paths so missing registrations do not leak in-flight
+  build entries, and concurrent waiters are notified immediately when a
+  factory fails instead of waiting for the full watchdog timeout.
+- Added a runtime-checkable `RetrievalStrategy` protocol and typed retrieval
+  registry, removing object dispatch and the associated operator type escape.
+- Added an explicit `FeatureAware` recommender capability and routed completed
+  features through it instead of probing optional attributes with `getattr`.
+- Made live updater commits atomic with respect to inference by holding the
+  model write lock through mutation, validation, rollback, and commit; added a
+  concurrency regression proving readers cannot observe partial weights.
+- Made loader build-capacity handling fail closed instead of evicting active
+  in-flight keys, preventing duplicate factory execution under load.
+- Made the serving CLI reject an incompatible loaded factory result before
+  opening the Uvicorn socket, with a fail-fast regression test.
+- Hardened ranking metrics for empty catalogs and cutoffs wider than the
+  catalog, with regression coverage for neutral empty-catalog results.
+- Made Prometheus registries app-local so multiple service instances do not
+  contaminate one another's request counters; added isolation coverage.
+- Introduced the explicit `ModalityMask` value-object name while preserving
+  `Mask` as a compatibility alias, removing ambiguity with masking concepts.
+- Bound service health and OpenAPI version fields to the generated package
+  version and added a regression test; the site now labels the API as v0.1
+  rather than claiming an unreleased v1.0.
+- Made readiness validate the serving protocol, so an incompatible factory
+  result cannot be advertised as ready.
+
+The inventory below is the complete baseline register. Items listed as
+implemented above are closed in this worktree but remain regression risks until
+the corresponding CI and browser gates are added; the remaining items are
+unresolved and stay in the staged plan.
+
+## Current status of the register
+
+The numbered inventory below is intentionally retained as the complete issue
+history. This status map prevents historical findings from being mistaken for
+open defects:
+
+- **Closed in this worktree:** 1–4, 7–15, 17–20, 26–32, 34–39, 42, 49, 54–58, and the
+  local portions of 43–48.
+- **Partially addressed:** 16, 19, 21, 22, 23, 24, 25, 33, 41,
+  50, 51, 52, and 53.
+- **Still open:** 5–6 (deployment truth), and the
+  live/deployment portions of 50–53.
+
+The local pipeline boundary now validates modality names and shapes and stores
+defensive snapshots of feature, mask, and adjacency inputs; this closes the
+mutable-attachment portion of issue 20. The live URL has not been updated yet,
+so claims about deployed copy, palette, logo, and documentation remain open
+until a Pages deployment is published and rechecked.
+
+## Issue inventory
+
+### P0 — must fix before calling the project production-ready
+
+54. The Docker build was not production-ready: the Dockerfile began with a
+   Python-style triple-quoted string, tried to install the project before
+   copying its source, and relied on Git metadata excluded from the build
+   context for `setuptools-scm` version discovery; it also copied the wheel
+   from the wrong stage path. Container delivery could not reach a reliable
+   runtime image, the wheel omitted its optional serving dependencies, and
+   unconstrained runtime installation selected a massive CUDA dependency tree
+   for CPU deployments; the non-root runtime user also lacked a writable
+   default log directory; and a clean runtime process accessed `uvicorn`
+   through `sys.modules` without importing it first.
+
+1. `/v1/recommend` can return a fabricated descending uniform ranking when the
+   loaded pipeline has no recommender. A serving system must fail closed with a
+   503 and an operator-visible error, not return plausible-looking nonsense.
+2. `/v1/recommend` calls the recommender without the user-item graph and
+   completed item features. The endpoint therefore does not exercise the
+   advertised retrieval/completion pipeline and can silently serve an
+   ID-embedding-only ranking.
+3. `/v1/complete` fabricates zero-valued item features and an empty adjacency
+   graph from item IDs. It is not completing real catalog modalities; the API
+   contract needs either real feature inputs or an explicit demo-only status.
+4. Request latency metrics are always recorded as `0.0` because the ASGI
+   middleware contains a permanently false expression instead of timing the
+   request. The advertised Prometheus observability is therefore incomplete.
+5. The public product page claims “production-ready”, “482 tests · 80%
+   coverage”, and benchmark improvements while the deployed UI renders the
+   animated stat counters as zero until/while they run and the claims are not
+   tied to a generated artifact or release. This is a trust and correctness
+   issue, not only a copy issue.
+6. **Partially addressed locally:** The built site now includes a static
+   `/docs/` redirect to the canonical documentation tree, so Pages deployments
+   retain a working compatibility route. The currently deployed site still
+   returns 404 until the redesigned artifact is published.
+
+### P1 — correctness and security
+
+7. **Closed in this worktree:** The legacy arbitrary-pickle compatibility path
+   is isolated in `morel.train.legacy.load_trusted`, requires explicit risk
+   acknowledgement, emits a warning, and is documented as outside the safe
+   production loader. The old name remains only as a migration shim.
+
+56. **Closed in this worktree:** The `/v1/complete` schema bounded item ids but
+    allowed an unbounded list of modality selectors and arbitrarily long names,
+    leaving request parsing and downstream feature selection less predictable
+    under hostile input.
+
+57. **Closed in this worktree:** The CLI passed an in-memory FastAPI app to
+    Uvicorn even when configured with multiple workers. Uvicorn refused that
+    configuration and exited after warning, so the advertised worker count was
+    not actually served. Multi-worker mode now uses an importable factory and
+    validates each worker-local app.
+
+58. **Closed in this worktree:** The artifact gate installed every wheel in
+    `dist/`, so stale wheels from earlier builds could conflict with the current
+    package and make a valid artifact fail for the wrong reason. The gate now
+    selects the newest wheel explicitly.
+8. **Closed in this worktree:** `suggest()` catches all recommender exceptions and turns them into a generic
+   503, losing structured error classification and making operational diagnosis
+   harder. Preserve safe client messages while logging the traceback with a
+   request/correlation ID.
+9. **Closed in this worktree:** The service has no request correlation ID, structured error envelope, or
+   consistent exception-to-status mapping across endpoints.
+10. **Closed in this worktree:** Auth is disabled when no token is configured. That is convenient for local
+    development but unsafe as a default deployment posture; production startup
+    should require explicit auth configuration unless an explicit development
+    mode is selected.
+11. **Closed in this worktree:** Rate limiting keys directly on `request.client.host`; deployments behind a
+    reverse proxy need a documented trusted-proxy policy or the limiter can
+    collapse all users into one bucket.
+12. **Closed in this worktree:** The checkpoint payload is only shallowly validated. Types/shapes for model,
+    optimizer, RNG, epoch, metric, config hash, and extras are not checked
+    before use.
+13. **Closed in this worktree:** `Light.forward()` calls `.max()` on user/item tensors without handling
+    empty inputs, so valid empty-batch or no-result flows can raise unexpectedly.
+14. **Closed in this worktree:** `morel/encode/pool.py` contains a dead/incorrect fallback condition in the
+    all-masked attention path. The later branch makes the current output finite,
+    but the code is misleading and should be reduced to a tested explicit
+    all-masked policy.
+15. **Closed in this worktree:** `morel/eval/ranking.mrr()` still fully sorts every row despite documenting
+    an `argpartition`-style optimization. This is a performance/correctness
+    contract mismatch for large catalogs.
+16. **Partially addressed:** CLI logging now catches only expected
+    configuration/YAML/filesystem failures and preserves cancellation. The
+    loader, HTTP boundary, distributed backend, and API-generation boundaries
+    still intentionally catch broad ordinary exceptions to clean up, sanitize,
+    or wrap third-party failures; distributed initialization now has explicit
+    failure-injection coverage, but the remaining boundaries need continued
+    fault-injection coverage and an explicit exception taxonomy.
+
+### P2 — architecture and API design
+
+17. **Closed in this worktree:** The former `Mask`/encoder naming collision is
+    resolved with `ModalityMask`, `FeatureEncoder`, and `GraphEncoder`; the
+    original `Mask`, `Feature`, and `Enc` names remain documented compatibility
+    aliases.
+18. **Closed in this worktree:** Recommenders and encoders do not share a single stable runtime contract.
+    `Light`, `MF`, and `Pop` are selected through registries but are not unified
+    behind a documented abstract interface with capability declarations.
+19. **Partially addressed:** Serving factories now accept runtime validators and
+    the CLI/runtime register the serving-pipeline contract before caching a
+    model. The broader pipeline still uses string-keyed registries and
+    `getattr`-based optional methods at composition boundaries; typed factories
+    and protocol/abstract-base contracts are still needed for retrieval,
+    encoding, codebooks, completion, and recommendation.
+20. **Closed in this worktree:** `Pipeline.attach()` stores mutable corpus dictionaries/arrays by reference.
+    Callers can mutate data after attachment and change inference behavior
+    without invalidation or a clear lifecycle boundary.
+21. **Closed in this worktree:** `Pipeline.encode()` now performs batched
+    indexed gathers per modality and one transformer call over padded
+    subgraphs; it no longer loops over batches or nodes. The remaining scale
+    cost is retrieval construction, tracked separately below.
+22. **Partially addressed:** Relevance now builds a reusable normalized index
+    for each MAGE batch, and MAGE avoids rebuilding a full-catalog neighbor map
+    per query. Serving also enforces a validated retrieval-node budget and
+    fails with a typed domain error when it is exceeded. A bounded 1k run is
+    approximately 969 ms, but the current uncapped 10k smoke measured 19.58s
+    per forward pass; the 10k Laplacian positional encoding alone took 17.53s
+    in this environment. Representative production-scale latency thresholds,
+    persisted graph encodings and further traversal optimization remain
+    required before production-scale claims; serving now warms the encoding at
+    startup so that cost is not paid by the first request.
+23. **Partially addressed:** `Pipeline.wire()` prepares graph-normalizing rankers
+    once and the serving score path now reuses that cache without re-hashing the
+    CSR matrix on every request. `Light` still needs an explicit serialized cache
+    ownership/invalidation contract and registered device-migration state.
+24. **Partially addressed:** The loader now supports explicit result validators,
+    and production CLI/runtime registrations reject incompatible serving
+    pipelines before caching. Unvalidated third-party registrations can still
+    defer failure until first access and need a common typed factory surface.
+25. **Partially addressed:** Serving budgets, factory timeout, trusted-proxy
+   policy, per-worker concurrency, keep-alive, graceful shutdown, request
+   recycling, and the production model-bundle requirement are now validated
+   and wired into startup. A complete production profile still needs secret
+   references and explicit observability/exporter settings.
+
+### P3 — testing and quality gates
+
+26. **Closed in this worktree:** `pytest-asyncio` is absent from dev dependencies, so a fresh environment
+    cannot run the configured suite. Add and pin the plugin compatibility.
+27. **Closed in this worktree:** The suite passes but has a warning because pytest attempts to collect
+    `ClassVar` as a test-like callable. Rename/exclude the offending symbol or
+    tighten collection configuration.
+28. **Closed in this worktree:** Frontend unit tests now cover pure site
+    utilities and published-content contracts; browser interaction,
+    accessibility, responsive, and desktop/mobile visual baseline suites cover
+    the highest-risk user-facing flows.
+29. **Closed in this worktree:** No browser smoke test verifies menu open/close, keyboard focus, theme
+    persistence, anchor navigation, copy-to-clipboard, external-link targets,
+    or responsive layouts.
+30. **Closed in this worktree:** Coverage is aggregated across the whole suite and does not enforce minimum
+    coverage for critical serving, CLI, checkpoint, and pipeline modules.
+31. **Closed in this worktree:** CI does not run the site build, site link checks, or a production preview
+    smoke test in the same change gate as the Python package.
+32. **Closed in this worktree:** CI installs and audits the built wheel, scans
+    the exact production image for high/critical OS and library vulnerabilities,
+    and keeps the hash-pinned lockfile audit as a separate gate. The release
+    workflow also retains a lockfile-derived CycloneDX SBOM with the published
+    artifacts. Local image scanning remains an optional convenience, not a
+    release gate.
+33. **Partially addressed:** Property and boundary coverage now exercises
+    malformed HTTP payloads, checkpoint files, configuration YAML, sparse
+    matrix indices, streaming JSON/chunks, duplicate-edge k-core behavior, and
+    bounded graph shapes, non-finite weights, and malformed sparse artifacts.
+    Large-shape allocation limits and broader format fuzzing still need
+    dedicated coverage.
+
+### P4 — style, maintainability, and documentation
+
+34. **Closed in this worktree:** Ruff lint is green, but formatting is not: 12 tracked files fail
+    `ruff format --check`.
+35. **Closed in this worktree:** The repository lacks a written engineering standard covering Google-style
+    Python conventions, public/private/semi-private naming, import boundaries,
+    error taxonomy, logging, API stability, and deprecation policy.
+36. **Closed in this worktree:** The requested semi-private naming convention is not codified. Internal
+    helpers, registries, caches, and extension points use inconsistent exposure
+    patterns.
+37. **Closed in this worktree:** The OOP/polymorphism boundary is implicit. Some components use ABCs or
+    protocols, while others depend on duck typing, string dispatch, or
+    coincidental call signatures. Document which variation points are intended
+    and enforce them with contracts.
+38. **Closed in this worktree:** `mypy` has one concrete failure in `graph/laplacian.py`; the strict typing
+    gate is therefore not green despite the configuration claiming strict mode.
+39. **Closed in this worktree:** Duplicate issue-template formats (`.yml` and `.md`) create inconsistent
+    contribution UX and should be consolidated.
+40. **Closed in this worktree:** Several docs and generated-looking reports were
+    not automatically checked for freshness. The metrics gate now checks the
+    published verification snapshot, and ``make docs-check`` rejects removed
+    API names and known stale claims in README/MkDocs/site examples. The
+    production-readiness document still states current limitations explicitly.
+41. Some docstrings are duplicated or awkward (for example repeated Returns
+    sections in data acquisition) and several implementation comments describe
+    historical bugs rather than current invariants.
+42. **Closed:** runtime and test code no longer uses `del variable` as an
+    unused-variable workaround.
+
+55. **Closed in this worktree:** The README linked to several historical
+    uppercase documentation paths that no longer exist, and the security policy
+    overstated checkpoint safety by omitting the explicitly gated legacy pickle
+    loader. Documentation drift could send users to 404s or cause operators to
+    misunderstand the trust boundary.
+
+### P5 — deployed site UX/UI and branding
+
+43. **Closed locally; live deployment remains open:** The palette is over-dependent on saturated purple/indigo gradients, glow,
+    glass, and dark backgrounds. It reduces hierarchy and makes the page feel
+    like a generic AI landing page rather than a graph/recommendation tool.
+44. **Closed locally; live deployment remains open:** The mobile menu is a full-screen sheet with large controls and no visible
+    focus trap/focus restoration. In the observed narrow viewport it dominates
+    the initial experience and can obscure the primary content.
+45. **Closed locally; live deployment remains open:** The desktop/mobile responsive states need explicit breakpoint QA; the live
+    page was observed at a narrow viewport with the menu open and a horizontal
+    scrollbar visible.
+46. **Closed locally; live deployment remains open:** The logo is a low-information radial network mark with a duplicated SVG
+    gradient ID (`logoGrad`) rendered in multiple places. Replace it with a
+    distinctive, scalable mark that communicates “morel” plus graph/modality
+    completion, with stable unique IDs or no ID-dependent paint.
+47. **Closed locally; live deployment remains open:** Other inline SVGs reuse IDs such as `perf-line`; duplicate IDs can make
+    gradients resolve against the wrong definition. Generate unique IDs or use
+    CSS/currentColor paints.
+48. **Closed locally; live deployment remains open:** Footer GitHub links concatenate `SITE.repo` with `blob/...` without a slash,
+    producing broken URLs such as `github.com/sachncs/morelblob/master/...`.
+49. **Closed in this worktree:** The site imports Google Fonts at runtime, adding
+    a third-party dependency and a render-blocking network path without a local
+    fallback metric or documented privacy/performance decision. The redesign now
+    uses the system font stack and has no Google Fonts runtime dependency.
+50. **Closed locally; live deployment remains open:** The landing page now
+    puts problem → mechanism → proof → quickstart before decorative
+    architecture and adoption sections.
+51. **Closed locally; live deployment remains open:** Unsupported scaling and
+    production claims were removed or qualified; performance cards link to the
+    benchmark methodology and readiness evidence, with dataset/configuration
+    limitations stated in the copy.
+52. **Closed locally; live deployment remains open:** The page exposes the API
+    version, test/coverage snapshot, and dated last-verified value from the
+    shared `VERIFICATION` source.
+53. **Closed locally; live deployment remains open:** Dialog semantics, focus
+    trapping/restoration, Escape handling, reduced-motion behavior, contrast,
+    and decorative SVG labelling are covered by the local browser and axe
+    suite.
+
+## Fix plan
+
+### Phase 0 — establish truth and gates
+
+1. Add `pytest-asyncio`; normalize the supported Python/pytest versions.
+2. Add `make audit` that runs tests, coverage, Ruff lint/format, mypy, package
+   build, built-wheel install/entry-point verification, dependency audits, site
+   build, and link checks.
+3. Replace static site metrics with generated release data or label them as
+   illustrative; fail the site build when required links return 4xx.
+4. Add frontend unit coverage and extend the browser smoke/axe/visual suite with
+   cross-browser and full-page visual baselines.
+
+### Phase 1 — serving correctness and safety
+
+1. Define a real serving contract for catalog features, masks, item graph, user
+   graph, and recommender state.
+2. Make `/v1/recommend` and `/v1/complete` fail closed when required state is
+   absent; remove the uniform fallback.
+3. Wire completion output into ranking, or explicitly separate demo endpoints
+   from production inference endpoints.
+4. Fix request timing, correlation IDs, structured errors, trusted-proxy
+   handling, startup configuration validation, and bounded payloads.
+5. Keep safe checkpoint loading as the default; isolate trusted legacy loading
+   and validate checkpoint schemas.
+
+### Phase 2 — contracts and architecture
+
+1. Rename colliding types and codify public/private/semi-private conventions.
+2. Introduce typed ABC/protocol contracts for each pluggable stage, with typed
+   registry factories and capability checks at construction time.
+3. Define pipeline/corpus ownership and cache invalidation semantics.
+4. Add contract tests that run every registered implementation through the same
+   interface and exercise real `Pipeline` → trainer → serve flows.
+
+### Phase 3 — performance and resilience
+
+1. Vectorize retrieval relevance, batching, negative sampling, MRR, and
+   subgraph feature assembly where profiling shows material wins.
+2. Add sparse-graph edge-case tests: empty batches, isolated nodes, duplicate
+   edges, self loops, zero modalities, malformed shapes, CPU/MPS/CUDA moves.
+3. Add load/concurrency tests for loader, rate limiting, updater, rollback, and
+   request cancellation.
+4. Benchmark before/after with thresholds tied to representative catalog sizes.
+
+### Phase 4 — site redesign and logo
+
+1. Reframe the landing page around one message: “complete missing item signals
+   before ranking.” Use a restrained mushroom/graph palette: warm ivory,
+   charcoal, mycelium gold, and one restrained signal color; reserve gradients
+   for data-flow emphasis.
+2. Redesign the logo as a simple two-part mark: a compact morel cap/mycelium
+   silhouette whose gills become connected graph nodes. Provide SVG mark,
+   monochrome mark, favicon, wordmark lockup, and usage-safe clear space.
+3. Simplify the first viewport, keep one primary CTA, expose the code path and
+   proof points early, and move decorative sections lower.
+4. Repair all links, add proper docs routing, implement an accessible mobile
+   navigation dialog, and remove duplicate SVG IDs.
+5. Validate at 360px, 768px, 1024px, and 1440px with keyboard-only and reduced
+   motion checks before publishing.
+
+### Definition of done
+
+- Fresh install runs the full suite without hidden manual dependencies.
+- All quality gates pass in CI, including the site build and link/browser smoke
+  tests.
+- No endpoint returns fabricated model output when required state is absent.
+- Serving metrics contain real latency observations and actionable errors.
+- Public contracts, extension points, naming rules, and checkpoint security are
+  documented and enforced.
+- The deployed site links resolve, claims are traceable to generated evidence,
+  the mobile experience is accessible, and the new logo is used consistently.

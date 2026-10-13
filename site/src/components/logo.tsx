@@ -14,37 +14,34 @@ export function Logo({ className, size = 28, withWordmark = true }: LogoProps) {
         width={size}
         height={size}
         aria-hidden="true"
-        className="shrink-0"
+        className="shrink-0 text-accent-600 dark:text-accent-300"
       >
-        <defs>
-          <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#7a7eff" />
-            <stop offset="100%" stopColor="#c4a8ff" />
-          </linearGradient>
-        </defs>
-        <g
-          stroke="url(#logoGrad)"
-          strokeWidth={1.6}
+        <path
+          d="M10 30c3-11 11-18 22-18s19 7 22 18c-8 5-16 7-22 7S18 35 10 30Z"
+          fill="currentColor"
+          opacity="0.16"
+        />
+        <path
+          d="M10 30c3-11 11-18 22-18s19 7 22 18c-8 5-16 7-22 7S18 35 10 30Z"
           fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
           strokeLinecap="round"
-        >
-          <circle cx="32" cy="32" r="22" strokeDasharray="1.8 3.6" opacity="0.35" />
-          <circle cx="32" cy="32" r="2.6" fill="url(#logoGrad)" stroke="none" />
-          <circle cx="14" cy="20" r="1.8" fill="url(#logoGrad)" stroke="none" />
-          <circle cx="50" cy="20" r="1.8" fill="url(#logoGrad)" stroke="none" />
-          <circle cx="14" cy="44" r="1.8" fill="url(#logoGrad)" stroke="none" />
-          <circle cx="50" cy="44" r="1.8" fill="url(#logoGrad)" stroke="none" />
-          <g opacity="0.9">
-            <line x1="32" y1="32" x2="14" y2="20" />
-            <line x1="32" y1="32" x2="50" y2="20" />
-            <line x1="32" y1="32" x2="14" y2="44" />
-            <line x1="32" y1="32" x2="50" y2="44" />
-            <line x1="32" y1="32" x2="22" y2="12" />
-            <line x1="32" y1="32" x2="42" y2="12" />
-            <line x1="32" y1="32" x2="22" y2="52" />
-            <line x1="32" y1="32" x2="42" y2="52" />
-          </g>
-          <circle cx="32" cy="32" r="8" strokeDasharray="1.5 1.6" opacity="0.55" />
+          strokeLinejoin="round"
+        />
+        <g fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.8">
+          <path d="M18 27c2 3 3 5 3 8" />
+          <path d="M25 25c1 4 2 7 2 10" />
+          <path d="M32 24v11" />
+          <path d="M39 25c-1 4-2 7-2 10" />
+          <path d="M46 27c-2 3-3 5-3 8" />
+        </g>
+        <path d="M27 35h10l2 14H25l2-14Z" fill="currentColor" opacity="0.9" />
+        <path d="M30 49v5M34 49v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <g fill="currentColor" stroke="white" strokeWidth="1.2" className="dark:stroke-ink-950">
+          <circle cx="14" cy="20" r="2.5" />
+          <circle cx="50" cy="20" r="2.5" />
+          <circle cx="32" cy="10" r="2.5" />
         </g>
       </svg>
       {withWordmark && (
