@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         566 passed, 84.16% coverage
+pytest -q                         566 passed, 84.09% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -83,14 +83,14 @@ against a Pages-shaped `/morel/` artifact.
   high-degree input can trigger an unbounded quadratic allocation.
 - The retrieval encoder uses batched gathers for padded subgraphs; MAGE shares
   one relevance and anchor-normalization index across a batch and lazily
-  materializes active neighbor rows. A local 10k/32-query anchor comparison
-  measured 1.73x lower anchor-selection time with the shared index. End-to-end
-  retrieval/relevance hot-path benchmarking is still required before setting
-  latency budgets. The bounded local 1k-item benchmark currently measures
-  approximately 969 ms for one default-MAGE run; shift-invert Laplacian
-  positional encoding for a 10k-node graph measures approximately 30 ms
-  locally, so
-  persisted/warmed graph encodings and catalog-scale retrieval remain open.
+  materializes active neighbor rows. ACS uses compiled SciPy shortest-path
+  traversal. The bounded local 1k-item benchmark measures approximately 969
+  ms; the 10k-item/32-query end-to-end smoke measures approximately 7.9 s
+  locally after the ACS change. These are capacity signals, not production
+  SLOs: representative hardware thresholds and CPU transformer capacity
+  planning remain open. Shift-invert Laplacian positional encoding for a
+  10k-node graph measures approximately 30 ms locally, and persisted/warmed
+  graph encodings keep that cost out of the first request.
 - Repeated recommendation scores reuse an explicit completed-catalog cache;
   the cache is invalidated on corpus attachment and when training mode begins.
 - External deployment observability, rollback, and alert drills remain open.

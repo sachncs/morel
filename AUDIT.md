@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **566 passed**, 84.16% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **566 passed**, 84.09% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -21,10 +21,12 @@ Scope: repository, local Python package, local React site, and the deployed
 - `make audit-critical`: passes with per-subsystem coverage floors for serving
   (79%), pipeline (77%), CLI (71%), and checkpoint loading (84%).
 - The corrected forward benchmark uses a bounded 32-query batch; the local
-  1k-item case measures approximately **969 ms** for one default-MAGE run
-  after the MAGE connectivity optimization. A 10k-item single-iteration smoke
-  exceeded 20 seconds in the current environment, so catalog-scale retrieval
-  remains an explicit production blocker rather than an assumed SLO.
+  1k-item case measures approximately **969 ms** for one default-MAGE run.
+  After compiled ACS traversal, the 10k-item/32-query end-to-end smoke
+  measures approximately **7.9 s** locally: retrieval is about 2.4 s and the
+  CPU transformer encoder about 9.2 s under profiling. This is evidence for
+  capacity planning, not a production SLO; representative hardware and
+  production-shaped retrieval thresholds are still required.
 - `pnpm build` in `site/`: passes after `pnpm install --frozen-lockfile`.
 - `make lock-check`: passes for the pinned Linux/Python 3.11 target; lock
   regeneration now uses explicit upgrade semantics.
@@ -75,9 +77,11 @@ Scope: repository, local Python package, local React site, and the deployed
   malformed sparse chunks, duplicate-edge k-core inflation, and malformed
   metadata records; added regression coverage for each boundary.
 - MAGE now materializes adjacency rows lazily for the active subgraph instead
-  of building a neighbor map for every catalog node on every query. The
-  bounded 1k benchmark remains valid; the 10k smoke exposed the next limit in
-  ACS/MAGE traversal and is retained as an open scale item.
+  of building a neighbor map for every catalog node on every query. ACS now
+  uses compiled SciPy shortest-path traversal rather than repeated Python
+  bit-mask walks; the 10k/32-query smoke improved from 17.5 s to 7.9 s after
+  this change. The remaining scale work is representative hardware/SLO
+  calibration and CPU transformer capacity planning.
 - Added `make fault-injection`, a named gate for loader timeout/failure,
   request sanitization, updater atomicity, checkpoint rejection, and malformed
   HTTP payload behavior.
@@ -193,7 +197,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 566/84.16 baseline.
+  stale documentation counts were updated to the current 566/84.09 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -208,7 +212,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 566-test/84.16%-coverage evidence across the audit, docs, and site.
+  the current 566-test/84.09%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -399,9 +403,10 @@ and release operations.
     approximately 969 ms. The 10k Laplacian positional encoding now uses
     shift-invert ARPACK and measures approximately 30 ms locally, down from
     17.1 s with the previous smallest-magnitude solver; large-graph failures
-    now raise instead of attempting dense allocation. Retrieval construction
-    still needs representative production latency thresholds and further
-    traversal optimization; serving warms persisted or computed encodings at
+    now raise instead of attempting dense allocation. Compiled ACS traversal
+    reduced a 10k/32-query end-to-end smoke from 17.5 s to 7.9 s locally.
+    Representative production latency thresholds and CPU transformer capacity
+    planning remain open; serving warms persisted or computed encodings at
     startup so the cost is not paid by the first request.
 23. **Closed locally; serialized bundles intentionally exclude derived state:**
     `Pipeline.wire()` prepares graph-normalizing rankers once and the serving

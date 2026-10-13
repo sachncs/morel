@@ -13,10 +13,9 @@ Correctness fixes over the legacy implementation:
 
 from __future__ import annotations
 
-from collections import deque
-
 import numpy as np
 import scipy.sparse as sp
+from scipy.sparse.csgraph import shortest_path
 
 from morel.core.errors import Net
 from morel.core.log import get as logger
@@ -75,41 +74,22 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
         return {int(anchors[0])}
 
     anchors_int = [int(a) for a in anchors]
-    k = len(anchors_int)
-    all_mask = (1 << k) - 1
-    bitmask: dict[int, int] = {}
-    previous: dict[int, dict[int, int]] = {}
-    queue: deque[int] = deque()
-    for idx, anchor in enumerate(anchors_int):
-        queue.append(anchor)
-        bitmask[anchor] = 1 << idx
-        previous[anchor] = {}
 
-    collision: int | None = None
-    while queue and collision is None:
-        node = queue.popleft()
-        bits_node = bitmask[node]
-        row_start = adj.indptr[node]
-        row_end = adj.indptr[node + 1]
-        for neighbor in adj.indices[row_start:row_end]:
-            if neighbor == node:
-                continue
-            if neighbor not in bitmask:
-                bitmask[neighbor] = 0
-                previous[neighbor] = {}
-            new_bits = bits_node & ~bitmask[neighbor]
-            if new_bits == 0:
-                continue
-            for bit in range(k):
-                if (new_bits >> bit) & 1:
-                    previous[neighbor][bit] = node
-            bitmask[neighbor] |= new_bits
-            queue.append(int(neighbor))
-            if bitmask[neighbor] == all_mask:
-                collision = int(neighbor)
-                break
-
-    if collision is None:
+    # Run the multi-source search in SciPy's compiled graph implementation.
+    # The legacy Python bit-mask BFS revisited high-degree nodes once per
+    # anchor, making a 10k-node catalog take seconds before MAGE started.
+    # Distances and predecessor trees preserve the ACS invariant: choose a
+    # node reachable from every anchor with the smallest worst-case distance,
+    # then union one shortest path to each anchor.
+    distances, predecessors = shortest_path(
+        adj,
+        directed=False,
+        indices=np.asarray(anchors_int, dtype=np.int64),
+        unweighted=True,
+        return_predecessors=True,
+    )
+    reachable = np.all(np.isfinite(distances), axis=0)
+    if not reachable.any():
         if fallback == "empty":
             log.warning(
                 "no collision root found; returning empty set",
@@ -124,24 +104,22 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
             return set(anchors_int)
         raise Net(f"unknown fallback strategy: {fallback!r}")
 
+    worst_distance = np.max(distances[:, reachable], axis=0)
+    candidates = np.flatnonzero(reachable)
+    collision = int(candidates[int(np.argmin(worst_distance))])
+
     subgraph: set[int] = {int(collision)}
     for anchor_idx, target in enumerate(anchors_int):
         if target == int(collision):
             continue
-        visited: set[int] = set()
-        stack: list[int] = [int(collision)]
-        while stack:
-            node = stack.pop()
-            if node in visited:
-                continue
-            visited.add(node)
-            if node == target:
-                continue
-            nxt = previous.get(node, {}).get(anchor_idx)
-            if nxt is None:
+        node = int(collision)
+        while node != target:
+            predecessor = int(predecessors[anchor_idx, node])
+            if predecessor < 0:
                 raise Net(f"backtrack failed at node {node} for anchor {target}")
-            stack.append(int(nxt))
-        subgraph.update(visited)
+            subgraph.add(node)
+            node = predecessor
+        subgraph.add(target)
     return subgraph
 
 
