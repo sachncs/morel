@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import threading
 import time
+from pathlib import Path
 
 import pytest
 import torch.nn as nn
@@ -135,6 +136,41 @@ class Checker:
         monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN", "same-token-123456")
         with pytest.raises(Cfg, match="must be different"):
             assert_production()
+
+    def secret_files(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Production auth can consume mounted secrets without raw env values."""
+        from morel.core.errors import Cfg
+
+        for name in (
+            "MOREL_AUTH_TOKEN",
+            "MOREL_AUTH_TOKEN_FILE",
+            "MOREL_AUTH_TOKEN_READ",
+            "MOREL_AUTH_TOKEN_READ_FILE",
+            "MOREL_AUTH_TOKEN_ADMIN",
+            "MOREL_AUTH_TOKEN_ADMIN_FILE",
+        ):
+            monkeypatch.delenv(name, raising=False)
+        read_path = tmp_path / "read.token"
+        admin_path = tmp_path / "admin.token"
+        read_path.write_text("read-file-token-123456\n", encoding="utf-8")
+        admin_path.write_text("admin-file-token-654321\n", encoding="utf-8")
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_READ_FILE", str(read_path))
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_ADMIN_FILE", str(admin_path))
+        monkeypatch.setenv("MOREL_ENV", "production")
+        assert token("read") == "read-file-token-123456"
+        assert token("admin") == "admin-file-token-654321"
+        assert_production()
+
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_READ", "direct-token-123456")
+        with pytest.raises(Cfg, match="set only one"):
+            token("read")
+
+    def missing_secret_file(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        from morel.core.errors import Cfg
+
+        monkeypatch.setenv("MOREL_AUTH_TOKEN_READ_FILE", str(tmp_path / "missing"))
+        with pytest.raises(Cfg, match="unable to read"):
+            token("read")
 
     def production_preflight(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Production startup rejects unsafe logging configuration."""

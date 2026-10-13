@@ -36,6 +36,9 @@ Mounts the local `data/` and `checkpoints/` read-only.
 - `MOREL_AUTH_TOKEN_READ` — bearer-token for read-only inference endpoints.
 - `MOREL_AUTH_TOKEN_ADMIN` — separate bearer-token for feedback, rollback, and
   stats endpoints.
+- `MOREL_AUTH_TOKEN_READ_FILE` / `MOREL_AUTH_TOKEN_ADMIN_FILE` — mounted secret
+  file alternatives for the corresponding direct token variables. Set only one
+  source per scope; production validates both resolved secrets before startup.
 - `MOREL_AUTH_TOKEN` — legacy read-scope fallback; do not use it for new
   production deployments.
 - `MOREL_AUTH_ENABLED` — set to `1` to require a token even in environments

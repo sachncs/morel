@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **561 passed**, 84.19% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **563 passed**, 84.01% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -188,7 +188,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 561/84.19 baseline.
+  stale documentation counts were updated to the current 563/84.01 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -203,7 +203,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 561-test/84.19%-coverage evidence across the audit, docs, and site.
+  the current 563-test/84.01%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -409,7 +409,10 @@ until a Pages deployment is published and rechecked.
    policy, per-worker concurrency, keep-alive, graceful shutdown, request
    recycling, and the production model-bundle requirement are now validated
    and wired into startup. A complete production profile still needs secret
-   references and explicit observability/exporter settings.
+   references and explicit observability/exporter settings. Auth now accepts
+   bounded mounted-secret file references for both scopes and rejects
+   ambiguous direct/file configuration; external secret-manager integration
+   and exporter wiring remain open.
 
 59. **Closed in this worktree:** The streaming co-occurrence builders treated
     every record in a chunk as belonging to one user, creating false

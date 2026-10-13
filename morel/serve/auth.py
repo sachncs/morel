@@ -19,6 +19,7 @@ from __future__ import annotations
 import hmac
 import os
 from collections.abc import Callable
+from pathlib import Path
 from typing import Literal
 
 from fastapi import HTTPException, Request
@@ -26,6 +27,54 @@ from fastapi import HTTPException, Request
 from morel.core.errors import Cfg
 
 Scope = Literal["read", "admin"]
+_MAX_SECRET_BYTES = 4096
+
+
+def _secret(scope: Scope) -> str | None:
+    """Resolve a scope token from a direct value or a mounted secret file."""
+    if scope == "admin":
+        direct_name = "MOREL_AUTH_TOKEN_ADMIN"
+        file_name = "MOREL_AUTH_TOKEN_ADMIN_FILE"
+    else:
+        direct_name = "MOREL_AUTH_TOKEN_READ"
+        file_name = "MOREL_AUTH_TOKEN_READ_FILE"
+    direct = os.environ.get(direct_name, "").strip()
+    file_path = os.environ.get(file_name, "").strip()
+    if direct and file_path:
+        raise Cfg(f"set only one of {direct_name} or {file_name}")
+    if not file_path:
+        return direct or None
+    path = Path(file_path)
+    try:
+        with path.open("r", encoding="utf-8") as handle:
+            value = handle.read(_MAX_SECRET_BYTES + 1).strip()
+    except (OSError, UnicodeError) as exc:
+        raise Cfg(f"unable to read {file_name} secret file") from exc
+    if len(value.encode("utf-8")) > _MAX_SECRET_BYTES:
+        raise Cfg(f"{file_name} secret exceeds {_MAX_SECRET_BYTES} bytes")
+    if not value:
+        raise Cfg(f"{file_name} secret file is empty")
+    return value
+
+
+def _legacy_secret() -> str | None:
+    """Resolve the legacy read-only token and its file-reference variant."""
+    direct = os.environ.get("MOREL_AUTH_TOKEN", "").strip()
+    file_path = os.environ.get("MOREL_AUTH_TOKEN_FILE", "").strip()
+    if direct and file_path:
+        raise Cfg("set only one of MOREL_AUTH_TOKEN or MOREL_AUTH_TOKEN_FILE")
+    if not file_path:
+        return direct or None
+    try:
+        with Path(file_path).open("r", encoding="utf-8") as handle:
+            value = handle.read(_MAX_SECRET_BYTES + 1).strip()
+    except (OSError, UnicodeError) as exc:
+        raise Cfg("unable to read MOREL_AUTH_TOKEN_FILE secret file") from exc
+    if len(value.encode("utf-8")) > _MAX_SECRET_BYTES:
+        raise Cfg(f"MOREL_AUTH_TOKEN_FILE secret exceeds {_MAX_SECRET_BYTES} bytes")
+    if not value:
+        raise Cfg("MOREL_AUTH_TOKEN_FILE secret file is empty")
+    return value
 
 
 def admin() -> bool:
@@ -37,7 +86,7 @@ def admin() -> bool:
     variable cannot accidentally gain privileges on the state-mutating
     endpoints (``/v1/feedback``, ``/v1/rollback``, ``/v1/stats``).
     """
-    return bool(os.environ.get("MOREL_AUTH_TOKEN_ADMIN"))
+    return bool(_secret("admin"))
 
 
 def viewer() -> bool:
@@ -48,7 +97,7 @@ def viewer() -> bool:
     the legacy single token continues to function for read endpoints,
     which is the original behaviour.
     """
-    return bool(os.environ.get("MOREL_AUTH_TOKEN_READ") or os.environ.get("MOREL_AUTH_TOKEN"))
+    return bool(_secret("read") or _legacy_secret())
 
 
 def token(scope: Scope) -> str | None:
@@ -58,14 +107,8 @@ def token(scope: Scope) -> str | None:
     legacy ``MOREL_AUTH_TOKEN``. See :func:`admin` and :func:`viewer`.
     """
     if scope == "admin":
-        explicit = os.environ.get("MOREL_AUTH_TOKEN_ADMIN", "").strip()
-    else:
-        explicit = (
-            os.environ.get("MOREL_AUTH_TOKEN_READ", "").strip()
-            or os.environ.get("MOREL_AUTH_TOKEN", "").strip()
-        )
-        return explicit or None
-    return explicit or None
+        return _secret("admin")
+    return _secret("read") or _legacy_secret()
 
 
 def require(request: Request, scope: Scope = "read") -> None:
@@ -119,7 +162,7 @@ def dependency(scope: Scope) -> Callable[[Request], None]:
 def assert_() -> None:
     """Raise if a deployment attempted to enable auth without setting any token."""
     if os.environ.get("MOREL_AUTH_ENABLED") == "1" and not (admin() or viewer()):
-        raise Cfg("MOREL_AUTH_ENABLED=1 requires MOREL_AUTH_TOKEN[_READ|_ADMIN]")
+        raise Cfg("MOREL_AUTH_ENABLED=1 requires a direct token or *_FILE secret reference")
 
 
 def assert_production() -> None:
@@ -131,10 +174,10 @@ def assert_production() -> None:
     """
     if os.environ.get("MOREL_ENV", "").strip().lower() != "production":
         return
-    read = os.environ.get("MOREL_AUTH_TOKEN_READ", "").strip()
-    admin_token = os.environ.get("MOREL_AUTH_TOKEN_ADMIN", "").strip()
+    read = token("read")
+    admin_token = token("admin")
     if not read or not admin_token:
-        raise Cfg("MOREL_ENV=production requires MOREL_AUTH_TOKEN_READ and MOREL_AUTH_TOKEN_ADMIN")
+        raise Cfg("MOREL_ENV=production requires read and admin tokens or their *_FILE references")
     if len(read) < 16 or len(admin_token) < 16:
         raise Cfg("production auth tokens must each contain at least 16 characters")
     if hmac.compare_digest(read, admin_token):

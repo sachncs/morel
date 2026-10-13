@@ -39,6 +39,8 @@ Set the env vars before starting the server:
 | ``MOREL_AUTH_TOKEN``      | read      | ``/v1/complete``, ``/v1/recommend`` |
 | ``MOREL_AUTH_TOKEN_READ`` | read      | Same as above            |
 | ``MOREL_AUTH_TOKEN_ADMIN``| admin     | ``/v1/feedback``, ``/v1/rollback``, ``/v1/stats`` |
+| ``MOREL_AUTH_TOKEN_READ_FILE`` | read | Mounted secret file; alternative to the direct read token |
+| ``MOREL_AUTH_TOKEN_ADMIN_FILE`` | admin | Mounted secret file; alternative to the direct admin token |
 
 A missing token disables auth for local development. With a single ``MOREL_AUTH_TOKEN``
 set, only read endpoints accept it; admin endpoints return 401.
@@ -57,6 +59,11 @@ routes without credentials.
 Production tokens must be at least 16 characters and must be different from
 one another. The legacy ``MOREL_AUTH_TOKEN`` variable is not accepted as the
 production read credential.
+
+For container orchestration, use the ``*_FILE`` variables to point at a
+mounted secret. The file is read at authentication time, trimmed, bounded to
+4 KiB, and never included in configuration or error messages. Do not set a
+direct token and its corresponding file reference at the same time.
 
 ## Rate limiting
 
