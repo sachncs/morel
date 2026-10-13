@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         563 passed, 84.04% coverage
+pytest -q                         564 passed, 84.06% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -82,8 +82,9 @@ against a Pages-shaped `/morel/` artifact.
   directed-edge accumulation budget, failing with a domain error before a
   high-degree input can trigger an unbounded quadratic allocation.
 - The retrieval encoder uses batched gathers for padded subgraphs; MAGE shares
-  one relevance index across a batch and lazily materializes active neighbor
-  rows. End-to-end
+  one relevance and anchor-normalization index across a batch and lazily
+  materializes active neighbor rows. A local 10k/32-query anchor comparison
+  measured 1.73x lower anchor-selection time with the shared index. End-to-end
   retrieval/relevance hot-path benchmarking is still required before setting
   latency budgets. The bounded local 1k-item benchmark currently measures
   approximately 969 ms for one default-MAGE run; an uncapped 10k forward pass

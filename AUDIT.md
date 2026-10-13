@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **563 passed**, 84.04% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **564 passed**, 84.06% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -188,7 +188,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 563/84.04 baseline.
+  stale documentation counts were updated to the current 564/84.06 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -203,7 +203,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 563-test/84.04%-coverage evidence across the audit, docs, and site.
+  the current 564-test/84.06%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -384,10 +384,12 @@ until a Pages deployment is published and rechecked.
     indexed gathers per modality and one transformer call over padded
     subgraphs; it no longer loops over batches or nodes. The remaining scale
     cost is retrieval construction, tracked separately below.
-22. **Partially addressed:** Relevance now builds a reusable normalized index
-    for each MAGE batch, and MAGE avoids rebuilding a full-catalog neighbor map
-    per query. Serving also enforces a validated retrieval-node budget and
-    fails with a typed domain error when it is exceeded. A bounded 1k run is
+22. **Partially addressed:** Relevance and anchor retrieval now build reusable
+    normalized indices for each batch, and MAGE avoids rebuilding a full-catalog
+    neighbor map per query. A local 10k/32-query anchor comparison measured
+    1.73x lower anchor-selection time with the shared index. Serving also
+    enforces a validated retrieval-node budget and fails with a typed domain
+    error when it is exceeded. A bounded 1k run is
     approximately 969 ms, but the current uncapped 10k smoke measured 19.58s
     per forward pass; the 10k Laplacian positional encoding alone took 17.53s
     in this environment. Representative production-scale latency thresholds,

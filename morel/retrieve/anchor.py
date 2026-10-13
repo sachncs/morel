@@ -2,12 +2,45 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 
 from morel.core.errors import Net, Shape
 from morel.core.log import get as logger
 
 log = logger("retrieve.anchor")
+
+
+@dataclass(frozen=True)
+class AnchorIndex:
+    """Immutable, row-normalized catalog state for repeated anchor queries."""
+
+    normalized: dict[str, np.ndarray]
+    valid: dict[str, np.ndarray]
+    mask: np.ndarray
+    modalities: tuple[str, ...]
+
+    def query(self, query_item: int, modality: str, *, top: int) -> np.ndarray:
+        """Return top cosine neighbors using the pre-normalized catalog."""
+        if modality not in self.normalized:
+            return np.empty(0, dtype=np.int64)
+        items = int(self.mask.shape[0])
+        if query_item < 0 or query_item >= items:
+            raise Net(f"query_item {query_item} out of range [0, {items})")
+        if top <= 0:
+            raise Net(f"top must be positive, got {top}")
+        modality_index = self.modalities.index(modality)
+        available = np.flatnonzero((self.mask[:, modality_index] > 0) & self.valid[modality])
+        candidates = available[available != query_item]
+        if candidates.size == 0 or not self.valid[modality][query_item]:
+            return np.empty(0, dtype=np.int64)
+        similarities = self.normalized[modality][candidates] @ self.normalized[modality][query_item]
+        k_eff = min(top, similarities.size)
+        selected = np.argpartition(-similarities, k_eff - 1)[:k_eff]
+        selected = selected[np.argsort(-similarities[selected], kind="stable")]
+        result: np.ndarray = candidates[selected].astype(np.int64, copy=False)
+        return result
 
 
 def check(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
@@ -51,6 +84,25 @@ def cosine(query_vec: np.ndarray, candidates: np.ndarray, k: int) -> np.ndarray:
     return top[np.argsort(-sims[top])]
 
 
+def prepare(features: dict[str, np.ndarray], mask: np.ndarray) -> AnchorIndex:
+    """Build a reusable normalized index for repeated anchor queries."""
+    check(features, mask)
+    normalized: dict[str, np.ndarray] = {}
+    valid: dict[str, np.ndarray] = {}
+    for name, values in features.items():
+        norms = np.linalg.norm(values, axis=1, keepdims=True)
+        valid_rows = norms[:, 0] > 0
+        safe = np.where(valid_rows[:, None], norms, 1.0)
+        normalized[name] = values / safe
+        valid[name] = valid_rows
+    return AnchorIndex(
+        normalized=normalized,
+        valid=valid,
+        mask=mask,
+        modalities=tuple(features),
+    )
+
+
 def query(
     query_item: int,
     query_modality: str,
@@ -58,6 +110,7 @@ def query(
     mask: np.ndarray,
     *,
     top: int = 10,
+    index: AnchorIndex | None = None,
 ) -> np.ndarray:
     """Top-k cosine neighbors of ``query_item`` in the given modality.
 
@@ -73,6 +126,8 @@ def query(
         Array of anchor indices, sorted by descending similarity, excluding
         the query item.
     """
+    if index is not None:
+        return index.query(query_item, query_modality, top=top)
     if query_modality not in features:
         return np.empty(0, dtype=np.int64)
     items = check(features, mask)
@@ -101,6 +156,7 @@ def batch(
     mask: np.ndarray,
     *,
     top: int = 10,
+    index: AnchorIndex | None = None,
 ) -> list[np.ndarray]:
     """Anchor retrieval for a batch of query items.
 
@@ -108,7 +164,8 @@ def batch(
     -------
         List of anchor arrays aligned with ``queries``.
     """
-    return [query(q, query_modality, features, mask, top=top) for q in queries]
+    prepared = index if index is not None else prepare(features, mask)
+    return [query(q, query_modality, features, mask, top=top, index=prepared) for q in queries]
 
 
-__all__ = ["batch", "query"]
+__all__ = ["AnchorIndex", "batch", "prepare", "query"]

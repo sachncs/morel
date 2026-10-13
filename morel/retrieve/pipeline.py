@@ -16,6 +16,8 @@ import torch
 
 from morel.core.errors import Cfg, Net
 from morel.retrieve.acs import compute as acs_compute
+from morel.retrieve.anchor import AnchorIndex
+from morel.retrieve.anchor import prepare as prepare_anchor
 from morel.retrieve.anchor import query as anchor_query
 from morel.retrieve.bfs import bfs as bfs_distances
 from morel.retrieve.mage import expand as mage_expand
@@ -37,6 +39,7 @@ class RetrievalStrategy(Protocol):
         iters: int,
         fallback: str,
         relevance_index: RelevanceIndex | None = None,
+        anchor_index: AnchorIndex | None = None,
         max_nodes: int | None = None,
     ) -> set[int]:
         """Return a subgraph containing the requested query item."""
@@ -74,12 +77,16 @@ def for_q(
     mask: np.ndarray,
     *,
     anchors: int,
+    anchor_index: AnchorIndex | None = None,
 ) -> set[int]:
     """Return the cosine-nearest anchors of ``query`` across observed modalities."""
     observed = [name for idx, name in enumerate(features.keys()) if mask[query, idx] > 0]
     found: set[int] = set()
     for name in observed:
-        found.update(int(a) for a in anchor_query(query, name, features, mask, top=anchors))
+        found.update(
+            int(a)
+            for a in anchor_query(query, name, features, mask, top=anchors, index=anchor_index)
+        )
     return found
 
 
@@ -93,10 +100,11 @@ def mage(
     iters: int,
     fallback: str,
     relevance_index: RelevanceIndex | None = None,
+    anchor_index: AnchorIndex | None = None,
     max_nodes: int | None = None,
 ) -> set[int]:
     """Anchor retrieval followed by MAGE expansion; the method's default."""
-    anchor_set = for_q(query, features, mask, anchors=anchors)
+    anchor_set = for_q(query, features, mask, anchors=anchors, anchor_index=anchor_index)
     if not anchor_set:
         return {int(query)}
     return mage_expand(
@@ -122,10 +130,11 @@ def acs(
     iters: int,
     fallback: str,
     relevance_index: RelevanceIndex | None = None,
+    anchor_index: AnchorIndex | None = None,
     max_nodes: int | None = None,
 ) -> set[int]:
     """Anchor retrieval followed by the Anchor Connecting Subgraph, without MAGE."""
-    anchor_set = for_q(query, features, mask, anchors=anchors)
+    anchor_set = for_q(query, features, mask, anchors=anchors, anchor_index=anchor_index)
     if not anchor_set:
         return {int(query)}
     return acs_compute(adj, sorted(anchor_set), fallback=fallback)
@@ -141,10 +150,11 @@ def anchor(
     iters: int,
     fallback: str,
     relevance_index: RelevanceIndex | None = None,
+    anchor_index: AnchorIndex | None = None,
     max_nodes: int | None = None,
 ) -> set[int]:
     """Anchors only, with no graph expansion; the no-expansion ablation."""
-    return for_q(query, features, mask, anchors=anchors)
+    return for_q(query, features, mask, anchors=anchors, anchor_index=anchor_index)
 
 
 def bfs(
@@ -157,6 +167,7 @@ def bfs(
     iters: int,
     fallback: str,
     relevance_index: RelevanceIndex | None = None,
+    anchor_index: AnchorIndex | None = None,
     max_nodes: int | None = None,
 ) -> set[int]:
     """Graph neighbourhood of the query within ``iters`` hops, ignoring features.
@@ -178,6 +189,7 @@ def none(
     iters: int,
     fallback: str,
     relevance_index: RelevanceIndex | None = None,
+    anchor_index: AnchorIndex | None = None,
     max_nodes: int | None = None,
 ) -> set[int]:
     """Return the query alone: the no-retrieval ablation.
@@ -210,6 +222,7 @@ def retrieve(
     fallback: str = "anchors",
     kind: str = "mage",
     relevance_index: RelevanceIndex | None = None,
+    anchor_index: AnchorIndex | None = None,
     max_nodes: int | None = None,
 ) -> set[int]:
     """Retrieve and expand a subgraph for one query item.
@@ -249,6 +262,7 @@ def retrieve(
         iters=iters,
         fallback=fallback,
         relevance_index=relevance_index,
+        anchor_index=anchor_index,
         max_nodes=max_nodes,
     )
     subgraph = set(subgraph)
@@ -274,6 +288,7 @@ def batch(
 ) -> Result:
     """Batched retrieval that returns padded tensors for downstream models."""
     relevance_index = prepare(features, mask) if kind == "mage" else None
+    anchor_index = prepare_anchor(features, mask) if queries else None
     subgraphs = [
         retrieve(
             q,
@@ -285,6 +300,7 @@ def batch(
             fallback=fallback,
             kind=kind,
             relevance_index=relevance_index,
+            anchor_index=anchor_index,
             max_nodes=max_nodes,
         )
         for q in queries

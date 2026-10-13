@@ -200,6 +200,7 @@ from morel.data import (
     'MASKS',
     'Manifest',
     'Mask',
+    'ModalityMask',
     'Random',
     'Sentence',
     'Vision',
@@ -242,8 +243,8 @@ from morel.data import (
 - `Feature` — One feature extractor for raw modality inputs.
 - `MASKS` — dict() -> new empty dictionary
 - `Manifest` — Manifest sidecar for a data artifact.
-- `ModalityMask` — Immutable modality-availability value object. `Mask` remains
-  a compatibility alias for existing callers.
+- `Mask` — Immutable value object describing modality availability.
+- `ModalityMask` — Immutable value object describing modality availability.
 - `Random` — Deterministic pseudo-random encoder.
 - `Sentence` — Text encoder backed by sentence-transformers.
 - `Vision` — Visual encoder backed by a torchvision classification backbone.
@@ -304,8 +305,8 @@ from morel.encode import (
 - `Attention` — Scaled dot-product attention pooling over a sequence dim.
 - `Baseline` — Multiplexer that builds the requested graph encoder.
 - `CLS` — Alias for Token pooling.
+- `Enc` — Graph encoder turns modality features into a hidden embedding.
 - `GraphEncoder` — Graph encoder turns modality features into a hidden embedding.
-- `Enc` — Backward-compatible alias for `GraphEncoder`.
 - `Identity` — A trivial encoder that just projects concatenated features with a Linear.
 - `Input` — Concatenate per-modality features (zero-pad missing) with PE, then project.
 - `KIND` — dict() -> new empty dictionary
@@ -394,9 +395,12 @@ from morel.pipeline import (
 
 ```python
 from morel.recommend import (
+    'FeatureAware',
+    'Fits',
     'KIND',
     'Light',
     'MF',
+    'Normalizes',
     'Pop',
     'Recommender',
     'bpr',
@@ -407,9 +411,12 @@ from morel.recommend import (
 )
 ```
 
+- `FeatureAware` — Optional capability for rankers that consume completed item features.
+- `Fits` — Optional capability for recommenders requiring corpus fitting.
 - `KIND` — dict() -> new empty dictionary
 - `Light` — LightGCN: linear message passing with mean aggregation.
 - `MF` — Matrix factorization with dot-product scoring.
+- `Normalizes` — Optional capability for graph recommenders with cached normalization.
 - `Pop` — Popularity baseline: scores proportional to item interaction count.
 - `Recommender` — One downstream ranker.
 - `bpr` — Bayesian Personalized Ranking loss.
@@ -422,8 +429,10 @@ from morel.recommend import (
 
 ```python
 from morel.retrieve import (
+    'AnchorIndex',
     'KIND',
     'Result',
+    'RetrievalStrategy',
     'acs',
     'acs_batch',
     'anchor',
@@ -435,6 +444,7 @@ from morel.retrieve import (
     'mage_batch',
     'neighbors_map',
     'path',
+    'prepare_anchors',
     'rel',
     'relevance',
     'retrieve',
@@ -442,8 +452,10 @@ from morel.retrieve import (
 )
 ```
 
+- `AnchorIndex` — Immutable, row-normalized catalog state for repeated anchor queries.
 - `KIND` — dict() -> new empty dictionary
 - `Result` — Retrieval output for one query or a batch.
+- `RetrievalStrategy` — Callable contract shared by every registered retrieval strategy.
 - `acs` — Compute the Anchor Connecting Subgraph.
 - `acs_batch` — Compute ACS for a batch of anchor sets.
 - `anchor` — Top-k cosine neighbors of ``query_item`` in the given modality.
@@ -455,6 +467,7 @@ from morel.retrieve import (
 - `mage_batch` — Run MAGE for a batch of queries and anchor sets.
 - `neighbors_map` — Precompute neighbor arrays for every node.
 - `path` — Return a shortest path from ``start`` to ``end``.
+- `prepare_anchors` — Build a reusable normalized index for repeated anchor queries.
 - `rel` — Mean of r(i, v) over ``nodes``, excluding the query.
 - `relevance` — Cosine relevance r(i, v) over jointly observed modalities.
 - `retrieve` — Retrieve and expand a subgraph for one query item.
@@ -503,6 +516,7 @@ from morel.serve import (
     'Read',
     'Rollback',
     'Scope',
+    'ServingPipeline',
     'Signal',
     'Stats',
     'Step',
@@ -513,6 +527,7 @@ from morel.serve import (
     'assert_',
     'create',
     'dependency',
+    'is_serving_pipeline',
     'reader',
     'serialize',
     'token',
@@ -536,6 +551,7 @@ from morel.serve import (
 - `Read` — Context manager returned by :meth:`RWLock.read`.
 - `Rollback` — Response from /v1/rollback.
 - `Scope`
+- `ServingPipeline` — Minimum structural contract required by the HTTP serving layer.
 - `Signal` — str(object='') -> str
 - `Stats` — Response from /v1/stats.
 - `Step` — Compute the loss for one update step given a batch of feedback.
@@ -546,6 +562,7 @@ from morel.serve import (
 - `assert_` — Raise if a deployment attempted to enable auth without setting any token.
 - `create` — Create a FastAPI app.
 - `dependency` — Return a FastAPI-compatible dependency callable for the given scope.
+- `is_serving_pipeline` — Return whether ``value`` satisfies the runtime serving contract.
 - `reader` — Context manager for a read lock.
 - `serialize` — Convert torch tensors to nested Python lists for JSON serialization.
 - `token` — Return the configured token for ``scope``, or ``None`` if auth is off.

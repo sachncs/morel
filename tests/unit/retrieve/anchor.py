@@ -7,7 +7,7 @@ import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import Net, Shape
-from morel.retrieve.anchor import batch, query
+from morel.retrieve.anchor import batch, prepare, query
 
 
 @pytest.fixture
@@ -48,6 +48,14 @@ class Checker:
         features, mask, _ = setup
         out = batch([0, 1, 2], "visual", features, mask, top=2)
         assert len(out) == 3
+
+    def prepared(self, setup) -> None:
+        """Pre-normalized batch state preserves the single-query result."""
+        features, mask, _ = setup
+        index = prepare(features, mask)
+        direct = query(0, "visual", features, mask, top=3)
+        indexed = query(0, "visual", features, mask, top=3, index=index)
+        assert indexed.tolist() == direct.tolist()
 
     def norm(self) -> None:
         features = {"visual": np.zeros((3, 4), dtype=np.float32)}
