@@ -13,6 +13,31 @@ import scipy.sparse as sp
 from morel.core.errors import Datum
 from morel.data import manifest
 
+# Defensive defaults for persisted sparse graphs. These are intentionally
+# generous for the supported research datasets while preventing malformed
+# metadata from requesting an unbounded sparse-matrix shape or edge list.
+MAX_GRAPH_NODES = 10_000_000
+MAX_GRAPH_EDGES = 50_000_000
+
+
+def _check_graph_bounds(
+    shape: tuple[int, int],
+    edges: int,
+    path: Path,
+    *,
+    max_nodes: int = MAX_GRAPH_NODES,
+    max_edges: int = MAX_GRAPH_EDGES,
+) -> None:
+    """Reject sparse graph dimensions that exceed the artifact contract."""
+    if max_nodes <= 0 or max_edges <= 0:
+        raise ValueError("graph artifact bounds must be positive")
+    if any(size > max_nodes for size in shape):
+        raise Datum(f"graph shape {shape} exceeds the {max_nodes}-node artifact limit: {path}")
+    if edges > max_edges:
+        raise Datum(
+            f"graph has {edges} edges, exceeding the {max_edges}-edge artifact limit: {path}"
+        )
+
 
 def atomic(target: Path, writer: Callable[[Path], None]) -> Path:
     """Write to a sibling tempfile, then atomically replace the target.
@@ -99,6 +124,8 @@ def save_graph(
     """
     final = Path(target).resolve()
     coo = sp.coo_matrix(graph)
+    graph_shape = (int(coo.shape[0]), int(coo.shape[1]))
+    _check_graph_bounds(graph_shape, int(coo.nnz), final)
 
     def writer(tmp: Path) -> None:
         """Write the sparse graph to a temp .npz file.
@@ -120,8 +147,21 @@ def save_graph(
     return final
 
 
-def load_graph(target: Path | str, *, expected_config_hash: str | None = None) -> sp.spmatrix:
-    """Load a sparse graph and verify its manifest."""
+def load_graph(
+    target: Path | str,
+    *,
+    expected_config_hash: str | None = None,
+    max_nodes: int = MAX_GRAPH_NODES,
+    max_edges: int = MAX_GRAPH_EDGES,
+) -> sp.spmatrix:
+    """Load a sparse graph, verify its manifest, and enforce size bounds.
+
+    Args:
+        target: Path to the graph artifact.
+        expected_config_hash: Optional manifest hash to require.
+        max_nodes: Maximum number of rows or columns accepted.
+        max_edges: Maximum number of stored coordinate entries accepted.
+    """
     path = Path(target)
     if not path.exists():
         raise Datum(f"graph artifact not found: {path}")
@@ -143,9 +183,16 @@ def load_graph(target: Path | str, *, expected_config_hash: str | None = None) -
             raise Datum(f"graph weights must be finite numeric values: {path}")
         if raw_shape.ndim != 1 or raw_shape.size != 2:
             raise Datum(f"graph shape must contain two dimensions: {path}")
-        shape = tuple(int(size) for size in raw_shape)
+        shape = (int(raw_shape[0]), int(raw_shape[1]))
         if any(size < 0 for size in shape):
             raise Datum(f"graph shape cannot be negative: {path}")
+        _check_graph_bounds(
+            shape,
+            len(row),
+            path,
+            max_nodes=max_nodes,
+            max_edges=max_edges,
+        )
         if len(row) and (
             np.any(row < 0) or np.any(col < 0) or np.any(row >= shape[0]) or np.any(col >= shape[1])
         ):
@@ -158,4 +205,11 @@ def load_graph(target: Path | str, *, expected_config_hash: str | None = None) -
     return coo.tocsr()
 
 
-__all__ = ["load_graph", "load_npz", "save_graph", "store"]
+__all__ = [
+    "MAX_GRAPH_EDGES",
+    "MAX_GRAPH_NODES",
+    "load_graph",
+    "load_npz",
+    "save_graph",
+    "store",
+]

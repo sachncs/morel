@@ -1,12 +1,12 @@
 # Morel repository and product-site audit
 
-Date: 2026-10-13  
+Date: 2026-10-14
 Scope: repository, local Python package, local React site, and the deployed
 `https://sachncs.github.io/morel/` page.
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **564 passed**, 84.03% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **565 passed**, 84.04% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -190,7 +190,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 564/84.03 baseline.
+  stale documentation counts were updated to the current 565/84.04 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -205,7 +205,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 564-test/84.03%-coverage evidence across the audit, docs, and site.
+  the current 565-test/84.04%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -258,9 +258,9 @@ The numbered inventory below is intentionally retained as the complete issue
 history. This status map prevents historical findings from being mistaken for
 open defects:
 
-- **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
+- **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–33, 34–42, 49,
   50–60, and the local/deployed portions of 43–48.
-- **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
+- **Partially addressed:** 6, 16, 19, 21, 22, 24, and 25.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38451394978` and the live URL
   check.
@@ -455,12 +455,12 @@ and release operations.
     workflow also retains a lockfile-derived CycloneDX SBOM with the published
     artifacts. Local image scanning remains an optional convenience, not a
     release gate.
-33. **Partially addressed:** Property and boundary coverage now exercises
+33. **Closed in this worktree:** Property and boundary coverage now exercises
     malformed HTTP payloads, checkpoint files, configuration YAML, sparse
     matrix indices, streaming JSON/chunks, duplicate-edge k-core behavior, and
     bounded graph shapes, non-finite weights, and malformed sparse artifacts.
-    Large-shape allocation limits and broader format fuzzing still need
-    dedicated coverage.
+    Persisted sparse graphs now enforce explicit node and edge budgets at save
+    and load boundaries, including caller-selectable lower limits for services.
 
 ### P4 — style, maintainability, and documentation
 

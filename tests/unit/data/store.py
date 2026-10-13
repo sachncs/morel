@@ -10,7 +10,7 @@ import scipy.sparse as sp
 
 from morel.core.errors import Datum
 from morel.data.manifest import Manifest
-from morel.data.store import load_graph, load_npz, save_graph, store
+from morel.data.store import MAX_GRAPH_NODES, load_graph, load_npz, save_graph, store
 
 
 class Checker:
@@ -80,3 +80,28 @@ class Checker:
         )
         with pytest.raises(Datum, match="integer arrays"):
             load_graph(target)
+
+    def graph_bounds(self, tmp_path: Path) -> None:
+        """Declared sparse dimensions and edge counts are bounded."""
+        too_wide = tmp_path / "too-wide.npz"
+        np.savez(
+            too_wide,
+            data=np.array([], dtype=np.float32),
+            row=np.array([], dtype=np.int64),
+            col=np.array([], dtype=np.int64),
+            shape=np.array([MAX_GRAPH_NODES + 1, MAX_GRAPH_NODES + 1]),
+        )
+        with pytest.raises(Datum, match="node artifact limit"):
+            load_graph(too_wide)
+
+        too_many_edges = tmp_path / "too-many-edges.npz"
+        np.savez(
+            too_many_edges,
+            data=np.ones(2, dtype=np.float32),
+            row=np.array([0, 1], dtype=np.int64),
+            col=np.array([1, 0], dtype=np.int64),
+            shape=np.array([2, 2]),
+        )
+        with pytest.raises(Datum, match="edge artifact limit"):
+            # The optional bound makes this test small and deterministic.
+            load_graph(too_many_edges, max_edges=1)
