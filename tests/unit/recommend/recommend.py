@@ -153,6 +153,20 @@ class Checker:
         light(torch.arange(users), torch.arange(items), ui_b)
         assert light.cache[0] != first_key
 
+    def cache_lifecycle(self) -> None:
+        """Derived graph state follows module moves and explicit invalidation."""
+        light = Light(users=3, items=4, embed=4, layers=1)
+        ui = sp.csr_matrix(np.eye(3, 4, dtype=np.float32))
+        light(torch.arange(3), torch.arange(4), ui)
+        assert light.cache is not None
+        key_before = light.cache[0]
+        light.to(dtype=torch.float64)
+        assert light.cache is not None
+        assert light.cache[0] == key_before
+        assert light.cache[1].dtype == torch.float64
+        light.invalidate_cache()
+        assert light.cache is None
+
     def reproducible(self) -> None:
         torch.manual_seed(1)
         first = Light(users=5, items=7, embed=8, layers=2, seed=3)

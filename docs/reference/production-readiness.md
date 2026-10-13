@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         557 passed, 83.58% coverage
+pytest -q                         558 passed, 83.55% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass

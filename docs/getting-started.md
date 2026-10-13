@@ -166,7 +166,7 @@ Run the smoke test that ships with the repo:
 python -m pytest tests/unit -x
 ```
 
-The current local verification baseline is 557 tests with 83.58 % coverage;
+The current local verification baseline is 558 tests with 83.55 % coverage;
 run `pytest -q` to obtain the authoritative result for your environment.
 CI runs the same suite with the repository's configured quality gates.
 

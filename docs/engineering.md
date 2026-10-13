@@ -61,6 +61,9 @@ when the pipeline is constructed, not discovered after a request fails.
   the HTTP boundary. Preserve the original exception for structured logs.
 - Make ownership explicit: attached arrays are immutable snapshots or carry a
   content/version token that invalidates caches when replaced.
+- Derived tensors that are not serialized model state must have an explicit
+  owner, content key, invalidation method, and `Module.to`/device-migration
+  path; never expose a mutable implementation tuple as the cache contract.
 - Treat model updates as transactions: inference must never observe partially
   mutated parameters. Hold the model write lock through mutation and rollback,
   or use a fully isolated copy-on-write state before publishing a new version.

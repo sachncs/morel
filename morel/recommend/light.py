@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+from collections.abc import Iterator
 from contextlib import nullcontext
+from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 import scipy.sparse as sp
@@ -12,6 +15,34 @@ import torch.nn as nn
 
 from morel.core.errors import Model
 from morel.core.seed import deterministic
+
+
+@dataclass(frozen=True)
+class _AdjacencyCache:
+    """Owned, content-addressed normalized adjacency state.
+
+    The cache is deliberately not a registered module buffer: it is derived
+    from caller-owned corpus data and should not be serialized as model
+    weights. ``Light._apply`` migrates its tensor whenever the module moves
+    device or dtype, and :meth:`Light.invalidate_cache` is the explicit
+    lifecycle boundary for corpus replacement.
+    """
+
+    graph_key: str
+    tensor: torch.Tensor
+
+    def __iter__(self) -> Iterator[str | torch.Tensor]:
+        """Retain the historical ``key, tensor = light.cache`` interface."""
+        yield self.graph_key
+        yield self.tensor
+
+    def __getitem__(self, index: int) -> str | torch.Tensor:
+        """Retain tuple-style compatibility access for old integrations."""
+        if index == 0:
+            return self.graph_key
+        if index == 1:
+            return self.tensor
+        raise IndexError(index)
 
 
 def key(matrix: sp.csr_matrix) -> str:
@@ -39,7 +70,7 @@ class Light(nn.Module):
         items: Number of items.
         user_emb: User embedding layer.
         item_emb: Item embedding layer.
-        cache: Cached normalized adjacency.
+        cache: Owned normalized adjacency cache, or ``None`` before wiring.
     """
 
     def __init__(
@@ -89,7 +120,24 @@ class Light(nn.Module):
                     raise ValueError(f"feature_dim must be positive, got {feature_dim}")
                 self.fproj = nn.Linear(feature_dim, embed)
         self.fdim = feature_dim
-        self.cache: tuple[str, torch.Tensor] | None = None
+        self.cache: _AdjacencyCache | None = None
+
+    def _apply(self, fn: Any, recurse: bool = True) -> nn.Module:
+        """Apply a module migration to derived adjacency state as well.
+
+        PyTorch applies ``Module.to``/``cuda`` only to parameters and
+        registered buffers. The normalized adjacency is intentionally not a
+        serialized buffer, so it must be migrated explicitly to prevent a
+        stale CPU/GPU tensor after a model move.
+        """
+        super()._apply(fn, recurse)  # type: ignore[no-untyped-call]
+        if self.cache is not None:
+            self.cache = _AdjacencyCache(self.cache.graph_key, fn(self.cache.tensor))
+        return self
+
+    def invalidate_cache(self) -> None:
+        """Drop graph-derived state after replacing the attached corpus."""
+        self.cache = None
 
     def forward(
         self,
@@ -190,19 +238,19 @@ class Light(nn.Module):
             ValueError: If ``ui_graph is None`` and the cache is empty.
         """
         if ui_graph is None and self.cache is not None:
-            cached = self.cache[1]
+            cached = self.cache.tensor
             if cached.device != self.user_emb.weight.device:
                 cached = cached.to(self.user_emb.weight.device)
-                self.cache = (self.cache[0], cached)
+                self.cache = _AdjacencyCache(self.cache.graph_key, cached)
             return cached
         if ui_graph is None:
             raise ValueError("ui_graph is required on the first call")
         k = key(ui_graph)
-        if self.cache is not None and self.cache[0] == k:
-            cached = self.cache[1]
+        if self.cache is not None and self.cache.graph_key == k:
+            cached = self.cache.tensor
             if cached.device != self.user_emb.weight.device:
                 cached = cached.to(self.user_emb.weight.device)
-                self.cache = (k, cached)
+                self.cache = _AdjacencyCache(k, cached)
             return cached
         top = sp.hstack([sp.csr_matrix((self.users, self.users)), ui_graph])
         bottom = sp.hstack([ui_graph.T, sp.csr_matrix((self.items, self.items))])
@@ -231,7 +279,7 @@ class Light(nn.Module):
         target_device = self.user_emb.weight.device
         if tensor.device != target_device:
             tensor = tensor.to(target_device)
-        self.cache = (key(ui_graph), tensor)
+        self.cache = _AdjacencyCache(k, tensor)
         return tensor
 
 

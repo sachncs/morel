@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **557 passed**, 83.58% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **558 passed**, 83.55% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -188,7 +188,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 557/83.58 baseline.
+  stale documentation counts were updated to the current 558/83.55 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -203,7 +203,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 557-test/83.58%-coverage evidence across the audit, docs, and site.
+  the current 558-test/83.55%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -256,9 +256,9 @@ The numbered inventory below is intentionally retained as the complete issue
 history. This status map prevents historical findings from being mistaken for
 open defects:
 
-- **Closed in this worktree:** 1–4, 7–15, 17–20, 26–32, 34–39, 42, 49, 54–58, and the
+- **Closed in this worktree:** 1–4, 7–15, 17–20, 23, 26–32, 34–39, 42, 49, 54–58, and the
   local portions of 43–48.
-- **Partially addressed:** 16, 19, 21, 22, 23, 24, 25, 33, 41,
+- **Partially addressed:** 16, 19, 21, 22, 24, 25, 33, 41,
   50, 51, 52, and 53.
 - **Still open:** 5–6 (deployment truth), and the
   live/deployment portions of 50–53.
@@ -394,10 +394,13 @@ until a Pages deployment is published and rechecked.
     persisted graph encodings and further traversal optimization remain
     required before production-scale claims; serving now warms the encoding at
     startup so that cost is not paid by the first request.
-23. **Partially addressed:** `Pipeline.wire()` prepares graph-normalizing rankers
-    once and the serving score path now reuses that cache without re-hashing the
-    CSR matrix on every request. `Light` still needs an explicit serialized cache
-    ownership/invalidation contract and registered device-migration state.
+23. **Closed locally; serialized bundles intentionally exclude derived state:**
+    `Pipeline.wire()` prepares graph-normalizing rankers once and the serving
+    score path reuses that cache without re-hashing the CSR matrix on every
+    request. `Light` now owns a content-addressed cache value object, exposes
+    explicit invalidation after corpus replacement, and migrates derived
+    adjacency state through `Module.to`/`cuda` without serializing it as model
+    weights.
 24. **Partially addressed:** The loader now supports explicit result validators,
     and production CLI/runtime registrations reject incompatible serving
     pipelines before caching. Unvalidated third-party registrations can still
