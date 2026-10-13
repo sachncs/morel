@@ -33,12 +33,10 @@ def load(target: Path | str) -> dict[str, Any]:
     Args:
         target: Path to the checkpoint file.
 
-    Returns
-    -------
+    Returns:
         The validated payload dict.
 
-    Raises
-    ------
+    Raises:
         FileNotFoundError: If the file does not exist.
         PermissionError, IsADirectoryError: If the file cannot be read for
             I/O reasons. These propagate so the caller can decide between
@@ -97,8 +95,7 @@ def unsafe(target: Path | str, *, acknowledge_risk: bool = False) -> dict[str, A
     security-sensitive boundary is visible in code review. This name remains
     temporarily available for callers migrating from older morel releases.
 
-    Raises
-    ------
+    Raises:
         Cfg: If ``acknowledge_risk`` is not explicitly true.
     """
     return load_trusted(target, acknowledge_risk=acknowledge_risk)
@@ -108,8 +105,7 @@ def unsafe(target: Path | str, *, acknowledge_risk: bool = False) -> dict[str, A
 class State:
     """Trainer state snapshot for resume.
 
-    Attributes
-    ----------
+    Attributes:
         model: Model state dict.
         optimizer: Optimizer state dict (optional).
         epoch: Current epoch.

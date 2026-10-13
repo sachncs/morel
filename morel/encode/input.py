@@ -11,8 +11,7 @@ class Input(nn.Module):
 
     ``mask`` semantics: 1 = kept (feature present), 0 = missing (feature zeroed).
 
-    Attributes
-    ----------
+    Attributes:
         modalities: List of modality names.
         project: Linear projection layer.
         dropout: Dropout layer.
@@ -51,8 +50,7 @@ class Input(nn.Module):
             mask: ``(B, M)`` or ``(B, S, M)`` availability mask.
             pe: ``(B, pe_dim)`` or ``(B, S, pe_dim)`` positional encoding.
 
-        Returns
-        -------
+        Returns:
             ``(B, hidden)`` or ``(B, S, hidden)`` projected tensor.
         """
         parts: list[torch.Tensor] = []

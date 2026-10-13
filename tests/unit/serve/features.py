@@ -27,6 +27,7 @@ class Tiny(nn.Module):
     """Small module used as a stand-in pipeline for updater tests."""
 
     def __init__(self) -> None:
+        """Initialize the two-dimensional test module."""
         super().__init__()
         self.linear = nn.Linear(2, 2)
 

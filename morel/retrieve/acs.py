@@ -59,12 +59,10 @@ def compute(adj: sp.csr_matrix, anchors: list[int], *, fallback: str = "anchors"
             returns the anchor set (default); ``"empty"`` returns an empty
             set.
 
-    Returns
-    -------
+    Returns:
         Set of node ids in the ACS.
 
-    Raises
-    ------
+    Raises:
         Net: On bad input.
     """
     if adj.ndim != 2 or adj.shape[0] != adj.shape[1]:

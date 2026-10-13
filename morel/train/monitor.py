@@ -11,8 +11,7 @@ from typing import Any
 class Monitor:
     """Append ``(time, **metrics)`` lines to ``metrics.jsonl``.
 
-    Attributes
-    ----------
+    Attributes:
         directory: Directory where metrics are written.
         path: Full path to the ``metrics.jsonl`` file.
     """

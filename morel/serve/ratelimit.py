@@ -30,6 +30,7 @@ class Limiter:
     """
 
     def __init__(self) -> None:
+        """Initialize empty per-IP buckets with default budgets."""
         self.per_minute_read: int = 60
         self.per_minute_admin: int = 10
         self._buckets: dict[str, dict[str, tuple[float, float, float]]] = {}

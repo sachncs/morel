@@ -140,9 +140,10 @@ def expand(
         mask: Modality availability mask.
         iters: Maximum greedy iterations.
         fallback: ACS fallback strategy.
+        relevance_index: Optional precomputed relevance index.
+        max_nodes: Optional upper bound on the returned subgraph size.
 
-    Returns
-    -------
+    Returns:
         Set of node ids in the expanded subgraph.
     """
     if iters <= 0:

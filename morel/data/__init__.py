@@ -54,12 +54,10 @@ def assemble(name: str, *, dim: int, batch: int = 64, seed: int = 0) -> FeatureE
         batch: Inference batch size (used by NN backbones).
         seed: RNG seed for the random encoder.
 
-    Returns
-    -------
+    Returns:
         A :class:`FeatureEncoder` instance.
 
-    Raises
-    ------
+    Raises:
         Datum: If ``name`` is not a known encoder.
     """
     if name == "random":
@@ -92,12 +90,10 @@ def build_mask(kind: str, *, items: int, modalities: int, ratio: float, seed: in
         ratio: Fraction of modalities to drop.
         seed: RNG seed for reproducibility.
 
-    Returns
-    -------
+    Returns:
         A :class:`ModalityMask` instance.
 
-    Raises
-    ------
+    Raises:
         Datum: If ``kind`` is not a known mask name.
     """
     if kind == "bernoulli":

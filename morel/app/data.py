@@ -23,8 +23,7 @@ class Corpus(Dataset[dict[str, Any]]):
     Each item returns ``{index, features, mask, adjacency}`` shaped for the
     completion trainer's collate function.
 
-    Attributes
-    ----------
+    Attributes:
         features: Per-modality feature arrays.
         mask: Modality availability mask.
         adjacency: Item-item adjacency matrix.
@@ -94,14 +93,12 @@ def split(
         val_fraction: Fraction held out for validation, in ``[0, 1)``.
         seed: Seed for the permutation, so the split is reproducible.
 
-    Returns
-    -------
+    Returns:
         ``(train, val)``. ``val`` is ``None`` when the fraction rounds to no
         samples or would consume the whole dataset, in which case training
         proceeds without validation rather than on an empty split.
 
-    Raises
-    ------
+    Raises:
         Datum: If ``val_fraction`` is outside ``[0, 1)``.
     """
     if not 0.0 <= val_fraction < 1.0:
@@ -159,8 +156,7 @@ class BPR(Dataset[dict[str, Any]]):
     sample belongs to does not change it and the dataset is reproducible
     across processes and workers.
 
-    Attributes
-    ----------
+    Attributes:
         ui_graph: User-item interaction matrix.
         length: Number of triples per epoch.
         seed: Random seed.
@@ -174,8 +170,7 @@ class BPR(Dataset[dict[str, Any]]):
             length: Number of triples one epoch draws.
             seed: Base seed; sample ``i`` is derived from ``seed + i``.
 
-        Raises
-        ------
+        Raises:
             Datum: If no user has any interaction, or if any user has no
                 negative available.
         """

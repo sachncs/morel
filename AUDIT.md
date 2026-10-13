@@ -6,13 +6,15 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **564 passed**, 84.06% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **564 passed**, 84.03% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
 - `ruff check .`: passes.
 - `ruff format --check .`: passes.
 - `mypy morel/`: passes with no configuration warnings.
+- Ruff now enforces Google-style docstrings across source and tests; the legacy
+  NumPy section underlines have been removed.
 - `make audit-critical`: passes with per-subsystem coverage floors for serving
   (79%), pipeline (77%), CLI (71%), and checkpoint loading (84%).
 - The corrected forward benchmark uses a bounded 32-query batch; the local
@@ -188,7 +190,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 564/84.06 baseline.
+  stale documentation counts were updated to the current 564/84.03 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -203,7 +205,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 564-test/84.06%-coverage evidence across the audit, docs, and site.
+  the current 564-test/84.03%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -256,19 +258,18 @@ The numbered inventory below is intentionally retained as the complete issue
 history. This status map prevents historical findings from being mistaken for
 open defects:
 
-- **Closed in this worktree:** 1–4, 7–15, 17–20, 23, 26–32, 34–39, 42, 49, 54–60, and the
-  local portions of 43–48.
-- **Partially addressed:** 16, 19, 21, 22, 24, 25, 33, 41,
-  50, 51, 52, and 53.
-- **Still open:** the remaining technical portions of 5–6 and the partially
-  addressed items listed below; the deployment portions of 43–53 are now
-  verified by Pages run `38451394978` and the live URL check.
+- **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
+  50–60, and the local/deployed portions of 43–48.
+- **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
+- **Still open:** the partially addressed items listed below; the deployment
+  portions of 43–53 are verified by Pages run `38451394978` and the live URL
+  check.
 
 The local pipeline boundary now validates modality names and shapes and stores
 defensive snapshots of feature, mask, and adjacency inputs; this closes the
-mutable-attachment portion of issue 20. The live URL has not been updated yet,
-so claims about deployed copy, palette, logo, and documentation remain open
-until a Pages deployment is published and rechecked.
+mutable-attachment portion of issue 20. The redesigned site is deployed and
+rechecked; remaining open work is technical scale, observability integration,
+and release operations.
 
 ## Issue inventory
 
@@ -484,9 +485,9 @@ until a Pages deployment is published and rechecked.
     published verification snapshot, and ``make docs-check`` rejects removed
     API names and known stale claims in README/MkDocs/site examples. The
     production-readiness document still states current limitations explicitly.
-41. Some docstrings are duplicated or awkward (for example repeated Returns
-    sections in data acquisition) and several implementation comments describe
-    historical bugs rather than current invariants.
+41. **Closed in this worktree:** Docstrings now use the enforced Google-style
+    section format, duplicated acquisition prose was removed, and comments
+    were reviewed so retained historical context explains current invariants.
 42. **Closed:** runtime and test code no longer uses `del variable` as an
     unused-variable workaround.
 

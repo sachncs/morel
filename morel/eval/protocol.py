@@ -12,8 +12,7 @@ import numpy as np
 class Robust:
     """Result of a robustness sweep.
 
-    Attributes
-    ----------
+    Attributes:
         ratios: Robustness ratios used.
         metrics: Per-ratio metric values.
     """
@@ -35,8 +34,7 @@ def sweep(
         labels: Ground-truth binary labels.
         metrics: Mapping from metric name to scorer.
 
-    Returns
-    -------
+    Returns:
         Robust with one entry per ratio per metric.
     """
     if not scores_by_ratio:
@@ -63,8 +61,7 @@ def results(
         labels: Ground-truth binary labels.
         metric: Scorer function.
 
-    Returns
-    -------
+    Returns:
         Mapping from condition name to metric value.
     """
     return {name: metric(scores, labels) for name, scores in scores_by_condition.items()}

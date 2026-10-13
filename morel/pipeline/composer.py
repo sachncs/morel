@@ -34,8 +34,7 @@ from morel.route import build as build_route
 class Output:
     """Pipeline forward output.
 
-    Attributes
-    ----------
+    Attributes:
         completed: Per-modality completed features.
         routing: Routing probabilities.
         subgraph_indices: Subgraph node indices (optional).
@@ -61,8 +60,7 @@ def mode(module: nn.Module, training: bool) -> Iterator[None]:
         module: Module whose mode (and that of its children) is switched.
         training: ``True`` for train mode, ``False`` for eval mode.
 
-    Yields
-    ------
+    Yields:
         ``None``. The block body runs with the requested mode applied.
     """
     previous = module.training
@@ -76,8 +74,7 @@ def mode(module: nn.Module, training: bool) -> Iterator[None]:
 class Pipeline(nn.Module):
     """End-to-end GRE-MC pipeline.
 
-    Attributes
-    ----------
+    Attributes:
         encode: Joint encoder module.
         route: Router module.
         codebook: Codebook module.
@@ -108,8 +105,7 @@ class Pipeline(nn.Module):
                 initialization seed.
             dims: Per-modality input widths; defaults to the demo dims.
 
-        Raises
-        ------
+        Raises:
             Cfg: If any stage names an implementation that is not
                 registered. The message lists the available names.
         """
@@ -178,8 +174,7 @@ class Pipeline(nn.Module):
         Args:
             max_nodes: Positive maximum node count, or ``None`` to disable.
 
-        Raises
-        ------
+        Raises:
         ValueError: If ``max_nodes`` is not positive when provided.
         """
         if max_nodes is not None and (isinstance(max_nodes, bool) or max_nodes <= 0):
@@ -194,8 +189,7 @@ class Pipeline(nn.Module):
         Serving callers should invoke this during startup so the first live
         request does not pay an unbounded graph-eigensolver cost.
 
-        Raises
-        ------
+        Raises:
         Model: If no item graph has been attached.
         """
         if self.cadj is None:
@@ -222,8 +216,7 @@ class Pipeline(nn.Module):
                 the ranker, for rankers that can consume it. Leave as ``None``
                 to rank from ID embeddings and the graph alone.
 
-        Raises
-        ------
+        Raises:
             Cfg: If ``config.recommend.kind`` is not registered.
         """
         users = ui_graph.shape[0]
@@ -256,8 +249,7 @@ class Pipeline(nn.Module):
         sparse matrix. Callers may therefore reuse or mutate their input
         buffers without changing a live serving pipeline behind its back.
 
-        Raises
-        ------
+        Raises:
         ValueError: If feature names, shapes, mask dimensions, or adjacency
             dimensions do not match the configured corpus.
         """
@@ -312,12 +304,10 @@ class Pipeline(nn.Module):
             users: User ids with shape ``(B_u,)``.
             items: Item ids with shape ``(B_i,)``.
 
-        Returns
-        -------
+        Returns:
             Score matrix with shape ``(B_u, B_i)``.
 
-        Raises
-        ------
+        Raises:
             Model: If the pipeline has not been wired or attached.
         """
         if self.recommender is None or self.ui_graph is None:
@@ -373,13 +363,11 @@ class Pipeline(nn.Module):
                 call and restored afterwards. Pass ``False`` for inference to
                 get a deterministic, dropout-free result.
 
-        Returns
-        -------
+        Returns:
             Output with completed modalities, routing weights, and (when
             retrieval buffers are set) the subgraph indices used.
 
-        Raises
-        ------
+        Raises:
             Net: If the adjacency has self-loops. Build the item graph
                 once with ``morel.data.build.cooccurrence``; that
                 builder removes self-loops before persisting.
@@ -459,8 +447,7 @@ class Pipeline(nn.Module):
         single attention-masked token so the transformer still produces one
         embedding per query.
 
-        Raises
-        ------
+        Raises:
             Model: If no corpus has been attached. Call
                 :meth:`attach` before encoding subgraphs.
         """

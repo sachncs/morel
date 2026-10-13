@@ -37,8 +37,7 @@ if TYPE_CHECKING:
 class Ask(BaseModel):
     """One feedback event submitted by a client.
 
-    Attributes
-    ----------
+    Attributes:
         user: User id.
         item: Item id.
         signal: One of 'like', 'dislike', 'view', 'purchase'.
@@ -52,8 +51,7 @@ class Ask(BaseModel):
 class Tell(BaseModel):
     """Response from /v1/feedback.
 
-    Attributes
-    ----------
+    Attributes:
         queued: Whether the event was queued.
         buffer_size: Current buffer size after queuing.
     """
@@ -65,8 +63,7 @@ class Tell(BaseModel):
 class Rollback(BaseModel):
     """Response from /v1/rollback.
 
-    Attributes
-    ----------
+    Attributes:
         restored_version: Version after rollback.
     """
 
@@ -76,8 +73,7 @@ class Rollback(BaseModel):
 class Stats(BaseModel):
     """Response from /v1/stats.
 
-    Attributes
-    ----------
+    Attributes:
         events_buffered: Number of events in the buffer.
         updates_applied: Number of updates applied.
         last_loss: Last training loss.
@@ -121,8 +117,7 @@ def create(
         metrics_enabled: Whether to expose the Prometheus endpoint.
         metrics_path: Path at which Prometheus metrics are exposed.
 
-    Returns
-    -------
+    Returns:
         Configured :class:`FastAPI` instance.
     """
     auth.assert_()  # noqa: PT009 - this is the public auth configuration check
@@ -217,8 +212,7 @@ def create(
     def health() -> Health:
         """Liveness probe: process is alive.
 
-        Returns
-        -------
+        Returns:
             Health: Service status and version.
         """
         return Health(status="ok", version=__version__)
@@ -227,8 +221,7 @@ def create(
     def readiness() -> dict[str, Any]:
         """Readiness probe: a real pipeline can be loaded.
 
-        Returns
-        -------
+        Returns:
             200 with a ready report if the registered factory produces
             a pipeline; 503 with the failure reason otherwise.
         """

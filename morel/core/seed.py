@@ -36,12 +36,10 @@ def seed(value: int) -> int:
     Args:
         value: Non-negative integer seed.
 
-    Returns
-    -------
+    Returns:
         The seed used.
 
-    Raises
-    ------
+    Raises:
         ValueError: If the seed is negative.
     """
     if not isinstance(value, int):
@@ -71,8 +69,7 @@ class State:
     and a dict for the newer one), and morel only ever passes them straight
     back to the library that produced them.
 
-    Attributes
-    ----------
+    Attributes:
         python: Python random module state.
         numpy: NumPy random state.
         torch: PyTorch random state.
@@ -131,12 +128,10 @@ def deterministic(value: int) -> Iterator[None]:
     Args:
         value: Non-negative integer seed.
 
-    Yields
-    ------
+    Yields:
         ``None``. The block body runs under the given seed.
 
-    Examples
-    --------
+    Examples:
         >>> import torch
         >>> from morel.core.seed import deterministic
         >>> with deterministic(0):

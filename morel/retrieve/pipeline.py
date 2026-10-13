@@ -49,8 +49,7 @@ class RetrievalStrategy(Protocol):
 class Result:
     """Retrieval output for one query or a batch.
 
-    Attributes
-    ----------
+    Attributes:
         nodes: Padded node indices.
         sizes: Actual number of nodes per batch item.
         mask: Boolean mask for valid nodes.
@@ -236,13 +235,14 @@ def retrieve(
         iters: Expansion budget, interpreted by the strategy.
         fallback: Behaviour when expansion finds no collision root.
         kind: Registered retrieval strategy; see ``morel.retrieve.STRATEGIES``.
+        relevance_index: Optional precomputed relevance index.
+        anchor_index: Optional precomputed normalized anchor index.
+        max_nodes: Optional upper bound on the returned subgraph size.
 
-    Returns
-    -------
+    Returns:
         Node ids of the retrieved subgraph, always including ``query``.
 
-    Raises
-    ------
+    Raises:
         Cfg: If ``kind`` is not a registered strategy.
     """
     if kind not in KIND:

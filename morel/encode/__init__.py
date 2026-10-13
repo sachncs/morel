@@ -31,12 +31,10 @@ def build(
         heads: Number of attention heads (ignored for ``identity``).
         dropout: Dropout rate (ignored for ``identity``).
 
-    Returns
-    -------
+    Returns:
         The constructed encoder module.
 
-    Raises
-    ------
+    Raises:
         ValueError: If ``kind`` is not a known encoder name.
     """
     if kind == "transformer":

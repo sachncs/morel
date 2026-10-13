@@ -17,8 +17,7 @@ def interactions(user: np.ndarray, item: np.ndarray, users: int, items: int) -> 
         users: Expected total number of users.
         items: Expected total number of items.
 
-    Raises
-    ------
+    Raises:
         Datum: On shape, dtype, or range violations.
     """
     if user.ndim != 1 or item.ndim != 1:
@@ -42,8 +41,7 @@ def features(payload: dict[str, np.ndarray], *, items: int) -> None:
         payload: Dict mapping modality name to ``(items, dim)`` float array.
         items: Expected number of items.
 
-    Raises
-    ------
+    Raises:
         Datum: On shape, dtype, or value-range violations.
     """
     if not payload:
@@ -65,8 +63,7 @@ def graph(adj: sp.spmatrix) -> None:
     Args:
         adj: A scipy sparse matrix.
 
-    Raises
-    ------
+    Raises:
         Datum: On invariant violations.
     """
     if adj.ndim != 2:
@@ -88,8 +85,7 @@ def mask(mask: np.ndarray) -> None:
     Args:
         mask: 2-D binary array of shape ``(items, modalities)``.
 
-    Raises
-    ------
+    Raises:
         Datum: On shape, dtype, or value-range violations.
     """
     if mask.ndim != 2:

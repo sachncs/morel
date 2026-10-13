@@ -46,15 +46,13 @@ def _pair(record: object) -> tuple[str, str] | None:
 def review(path: Path | str, *, chunk_size: int = 100_000) -> Iterator[list[dict[str, Any]]]:
     """Yield chunks of JSON-decoded records from an Amazon review file.
 
-    Args
-    ----
+    Args:
     path : Path | str
         Path to the decompressed ``.json`` file (one JSON object per line).
     chunk_size : int
         Maximum number of records per chunk.
 
-    Yields
-    ------
+    Yields:
     list[dict]
         A list of at most ``chunk_size`` parsed records.
     """
@@ -90,8 +88,7 @@ def stream(
 ) -> Iterator[tuple[np.ndarray, np.ndarray]]:
     """Yield ``(user_ids_chunk, item_ids_chunk)`` for an Amazon review file.
 
-    Args
-    ----
+    Args:
     review_path : Path | str
         Path to the decompressed ``.json`` file.
     min_edges : int
@@ -100,8 +97,7 @@ def stream(
     chunk_size : int
         Records per streaming chunk.
 
-    Yields
-    ------
+    Yields:
     tuple[np.ndarray, np.ndarray]
         ``(user_ids, item_ids)`` for each chunk after filtering.
     """
@@ -145,8 +141,7 @@ def confirmed(
     endpoints satisfy the degree threshold. Output is bit-identical to
     the in-memory :func:`morel.data.build.interactions` on the same input.
 
-    Args
-    ----
+    Args:
     review_path : Path | str
         Path to the decompressed ``.json`` file.
     min_edges : int
@@ -154,8 +149,7 @@ def confirmed(
     chunk_size : int
         Records per streaming chunk.
 
-    Returns
-    -------
+    Returns:
     tuple[sp.csr_matrix, dict[str, int], dict[str, int]]
         ``(ui_graph, user_id_to_idx, item_id_to_idx)``.
     """
@@ -230,17 +224,13 @@ def cooc(
     form a clique; we walk the per-user item set and emit an
     (a, b, count) triple into a sparse ``coo_matrix`` accumulator.
 
-    Args
-    ----
-    ui_chunks : Iterator
-        Stream of ``(user_ids, item_ids)`` pairs.
-    items : int
-        Number of items.
-        max_edges : int
-        Maximum number of directed COO entries accumulated before failing.
+    Args:
+        ui_chunks: Stream of ``(user_ids, item_ids)`` pairs.
+        items: Number of items.
+        max_edges: Maximum number of directed COO entries accumulated before
+            failing.
 
-    Returns
-    -------
+    Returns:
     sp.csr_matrix
         Symmetric ``(items, items)`` item co-occurrence adjacency.
     """

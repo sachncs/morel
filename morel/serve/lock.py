@@ -28,8 +28,7 @@ class RWLock:
     The lock is not reentrant. A thread already holding a read lock must not
     ask for the write lock, and vice versa; doing so deadlocks.
 
-    Attributes
-    ----------
+    Attributes:
         condition: Threading condition variable.
         readers: Number of active readers.
         writer: Whether a writer holds the lock.
@@ -49,8 +48,7 @@ class RWLock:
         Args:
             timeout: Seconds to wait, or ``None`` to wait indefinitely.
 
-        Returns
-        -------
+        Returns:
             ``True`` if the lock was acquired, ``False`` on timeout.
         """
         with self.condition:
@@ -68,8 +66,7 @@ class RWLock:
     def read_unlock(self) -> None:
         """Release a previously acquired read lock.
 
-        Raises
-        ------
+        Raises:
             RuntimeError: If no read lock is held. Silently going negative
                 would let a later writer proceed while a reader is still
                 inside the critical section.
@@ -90,8 +87,7 @@ class RWLock:
         Args:
             timeout: Seconds to wait, or ``None`` to wait indefinitely.
 
-        Returns
-        -------
+        Returns:
             ``True`` if the lock was acquired, ``False`` on timeout.
         """
         with self.condition:
@@ -117,8 +113,7 @@ class RWLock:
     def write_unlock(self) -> None:
         """Release a previously acquired write lock.
 
-        Raises
-        ------
+        Raises:
             RuntimeError: If the write lock is not held.
         """
         with self.condition:
@@ -139,8 +134,7 @@ class RWLock:
 class Read:
     """Context manager returned by :meth:`RWLock.read`.
 
-    Attributes
-    ----------
+    Attributes:
         lock: The RWLock instance.
     """
 
@@ -164,8 +158,7 @@ class Read:
 class Write:
     """Context manager returned by :meth:`RWLock.write`.
 
-    Attributes
-    ----------
+    Attributes:
         lock: The RWLock instance.
     """
 

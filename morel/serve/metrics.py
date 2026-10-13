@@ -39,8 +39,7 @@ DEFAULT_BUCKETS: tuple[float, ...] = (
 class _HistogramStats:
     """Live histogram state for one label set.
 
-    Attributes
-    ----------
+    Attributes:
         buckets: Cumulative count per bucket. The ``i``-th bucket
             counter is incremented for every observation ``<=``
             ``DEFAULT_BUCKETS[i]`` (when defaults are used).

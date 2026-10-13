@@ -30,8 +30,7 @@ class Loader:
     2. **Unbounded building map**: the per-key ``Condition`` map is
        bound by ``building_capacity`` (defaults to ``capacity``).
 
-    Attributes
-    ----------
+    Attributes:
         capacity: Maximum number of cached pipelines.
         cache: LRU-ordered dict of cached pipelines.
         lock: Threading lock protecting ``cache`` and ``building``.

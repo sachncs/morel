@@ -22,8 +22,7 @@ from morel.core.errors import Cfg
 class Data:
     """Data pipeline configuration.
 
-    Attributes
-    ----------
+    Attributes:
         raw: Path to raw data directory.
         processed: Path to processed data directory.
         category: Dataset category name.
@@ -42,8 +41,7 @@ class Data:
 class Encoder:
     """Feature encoder configuration.
 
-    Attributes
-    ----------
+    Attributes:
         text: Text encoder model name.
         visual: Visual encoder model name.
         td: Text feature dimension.
@@ -62,8 +60,7 @@ class Encoder:
 class Masking:
     """Masking configuration.
 
-    Attributes
-    ----------
+    Attributes:
         kind: Masking strategy ("bernoulli" or "block").
         ratio: Fraction of modalities to mask.
         seed: Random seed for masking.
@@ -78,8 +75,7 @@ class Masking:
 class Retrieve:
     """Retrieval configuration.
 
-    Attributes
-    ----------
+    Attributes:
         kind: Retrieval strategy name.
         anchors: Number of anchor nodes.
         iters: Number of expansion iterations.
@@ -94,8 +90,7 @@ class Retrieve:
 class Encode:
     """Joint encoder configuration.
 
-    Attributes
-    ----------
+    Attributes:
         kind: Encoder kind.
         hidden: Hidden dimension.
         layers: Number of layers.
@@ -116,8 +111,7 @@ class Encode:
 class Route:
     """Routing configuration.
 
-    Attributes
-    ----------
+    Attributes:
         kind: Router kind.
         p: Top-p or number of entries.
         tau: Softmax temperature.
@@ -132,8 +126,7 @@ class Route:
 class Codebook:
     """Codebook configuration.
 
-    Attributes
-    ----------
+    Attributes:
         kind: Codebook kind.
         size: Number of codebook entries.
     """
@@ -146,8 +139,7 @@ class Codebook:
 class Complete:
     """Modality completion configuration.
 
-    Attributes
-    ----------
+    Attributes:
         kind: Completion model kind.
         hidden: Hidden dimension.
     """
@@ -160,8 +152,7 @@ class Complete:
 class Recommend:
     """Downstream recommender configuration.
 
-    Attributes
-    ----------
+    Attributes:
         kind: Recommender kind.
         embed: Embedding dimension.
         layers: Number of GCN layers.
@@ -176,8 +167,7 @@ class Recommend:
 class Completion:
     """Completion training configuration.
 
-    Attributes
-    ----------
+    Attributes:
         epochs: Number of training epochs.
         batch: Batch size.
         lr: Learning rate.
@@ -206,8 +196,7 @@ class Completion:
 class Recommendation:
     """Recommendation training configuration.
 
-    Attributes
-    ----------
+    Attributes:
         epochs: Number of training epochs.
         batch: Batch size.
         lr: Learning rate.
@@ -234,8 +223,7 @@ class Recommendation:
 class Eval:
     """Evaluation configuration.
 
-    Attributes
-    ----------
+    Attributes:
         ks: Cutoff values for ranking metrics.
         robustness: Robustness sweep ratios.
         ablations: Ablation condition names.
@@ -250,8 +238,7 @@ class Eval:
 class Serve:
     """Inference server configuration.
 
-    Attributes
-    ----------
+    Attributes:
         host: Server host.
         port: Server port.
         workers: Number of workers.
@@ -290,8 +277,7 @@ class Serve:
 class Log:
     """Logging configuration.
 
-    Attributes
-    ----------
+    Attributes:
         level: Log level.
         structured: Whether to use structured logging.
         directory: Log output directory.
@@ -306,8 +292,7 @@ class Log:
 class Config:
     """Top-level morel configuration.
 
-    Attributes
-    ----------
+    Attributes:
         seed: Global random seed.
         device: Compute device.
         data: Data configuration.

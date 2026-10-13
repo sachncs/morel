@@ -127,7 +127,7 @@ exclude_lines = [
 [tool.ruff]
 line-length = 100
 target-version = "py310"
-exclude = ["morel/_version.py"]
+exclude = ["morel/_version.py", "morel/version.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "D", "UP", "B", "C4", "SIM", "ICN", "TID", "RUF", "PIE", "PT", "RET"]
@@ -140,7 +140,7 @@ ignore = ["D100", "D104", "B008"]
 "morel/serve/**/*.py" = ["B008"]
 
 [tool.ruff.lint.pydocstyle]
-convention = "numpy"
+convention = "google"
 
 [tool.ruff.format]
 quote-style = "double"

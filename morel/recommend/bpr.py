@@ -12,15 +12,12 @@ from morel.core.errors import Datum
 def bpr(pos_scores: torch.Tensor, neg_scores: torch.Tensor, *, eps: float = 1e-10) -> torch.Tensor:
     """Bayesian Personalized Ranking loss.
 
-    Args
-    ----
-    pos_scores : torch.Tensor
-        ``(B,)`` scores for positive items.
-    neg_scores : torch.Tensor
-        ``(B,)`` scores for negative items.
+    Args:
+        pos_scores: ``(B,)`` scores for positive items.
+        neg_scores: ``(B,)`` scores for negative items.
+        eps: Numerical stability constant added before taking logarithms.
 
-    Returns
-    -------
+    Returns:
     torch.Tensor
         Scalar loss.
     """
@@ -64,8 +61,7 @@ def to_ranks(ranks: np.ndarray, positives: np.ndarray) -> np.ndarray:
         ranks: Ranks in ``[0, items - len(positives))``.
         positives: Sorted, unique positive item ids for one user.
 
-    Returns
-    -------
+    Returns:
         Item ids of the same shape as ``ranks``.
     """
     if positives.size == 0:
@@ -91,8 +87,7 @@ def negatives(
     Strict: never returns a positive item, and the ``count`` negatives drawn
     for a user are distinct from each other.
 
-    Args
-    ----
+    Args:
     ui : sp.csr_matrix
         User-item interaction CSR matrix.
     count : int
@@ -100,13 +95,11 @@ def negatives(
     seed : int
         RNG seed.
 
-    Returns
-    -------
+    Returns:
     np.ndarray
         Array of shape ``(users, count)`` of int64 item ids.
 
-    Raises
-    ------
+    Raises:
     Datum
         If ``count`` is not positive, exceeds the catalogue size, or if some
         user has fewer than ``count`` negatives available.

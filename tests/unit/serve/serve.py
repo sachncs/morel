@@ -43,6 +43,7 @@ class StubPipeline:
     """
 
     def __init__(self, users: int = 8, items: int = 8, dims: dict[str, int] | None = None) -> None:
+        """Initialize deterministic corpus and graph state for serving tests."""
         import numpy as np
         import scipy.sparse as sp
 
@@ -78,6 +79,7 @@ class StubRecommender:
     """Return deterministic scores based on ``(user, item)`` so top-k is stable."""
 
     def __init__(self, users: int, items: int) -> None:
+        """Initialize a deterministic test ranker."""
         self.users = users
         self.items = items
 

@@ -48,8 +48,7 @@ def store(
         manifest_obj: Optional manifest to save as a sidecar.
         **arrays: Named arrays to include.
 
-    Returns
-    -------
+    Returns:
         The destination path.
     """
     if not arrays:
@@ -72,8 +71,7 @@ def load_npz(
         target: Path to the ``.npz`` file.
         expected_config_hash: If set, raise on manifest mismatch.
 
-    Returns
-    -------
+    Returns:
         Dict mapping array names to numpy arrays.
     """
     path = Path(target)

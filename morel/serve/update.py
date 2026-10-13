@@ -34,8 +34,7 @@ Signal = str
 class Event:
     """One user-feedback event.
 
-    Attributes
-    ----------
+    Attributes:
         user: User id.
         item: Item id.
         signal: Feedback signal type.
@@ -52,8 +51,7 @@ class Event:
 class Outcome:
     """Result of one update tick.
 
-    Attributes
-    ----------
+    Attributes:
         committed: Whether an update was committed.
         loss: Training loss.
         valid_loss: Validation loss.
@@ -76,8 +74,7 @@ class Step(Protocol):
     Implementations may be the production trainer step, a small
     surrogate, or the ``Default`` baseline.
 
-    Attributes
-    ----------
+    Attributes:
         __call__: Returns the loss for one update step.
     """
 
@@ -92,8 +89,7 @@ class Default:
     the current wall-clock time so subsequent ticks produce different
     losses (and the divergence guard can be exercised).
 
-    Attributes
-    ----------
+    Attributes:
         model: Model to train.
         optimizer: Optimizer.
     """
@@ -108,8 +104,7 @@ class Default:
 class Updater:
     """Background updater that calls :meth:`tick` periodically.
 
-    Attributes
-    ----------
+    Attributes:
         pipeline: The live Pipeline being updated.
         lock: RWLock guarding model state.
         buffer_lock: Lock guarding feedback/replay buffers.
@@ -124,8 +119,7 @@ class Updater:
         ratio: Replay fraction per update.
         val_ratio: Validation fraction of feedback ring.
 
-    Args
-    ----
+    Args:
     pipeline : nn.Module
         The live Pipeline. Snapshotting uses ``copy.deepcopy(state_dict())``.
     feedback_capacity : int

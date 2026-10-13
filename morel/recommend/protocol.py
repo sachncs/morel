@@ -21,8 +21,7 @@ class Recommender(Protocol):
     optionally a bipartite ``ui_graph`` whose normalized adjacency they
     may rebuild. They return a ``(B_u, B_i)`` score matrix.
 
-    Attributes
-    ----------
+    Attributes:
         forward: Returns user-item score matrix.
     """
 

@@ -21,8 +21,7 @@ class Item:
         - symmetric (binary co-occurrence)
         - finite values
 
-    Attributes
-    ----------
+    Attributes:
         matrix: Sparse CSR adjacency matrix.
     """
 

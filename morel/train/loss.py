@@ -12,8 +12,7 @@ import torch.nn.functional as F  # noqa: N812
 class Loss(Protocol):
     """A training loss.
 
-    Attributes
-    ----------
+    Attributes:
         forward: Callable that returns the scalar loss.
     """
 
@@ -36,8 +35,7 @@ class Reconstruction(Loss):
     so that modalities with different output dimensions contribute on the same
     scale (paper's per-element convention).
 
-    Attributes
-    ----------
+    Attributes:
         forward: Returns the masked MSE reconstruction loss.
     """
 
@@ -66,8 +64,7 @@ class Reconstruction(Loss):
 class BPR(Loss):
     """BPR loss using provided positive/negative scores.
 
-    Attributes
-    ----------
+    Attributes:
         pos: Positive scores tensor.
         neg: Negative scores tensor.
         eps: Epsilon for numerical stability.
@@ -92,8 +89,7 @@ class BPR(Loss):
 class Composite(Loss):
     """Linear combination of named loss components.
 
-    Attributes
-    ----------
+    Attributes:
         components: Mapping from name to loss function.
         weights: Mapping from name to weight.
     """

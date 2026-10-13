@@ -30,12 +30,10 @@ def build(
         feature_dim: Optional modality feature dimension for ``"light"``.
         seed: Optional RNG seed.
 
-    Returns
-    -------
+    Returns:
         The constructed ranker module.
 
-    Raises
-    ------
+    Raises:
         ValueError: If ``kind`` is not a known ranker name.
     """
     if kind == "light":

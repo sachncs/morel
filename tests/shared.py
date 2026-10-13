@@ -45,14 +45,11 @@ def make_completion_collate(features_keys: list[str]) -> Callable:
     This is a factory because the modality names are only known at
     construction time, not per-batch.
 
-    Args
-    ----
-    features_keys : list[str]
-        Modality names whose ``(B, d_m)`` feature tensors are batched.
+    Args:
+        features_keys: Modality names whose ``(B, d_m)`` feature tensors are
+            batched.
 
-    Returns
-    -------
-    Callable
+    Returns:
         A function suitable for ``DataLoader(collate_fn=...)``.
     """
 
@@ -98,6 +95,7 @@ class BPR(Dataset):
         n_batches: int,
         seed: int = 0,
     ) -> None:
+        """Initialize a deterministic synthetic BPR dataset."""
         self.users = users
         self.items = items
         self.n_batches = n_batches

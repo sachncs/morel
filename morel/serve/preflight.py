@@ -26,8 +26,7 @@ def validate(
         environ: Optional environment mapping, useful for deterministic tests.
         model_dir: Explicit bundle path supplied by the CLI, when present.
 
-    Raises
-    ------
+    Raises:
         Cfg: If production mode is enabled with unsafe logging settings.
     """
     config.validate()

@@ -25,12 +25,10 @@ def load_trusted(target: Path | str, *, acknowledge_risk: bool = False) -> dict[
         acknowledge_risk: Explicit acknowledgement that pickle can execute
             code while loading the file.
 
-    Returns
-    -------
+    Returns:
         The legacy checkpoint mapping.
 
-    Raises
-    ------
+    Raises:
         Cfg: If the caller did not explicitly acknowledge the risk.
         FileNotFoundError: If ``target`` does not exist.
         Model: If the loaded value is not a mapping.

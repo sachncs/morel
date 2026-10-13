@@ -53,12 +53,10 @@ def ablate(config: Config, name: str) -> Config:
         config: Baseline configuration.
         name: A registered ablation name, or :data:`BASELINE` for no change.
 
-    Returns
-    -------
+    Returns:
         The ablated configuration. The input is never mutated.
 
-    Raises
-    ------
+    Raises:
         Cfg: If ``name`` is not a registered ablation.
     """
     if name == BASELINE:

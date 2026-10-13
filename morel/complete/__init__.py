@@ -15,12 +15,10 @@ def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> n
         dims: Mapping from modality name to its feature dimension.
         hidden: Hidden width of each per-modality MLP.
 
-    Returns
-    -------
+    Returns:
         The constructed completer module.
 
-    Raises
-    ------
+    Raises:
         ValueError: If ``kind`` is not a known completer name.
     """
     if kind == "mlp":

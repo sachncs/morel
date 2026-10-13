@@ -116,16 +116,14 @@ def require(request: Request, scope: Scope = "read") -> None:
 
     No-op when no token is configured for ``scope``.
 
-    Args
-    ----
+    Args:
     request : Request
         Incoming FastAPI request.
     scope : Scope
         Which scope to enforce. ``"admin"`` for feedback/rollback/stats,
         ``"read"`` for complete/recommend.
 
-    Raises
-    ------
+    Raises:
     HTTPException
         401 if the token is missing or wrong.
     """

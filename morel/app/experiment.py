@@ -54,8 +54,7 @@ def synthetic(
             missing-modality pattern is the experimental condition, so leaving
             it hardcoded meant a configured ratio had no effect on the run.
 
-    Returns
-    -------
+    Returns:
         Dict with the interaction matrix, item graph, features and mask.
     """
     settings = masking if masking is not None else Masking()
@@ -87,8 +86,7 @@ def synthetic(
 class Experiment:
     """Top-level experiment orchestration.
 
-    Attributes
-    ----------
+    Attributes:
         config: Configuration object.
         dir: Run directory path.
         items: Number of items to use.
@@ -123,8 +121,7 @@ class Experiment:
     def run(self) -> dict[str, Any]:
         """Run a full experiment and write artifacts under ``dir``.
 
-        Returns
-        -------
+        Returns:
             Dict with status, duration, metrics, and cfg_hash.
         """
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -254,8 +251,7 @@ class Rank:
     trainer was unreachable from any entry point. This is the service that
     actually drives it.
 
-    Attributes
-    ----------
+    Attributes:
         config: Configuration object.
         dir: Run directory path.
         items: Number of items to use.
@@ -279,8 +275,7 @@ class Rank:
     def run(self) -> dict[str, Any]:
         """Train the ranker and write config, manifest, metrics and report.
 
-        Returns
-        -------
+        Returns:
             Dict with duration, dir, cfg_hash and best validation loss.
         """
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -398,8 +393,7 @@ class Ablate:
     changing only the component the condition removes, and reports the ranking
     metrics at every cutoff in ``eval.ks``.
 
-    Attributes
-    ----------
+    Attributes:
         config: Configuration object.
         dir: Run directory path.
         items: Number of items to use.
@@ -446,8 +440,7 @@ class Ablate:
     def run(self) -> dict[str, Any]:
         """Run the sweep and write artifacts under ``dir``.
 
-        Returns
-        -------
+        Returns:
             Dict with the config cfg_hash and a metric-per-condition mapping.
         """
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -507,8 +500,7 @@ class Ablate:
 class Benchmark:
     """Run a benchmark sweep and return timings.
 
-    Attributes
-    ----------
+    Attributes:
         config: Configuration object.
         dir: Run directory path.
         sizes: List of dataset sizes to benchmark.
@@ -553,8 +545,7 @@ class Robust:
     of ratios explored and ``metrics`` is a ``{metric_name: [values]}``
     mapping aligned to that list.
 
-    Attributes
-    ----------
+    Attributes:
         config: Configuration object.
         dir: Run directory path.
         items: Number of items to use.
@@ -665,8 +656,7 @@ class Robust:
 class Reproduce:
     """Reproduce a run from a saved config and manifest.
 
-    Attributes
-    ----------
+    Attributes:
         path: Path to the saved config file.
         dir: Run directory path.
         items: Number of items to use.

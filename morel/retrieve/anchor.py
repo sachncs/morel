@@ -120,9 +120,9 @@ def query(
         features: Dict of feature arrays.
         mask: Modality availability mask.
         top: Maximum number of anchors to return.
+        index: Optional pre-normalized anchor index.
 
-    Returns
-    -------
+    Returns:
         Array of anchor indices, sorted by descending similarity, excluding
         the query item.
     """
@@ -160,8 +160,7 @@ def batch(
 ) -> list[np.ndarray]:
     """Anchor retrieval for a batch of query items.
 
-    Returns
-    -------
+    Returns:
         List of anchor arrays aligned with ``queries``.
     """
     prepared = index if index is not None else prepare(features, mask)

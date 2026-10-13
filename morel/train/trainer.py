@@ -20,8 +20,7 @@ from morel.train.monitor import Monitor
 class Trainer(ABC):
     """Abstract training loop.
 
-    Attributes
-    ----------
+    Attributes:
         model: PyTorch model being trained.
         optimizer: Optimizer for parameter updates.
         scheduler: Learning rate scheduler (optional).
@@ -62,6 +61,7 @@ class Trainer(ABC):
             grad_clip: Gradient clipping value (optional).
             amp: Whether to use automatic mixed precision.
             device: Device to train on (optional).
+            checkpoint_config_hash: Expected configuration hash for resumes.
         """
         self.model = model
         self.optimizer = optimizer
@@ -118,8 +118,7 @@ class Trainer(ABC):
             patience: Epochs without improvement before stopping.
             resume: Optional checkpoint to resume from.
 
-        Returns
-        -------
+        Returns:
             Dict with final metrics.
         """
         start_epoch = 0

@@ -49,8 +49,7 @@ def generate(top: str = "morel") -> str:
         top: Top-level package name. Modules under it are imported in
             order and their ``__all__`` is rendered.
 
-    Returns
-    -------
+    Returns:
         The Markdown body to write to disk.
     """
     pkg = importlib.import_module(top)

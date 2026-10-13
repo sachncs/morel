@@ -19,8 +19,7 @@ from morel.core.errors import Datum
 class Spec(Protocol):
     """Factory for mask arrays.
 
-    Attributes
-    ----------
+    Attributes:
         sample: Returns a sampled binary mask.
     """
 
@@ -33,8 +32,7 @@ class Spec(Protocol):
 class ModalityMask:
     """Immutable value object describing modality availability.
 
-    Attributes
-    ----------
+    Attributes:
         data: Binary mask array of shape ``(items, modalities)``.
     """
 
@@ -85,8 +83,7 @@ def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> Modali
         ratio: Probability of masking per (item, modality) pair.
         seed: Random seed.
 
-    Returns
-    -------
+    Returns:
         A ``ModalityMask`` with shape ``(items, modalities)``.
     """
     if not 0.0 <= ratio <= 1.0:
@@ -117,8 +114,7 @@ def block(items: int, modalities: int, block_size: int, *, seed: int) -> Modalit
         block_size: Length of each block.
         seed: Random seed.
 
-    Returns
-    -------
+    Returns:
         A ``ModalityMask``.
     """
     if block_size <= 0 or block_size > modalities:
@@ -137,8 +133,7 @@ def structured(pattern: np.ndarray) -> ModalityMask:
     Args:
         pattern: 2-D binary array of shape ``(items, modalities)``.
 
-    Returns
-    -------
+    Returns:
         A ``ModalityMask``.
     """
     pattern = pattern.astype(np.float32, copy=False)

@@ -20,8 +20,7 @@ from morel.train.trainer import Trainer
 class Fit:
     """Configuration for completion training.
 
-    Attributes
-    ----------
+    Attributes:
         lambda_usage: Weight for usage loss.
         lambda_balance: Weight for balance loss.
         grad_clip: Gradient clipping value.
@@ -35,8 +34,7 @@ class Fit:
 class Completion(Trainer):
     """Trainer for modality completion.
 
-    Attributes
-    ----------
+    Attributes:
         model: Model being trained.
         train: Configuration object.
         reconstruction: Reconstruction loss.
@@ -66,6 +64,7 @@ class Completion(Trainer):
             checkpoint_dir: Checkpoint directory (optional).
             device: Training device (optional).
             amp: Whether to use automatic mixed precision.
+            checkpoint_config_hash: Expected configuration hash for resumes.
         """
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
         reconstruction: Loss = Reconstruction()

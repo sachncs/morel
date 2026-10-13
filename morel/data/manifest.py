@@ -26,8 +26,7 @@ VERSION = 1
 class Manifest:
     """Manifest sidecar for a data artifact.
 
-    Attributes
-    ----------
+    Attributes:
         dataset: Dataset name.
         version: Dataset version.
         code: Code version string.
@@ -133,8 +132,7 @@ def save(artifact: Path | str, manifest: Manifest) -> Path:
         artifact: Path to the artifact the manifest describes.
         manifest: Manifest payload.
 
-    Returns
-    -------
+    Returns:
         The manifest path that was written.
     """
     target = Path(artifact).resolve()
@@ -153,12 +151,10 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
         artifact: Path to the artifact whose manifest to load.
         expected_config_hash: If provided, raise Datum on mismatch.
 
-    Returns
-    -------
+    Returns:
         The loaded Manifest.
 
-    Raises
-    ------
+    Raises:
         Datum: If the sidecar is missing or its config hash mismatches.
     """
     sidecar = locate(artifact)

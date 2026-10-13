@@ -16,8 +16,7 @@ from morel.core.errors import Cfg
 class Weights:
     """Routing distribution and any associated metadata.
 
-    Attributes
-    ----------
+    Attributes:
         probs: Routing probability distribution.
         logits: Raw logits (optional).
     """
@@ -34,8 +33,7 @@ class Weights:
 class Router(nn.Module, ABC):
     """Protocol-style base for routers (kept as nn.Module so parameters register).
 
-    Attributes
-    ----------
+    Attributes:
         k: Number of routing entries.
     """
 
@@ -51,8 +49,7 @@ class Router(nn.Module, ABC):
             hidden: Input tensor of shape ``(B, D)``.
             training: Whether the router is in training mode.
 
-        Returns
-        -------
+        Returns:
             A :class:`Weights` carrying the routing distribution.
         """
 
@@ -60,8 +57,7 @@ class Router(nn.Module, ABC):
 class Dense(Router):
     """Plain softmax routing over K entries.
 
-    Attributes
-    ----------
+    Attributes:
         tau: Softmax temperature.
         k: Number of routing entries.
         linear: Linear projection layer.
@@ -97,8 +93,7 @@ class Top(Router):
     Applies softmax with optional Gumbel noise, then keeps the top-p entries
     and renormalises.
 
-    Attributes
-    ----------
+    Attributes:
         tau: Softmax temperature.
         k: Number of routing entries.
         p: Number of top entries to keep.
@@ -153,8 +148,7 @@ class Fixed(Router):
     ``k`` codebook entries, which is the maximum-entropy default and
     makes the downstream codebook's behaviour visible end-to-end.
 
-    Attributes
-    ----------
+    Attributes:
         k: Number of routing entries.
     """
 
@@ -175,8 +169,7 @@ class Fixed(Router):
                 dimension is used.
             training: Unused; the fixed router has no stochastic path.
 
-        Returns
-        -------
+        Returns:
             A :class:`Weights` carrying a uniform probability over the
             ``k`` codebook entries and zero logits.
         """
@@ -189,8 +182,7 @@ class Fixed(Router):
 class Gumbel(Router):
     """Pure Gumbel-Softmax router (no top-k sparsification).
 
-    Attributes
-    ----------
+    Attributes:
         tau: Softmax temperature.
         k: Number of routing entries.
         linear: Linear projection layer.

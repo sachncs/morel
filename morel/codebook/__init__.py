@@ -29,12 +29,10 @@ def build(
         router: Router used by Gumbel-VQ to produce assignment weights.
         seed: Optional RNG seed for reproducibility.
 
-    Returns
-    -------
+    Returns:
         The constructed codebook.
 
-    Raises
-    ------
+    Raises:
         ValueError: If ``kind`` is not a known codebook name.
     """
     if kind == "gumbel":

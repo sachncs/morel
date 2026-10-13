@@ -73,8 +73,7 @@ def signs(eigvecs: np.ndarray) -> np.ndarray:
     Args:
         eigvecs: ``(nodes, k)`` array of column eigenvectors.
 
-    Returns
-    -------
+    Returns:
         The same array with each column sign-normalized.
     """
     if eigvecs.size == 0:
@@ -115,8 +114,7 @@ def basis(eigvals: np.ndarray, eigvecs: np.ndarray, *, tol: float = TOL) -> np.n
         tol: Absolute eigenvalue gap below which two consecutive modes are
             treated as belonging to the same degenerate cluster.
 
-    Returns
-    -------
+    Returns:
         ``(nodes, k)`` eigenvectors with a canonical basis per eigenspace.
     """
     nodes, k = eigvecs.shape
@@ -217,8 +215,7 @@ def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
         adj: Symmetric item-item CSR adjacency.
         k: Number of nontrivial eigenvectors.
 
-    Returns
-    -------
+    Returns:
         Array of shape ``(nodes, min(k, n-1))`` with the bottom eigenvectors
         excluding the trivial constant one. ``k`` is clamped to ``n - 1``.
     """
@@ -265,8 +262,7 @@ class Laplace(nn.Module):
     adjacency cannot return a stale tensor (the original bug used ``id()``
     which recycles with GC).
 
-    Attributes
-    ----------
+    Attributes:
         k: Number of eigenvectors.
         capacity: LRU cache size.
         cache: LRU-ordered dict of cached tensors.
@@ -304,8 +300,7 @@ class Laplace(nn.Module):
             adjacency: Graph the encoding was computed from.
             encoding: ``(nodes, min(k, nodes - 1))`` positional encoding.
 
-        Raises
-        ------
+        Raises:
         Net: If the persisted encoding has the wrong shape or non-finite data.
         """
         value = torch.as_tensor(encoding, dtype=torch.float32).detach().cpu().contiguous()

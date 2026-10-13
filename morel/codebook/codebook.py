@@ -19,8 +19,7 @@ class Codebook(nn.Module, ABC):
     a tuple ``(quantized, probs)`` where ``quantized`` has the same shape as
     the input and ``probs`` is a routing distribution of shape ``(B, K)``.
 
-    Attributes
-    ----------
+    Attributes:
         size: Number of codebook entries.
     """
 
@@ -38,8 +37,7 @@ class Codebook(nn.Module, ABC):
             hidden: Input tensor of shape ``(B, D)``.
             training: Whether the codebook is in training mode.
 
-        Returns
-        -------
+        Returns:
             A tuple ``(quantized, probs)`` where ``quantized`` has the
             same shape as the input and ``probs`` has shape ``(B, K)``.
         """
@@ -48,8 +46,7 @@ class Codebook(nn.Module, ABC):
 class VQ(Codebook):
     """Vector-quantizing codebook with straight-through gradient.
 
-    Attributes
-    ----------
+    Attributes:
         dim: Hidden dimension.
         size: Number of codebook entries.
         codebook: Embedding layer for codebook entries.
@@ -88,8 +85,7 @@ class VQ(Codebook):
             hidden: ``(B, dim)`` input.
             training: Ignored; VQ is deterministic.
 
-        Returns
-        -------
+        Returns:
             Tuple of ``(quantized, indices)`` where ``quantized`` has straight-through
             gradient and ``indices`` are the chosen codebook indices.
         """
@@ -112,8 +108,7 @@ class Soft(Codebook):
     Returns ``(quantized, probs)`` where ``probs`` is the routing distribution
     (pre-mask, suitable for usage/balance losses).
 
-    Attributes
-    ----------
+    Attributes:
         dim: Hidden dimension.
         size: Number of codebook entries.
         router: Router module.
@@ -149,8 +144,7 @@ class Soft(Codebook):
             hidden: ``(B, dim)`` input.
             training: Whether to add Gumbel noise (forwarded to the router).
 
-        Returns
-        -------
+        Returns:
             Tuple of ``(quantized, probs)``.
         """
         weights = self.router(hidden, training=training)
@@ -162,8 +156,7 @@ class Soft(Codebook):
 class Noop(Codebook):
     """No-op codebook used for ablations; returns the input and a uniform probs.
 
-    Attributes
-    ----------
+    Attributes:
         dim: Hidden dimension.
         size: Number of codebook entries.
     """
@@ -197,9 +190,9 @@ def usage(probs: torch.Tensor, *, eps: float = 1e-10) -> torch.Tensor:
 
     Args:
         probs: ``(B, K)`` routing distribution.
+        eps: Numerical stability constant added before taking logarithms.
 
-    Returns
-    -------
+    Returns:
         Scalar tensor.
     """
     bar_p = probs.mean(dim=0)

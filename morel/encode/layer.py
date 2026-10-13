@@ -11,8 +11,7 @@ class Layer(nn.Module):
 
     Order: ``x = x + attn(norm1(x))`` then ``x = x + ffn(norm2(x))``.
 
-    Attributes
-    ----------
+    Attributes:
         dim: Hidden dimension.
         heads: Number of attention heads.
         attn: Multi-head attention layer.
@@ -54,8 +53,7 @@ class Layer(nn.Module):
             hidden: ``(B, S, dim)`` token embeddings.
             attention_mask: Optional ``(B, S)`` bool with True = keep.
 
-        Returns
-        -------
+        Returns:
             Updated ``(B, S, dim)`` tensor.
         """
         key_padding: torch.Tensor | None = None

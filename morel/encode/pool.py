@@ -19,8 +19,7 @@ class Attention(nn.Module):
     a finite softmax (a uniform-weight fallback is applied when no token is
     valid in a row).
 
-    Attributes
-    ----------
+    Attributes:
         dim: Hidden dimension.
         score: Attention score projection.
         scale: Attention scale factor.
@@ -44,8 +43,7 @@ class Attention(nn.Module):
             hidden: ``(B, S, dim)`` token embeddings.
             mask: Optional ``(B, S)`` bool tensor; True = valid token.
 
-        Returns
-        -------
+        Returns:
             ``(B, dim)`` pooled embedding.
         """
         scores = self.score(hidden).squeeze(-1)
@@ -64,8 +62,7 @@ class Attention(nn.Module):
 class Mean(nn.Module):
     """Mean pool over a sequence dim, masking invalid tokens.
 
-    Attributes
-    ----------
+    Attributes:
         dim: Hidden dimension (unused, for interface compatibility).
     """
 
@@ -81,8 +78,7 @@ class Mean(nn.Module):
 class Token(nn.Module):
     """Select the first token (CLS-like) of every sequence.
 
-    Attributes
-    ----------
+    Attributes:
         dim: Hidden dimension (unused, for interface compatibility).
     """
 
@@ -94,8 +90,7 @@ class Token(nn.Module):
 class CLS(nn.Module):
     """Alias for Token pooling.
 
-    Attributes
-    ----------
+    Attributes:
         dim: Hidden dimension (unused, for interface compatibility).
     """
 

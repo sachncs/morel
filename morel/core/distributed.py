@@ -24,8 +24,7 @@ from morel.core.errors import Error
 class Cluster:
     """Module-level distributed runtime state.
 
-    Attributes
-    ----------
+    Attributes:
         backend: Distributed backend name.
         initialized: Whether the runtime is initialized.
     """
@@ -40,21 +39,17 @@ state = Cluster()
 def init(backend: str | None = None) -> dict[str, Any]:
     """Initialize the default process group.
 
-    Args
-    ----
+    Args:
     backend : str | None
         Explicit backend choice. Defaults to ``nccl`` on CUDA, ``gloo``
         on CPU.
 
-    Returns
-    -------
+    Returns:
     dict[str, Any]
         Information about the initialised process group.
 
-    Raises
-    ------
-    Error
-        If torch.distributed fails to initialise.
+    Raises:
+        Error: If torch.distributed fails to initialise.
     """
     if state.initialized:
         return {

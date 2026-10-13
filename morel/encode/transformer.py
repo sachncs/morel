@@ -16,8 +16,7 @@ class Transformer(nn.Module):
     Accepts either ``(B, d_m)`` per-node inputs (no sequence dim) or
     ``(B, S, d_m)`` sequence inputs (subgraph tokens).
 
-    Attributes
-    ----------
+    Attributes:
         input: Input projection layer.
         layers: Transformer layers.
         pool: Pooling layer.
@@ -81,8 +80,7 @@ class Transformer(nn.Module):
                 ``(S, d_m)`` or ``(B, S, d_m)``. If False, ``features`` is
                 per-item ``(B, d_m)``. If None, inferred from ``features`` rank.
 
-        Returns
-        -------
+        Returns:
             ``(B, hidden)`` tensor.
         """
         hidden = self.input(features, mask, pe)

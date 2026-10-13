@@ -102,8 +102,7 @@ def relevance(
 ) -> float:
     """Cosine relevance r(i, v) over jointly observed modalities.
 
-    Args
-    ----
+    Args:
     i : int
         Query node id.
     v : int
@@ -113,8 +112,7 @@ def relevance(
     mask : np.ndarray
         Binary availability mask of shape ``(items, modalities)``.
 
-    Returns
-    -------
+    Returns:
     float
         Mean cosine similarity in ``[0, 1]``. Returns 0.0 when no modality is
         jointly observed.
@@ -154,8 +152,7 @@ def rel(
     each candidate computes the cosine similarity in one matmul and
     averages over jointly observed modalities.
 
-    Args
-    ----
+    Args:
     i : int
         Query node id.
     nodes : np.ndarray
@@ -165,8 +162,7 @@ def rel(
     mask : np.ndarray
         Modality availability mask.
 
-    Returns
-    -------
+    Returns:
     float
         Mean relevance. Returns 0.0 if no candidates.
     """

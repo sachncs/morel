@@ -25,8 +25,7 @@ log = logger("data.extract")
 class FeatureEncoder(Protocol):
     """One feature extractor for raw modality inputs.
 
-    Attributes
-    ----------
+    Attributes:
         forward: Returns per-item feature vectors.
     """
 
@@ -66,8 +65,7 @@ def text(
         batch: Batch size.
         device: Device override.
 
-    Returns
-    -------
+    Returns:
         Array of shape ``(len(inputs), encoder.dim)``, L2-normalized, float32.
     """
     if not inputs:
@@ -97,8 +95,7 @@ def visual(
         batch: Batch size.
         device: Device override.
 
-    Returns
-    -------
+    Returns:
         Tuple of ``(features, kept_indices)`` where ``features`` is
         ``(len(kept), encoder.dim)`` L2-normalized float32 and ``kept_indices``
         are positions in the original ``paths`` that succeeded.
@@ -153,8 +150,7 @@ class Random:
     Satisfies :class:`Feature` without any model download, so the
     synthetic pipeline exercises the same code path as a real encoder.
 
-    Attributes
-    ----------
+    Attributes:
         name: Extractor name.
         dim: Output feature dimension.
         seed: Random seed.
@@ -185,8 +181,7 @@ class Random:
 class Sentence:
     """Text encoder backed by sentence-transformers.
 
-    Attributes
-    ----------
+    Attributes:
         name: Model name.
         batch: Batch size for encoding.
         model: Underlying SentenceTransformer model.
@@ -221,8 +216,7 @@ class Sentence:
 class Vision:
     """Visual encoder backed by a torchvision classification backbone.
 
-    Attributes
-    ----------
+    Attributes:
         name: Model name.
         batch: Batch size for encoding.
         model: Underlying torchvision model.

@@ -24,8 +24,7 @@ class Embedding:
     Carries a single torch tensor with its semantic name. Used at module
     boundaries to make data flow auditable.
 
-    Attributes
-    ----------
+    Attributes:
         name: Semantic name of the tensor.
         tensor: The wrapped torch tensor.
     """

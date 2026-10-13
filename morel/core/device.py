@@ -14,8 +14,7 @@ import torch
 class Device(str, Enum):
     """Supported device types.
 
-    Attributes
-    ----------
+    Attributes:
         AUTO: Auto-detect device.
         CPU: CPU device.
         CUDA: CUDA device.
@@ -38,8 +37,7 @@ def device(prefer: str | torch.device | None = None) -> torch.device:
             ``Config.device``, and a config default that its own resolver
             rejects would be a trap.
 
-    Returns
-    -------
+    Returns:
         The resolved ``torch.device``.
     """
     if isinstance(prefer, torch.device):
@@ -63,8 +61,7 @@ def to(tensor: torch.Tensor, target: torch.device | str) -> torch.Tensor:
         tensor: Input tensor.
         target: Target device.
 
-    Returns
-    -------
+    Returns:
         Tensor on the target device.
     """
     return tensor.to(device(target))

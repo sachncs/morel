@@ -17,8 +17,7 @@ class Decoders(nn.Module):
     before decoding. This is the standard masked-reconstruction practice
     (Devlin et al. 2019).
 
-    Attributes
-    ----------
+    Attributes:
         modalities: List of modality names.
         dims: Mapping from modality name to output dimension.
         heads: ModuleDict of per-modality decoder heads.
@@ -69,8 +68,7 @@ class Decoders(nn.Module):
             mask: Optional ``(B, M)`` availability. Missing positions are
                 augmented with the learned mask token before decoding.
 
-        Returns
-        -------
+        Returns:
             Dict mapping modality name to ``(B, dim)`` reconstruction.
         """
         outputs: dict[str, torch.Tensor] = {}

@@ -30,8 +30,7 @@ from morel.train.trainer import Trainer
 class Rec:
     """Configuration for recommendation training.
 
-    Attributes
-    ----------
+    Attributes:
         grad_clip: Gradient clipping value.
     """
 
@@ -47,8 +46,7 @@ class Recommendation(Trainer):
     brings the per-step cost from ``O(items * users)`` to
     ``O(count * users)``, which matters at realistic catalogue sizes.
 
-    Attributes
-    ----------
+    Attributes:
         model: Model being trained.
         ui_graph: User-item interaction matrix.
         neg: Number of negatives per positive.
@@ -89,6 +87,7 @@ class Recommendation(Trainer):
             checkpoint_dir: Checkpoint directory (optional).
             device: Training device (optional).
             amp: Whether to use automatic mixed precision.
+            checkpoint_config_hash: Expected configuration hash for resumes.
         """
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
         super().__init__(

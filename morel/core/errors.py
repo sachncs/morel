@@ -12,8 +12,7 @@ from __future__ import annotations
 class Error(Exception):
     """Base class for every exception raised by morel.
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 
@@ -21,8 +20,7 @@ class Error(Exception):
 class Datum(Error):  # noqa: N818  # Rule D: single-word class name (domain concept).
     """Data acquisition, validation, or loading failures.
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 
@@ -30,8 +28,7 @@ class Datum(Error):  # noqa: N818  # Rule D: single-word class name (domain conc
 class Cfg(Error):  # noqa: N818  # Rule D: single-word class name (domain concept).
     """Invalid or inconsistent configuration.
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 
@@ -39,8 +36,7 @@ class Cfg(Error):  # noqa: N818  # Rule D: single-word class name (domain concep
 class Model(Error):  # noqa: N818  # Rule D: single-word class name (domain concept).
     """Model construction, forward, or parameter validation failures.
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 
@@ -48,8 +44,7 @@ class Model(Error):  # noqa: N818  # Rule D: single-word class name (domain conc
 class Net(Error):  # noqa: N818  # Rule D: single-word class name (domain concept).
     """Graph construction, invariant violation, or retrieval failures.
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 
@@ -57,8 +52,7 @@ class Net(Error):  # noqa: N818  # Rule D: single-word class name (domain concep
 class Train(Error):  # noqa: N818  # Rule D: single-word class name (domain concept).
     """Training loop failures (NaN loss, missing checkpoint, etc.).
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 
@@ -66,8 +60,7 @@ class Train(Error):  # noqa: N818  # Rule D: single-word class name (domain conc
 class Rate(Error):  # noqa: N818  # Rule D: single-word class name (domain concept).
     """Evaluation failures (empty score matrix, etc.).
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 
@@ -75,8 +68,7 @@ class Rate(Error):  # noqa: N818  # Rule D: single-word class name (domain conce
 class Shape(Error):  # noqa: N818  # Rule D: single-word class name (domain concept).
     """Tensor shape mismatch.
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 
@@ -84,8 +76,7 @@ class Shape(Error):  # noqa: N818  # Rule D: single-word class name (domain conc
 class Determinism(Error):  # noqa: N818  # Rule D: single-word class name (domain concept).
     """Reproducibility invariant violated.
 
-    Attributes
-    ----------
+    Attributes:
         args: Inherited from Exception.
     """
 

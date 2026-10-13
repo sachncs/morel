@@ -64,8 +64,7 @@ class Light(nn.Module):
     it changes. The cache key is a content hash of the CSR matrix, not its
     ``id()`` (which can be reused after GC).
 
-    Attributes
-    ----------
+    Attributes:
         users: Number of users.
         items: Number of items.
         user_emb: User embedding layer.
@@ -160,12 +159,10 @@ class Light(nn.Module):
                 changes what gets recommended. Requires ``feature_dim`` to
                 have been set on the constructor.
 
-        Returns
-        -------
+        Returns:
             ``(B_u, B_i)`` score matrix.
 
-        Raises
-        ------
+        Raises:
             Model: If ``item_features`` is supplied but no projection was
                 configured, or if its shape does not match.
         """
@@ -228,13 +225,11 @@ class Light(nn.Module):
         Args:
             ui_graph: New bipartite CSR, or ``None`` to use the cache.
 
-        Returns
-        -------
+        Returns:
             Sparse ``(users + items, users + items)`` tensor on the model's
             device.
 
-        Raises
-        ------
+        Raises:
             ValueError: If ``ui_graph is None`` and the cache is empty.
         """
         if ui_graph is None and self.cache is not None:

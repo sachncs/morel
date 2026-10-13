@@ -15,8 +15,7 @@ from morel.core.seed import deterministic
 class MF(nn.Module):
     """Matrix factorization with dot-product scoring.
 
-    Attributes
-    ----------
+    Attributes:
         users: Number of users.
         items: Number of items.
         user_emb: User embedding layer.
@@ -57,8 +56,7 @@ class MF(nn.Module):
             items: ``(B_i,)`` long tensor.
             ui_graph: Unused; accepted for Protocol compatibility.
 
-        Returns
-        -------
+        Returns:
             ``(B_u, B_i)`` scores.
         """
         scores: torch.Tensor = self.user_emb(users) @ self.item_emb(items).t()
@@ -68,8 +66,7 @@ class MF(nn.Module):
 class Pop(nn.Module):
     """Popularity baseline: scores proportional to item interaction count.
 
-    Attributes
-    ----------
+    Attributes:
         users: Number of users.
         items: Number of items.
         popularity: Item popularity buffer.

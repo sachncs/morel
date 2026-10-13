@@ -42,12 +42,10 @@ def fetch(
         sha: Optional SHA256 expected digest; raises Datum on mismatch.
         progress: Optional callback ``(bytes_done, total_bytes_or_None)``.
 
-    Returns
-    -------
+    Returns:
         The destination path.
 
-    Raises
-    ------
+    Raises:
         Datum: If the URL cannot be fetched, or the checksum mismatches.
     """
     target = Path(dest).resolve()
@@ -97,8 +95,7 @@ def pull(base: str, category: str, dest: Path | str, *, timeout: float) -> list[
         dest: Local destination directory.
         timeout: Download timeout in seconds.
 
-    Returns
-    -------
+    Returns:
         list[Path]: Paths to the decompressed files.
     """
     files = [f"{category}_5.json.gz", f"{category}_metadata.json.gz"]
@@ -130,8 +127,7 @@ def download(category: str, dest: Path | str, *, timeout: float = TIMEOUT) -> li
         dest: Destination directory.
         timeout: Per-attempt download timeout.
 
-    Returns
-    -------
+    Returns:
         The list of decompressed file paths.
     """
     return pull(BASE, category, dest, timeout=timeout)
