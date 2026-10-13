@@ -29,6 +29,7 @@ class FactoryRegistry(Generic[T]):
         factories: Mapping[str, Callable[..., T]],
         *,
         validator: Callable[[object], bool] | None = None,
+        factory_validator: Callable[[object], bool] | None = None,
     ) -> None:
         """Create a validated registry without exposing mutable internals."""
         if not name.strip():
@@ -42,6 +43,7 @@ class FactoryRegistry(Generic[T]):
         self.name = name
         self._factories = dict(factories)
         self._validator = validator
+        self._factory_validator = factory_validator
 
     def __contains__(self, kind: object) -> bool:
         """Return whether ``kind`` is registered."""
@@ -61,6 +63,8 @@ class FactoryRegistry(Generic[T]):
         if factory is None:
             available = ", ".join(self.keys()) or "(none)"
             raise Cfg(f"unknown {self.name} '{kind}'; available: {available}")
+        if self._factory_validator is not None and not self._factory_validator(factory):
+            raise Cfg(f"{self.name} '{kind}' factory does not satisfy its runtime contract")
         return factory
 
     def build(self, kind: str, **kwargs: object) -> T:

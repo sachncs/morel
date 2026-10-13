@@ -32,6 +32,16 @@ class Checker:
         with pytest.raises(Cfg, match="runtime contract"):
             registry.build("bad")
 
+    def validates_factory(self) -> None:
+        """Registries can validate the callable contract before invocation."""
+        registry = FactoryRegistry[int](
+            "number",
+            {"bad": lambda: 1},
+            factory_validator=lambda value: callable(value) and hasattr(value, "required"),
+        )
+        with pytest.raises(Cfg, match="factory does not satisfy"):
+            registry.resolve("bad")
+
     def snapshots(self) -> None:
         """Mutating the source mapping does not mutate the registry."""
         factories = {"one": lambda: 1}

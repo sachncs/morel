@@ -210,7 +210,11 @@ KIND: dict[str, Callable[..., set[int]]] = {
     "bfs": bfs,
     "none": none,
 }
-_STRATEGIES = FactoryRegistry[set[int]]("retrieval strategy", KIND)
+_STRATEGIES = FactoryRegistry[set[int]](
+    "retrieval strategy",
+    KIND,
+    factory_validator=lambda value: isinstance(value, RetrievalStrategy),
+)
 
 
 def retrieve(
