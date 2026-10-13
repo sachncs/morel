@@ -8,7 +8,9 @@ from morel.serve.app import (
     create,
 )
 from morel.serve.auth import (
+    EnvironmentSecretProvider,
     Scope,
+    SecretProvider,
     admin,
     assert_,
     dependency,
@@ -40,6 +42,7 @@ __all__ = [
     "Ask",
     "Default",
     "Done",
+    "EnvironmentSecretProvider",
     "Event",
     "Fill",
     "Health",
@@ -52,6 +55,7 @@ __all__ = [
     "Read",
     "Rollback",
     "Scope",
+    "SecretProvider",
     "ServingPipeline",
     "Signal",
     "Stats",

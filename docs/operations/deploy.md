@@ -49,6 +49,13 @@ Mounts the local `data/` and `checkpoints/` read-only.
   proxies allowed to supply `X-Forwarded-For`. Leave unset when the service
   is directly exposed; forwarded headers are ignored by default.
 
+For a vendor secret manager, implement the small `SecretProvider` protocol and
+pass it to `morel.serve.create(secret_provider=...)`. The provider receives
+only `read`, `admin`, or `legacy` names and returns the resolved value; it is
+never serialized into the model bundle or configuration hash. Keep provider
+construction outside request handlers and make failures raise the typed
+configuration error before the service accepts traffic.
+
 The `serve` YAML section also accepts bounded worker controls:
 `limit_concurrency`, `limit_max_requests`, `timeout_keep_alive`, and
 `timeout_graceful_shutdown`. These protect a worker from unbounded connection

@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **571 passed**, 84.24% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **572 passed**, 84.43% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -201,7 +201,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 571/84.24 baseline.
+  stale documentation counts were updated to the current 572/84.43 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -216,7 +216,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 571-test/84.24%-coverage evidence across the audit, docs, and site.
+  the current 572-test/84.43%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -431,7 +431,9 @@ and release operations.
    metrics endpoint to remain enabled, and observability documentation covers
    per-worker registry and scrape behavior. Auth accepts bounded mounted-secret
    file references for both scopes and rejects ambiguous direct/file
-   configuration; external secret-manager integration remains open.
+   configuration. A typed `SecretProvider` seam now supports vendor secret
+   managers through `create(secret_provider=...)`; a vendor-specific adapter,
+   rollback exercises, and alert drills remain deployment work.
 
 59. **Closed in this worktree:** The streaming co-occurrence builders treated
     every record in a chunk as belonging to one user, creating false

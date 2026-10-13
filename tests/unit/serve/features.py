@@ -166,6 +166,27 @@ class Checker:
         with pytest.raises(Cfg, match="set only one"):
             token("read")
 
+    def external_secret_provider(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Authentication can consume an injected external secret provider."""
+        from morel.serve.auth import SecretProvider
+
+        class Provider:
+            def get(self, name: str) -> str | None:
+                return {
+                    "read": "provider-read-token-123456",
+                    "admin": "provider-admin-token-654321",
+                    "legacy": None,
+                }[name]
+
+        provider = Provider()
+        assert isinstance(provider, SecretProvider)
+        assert token("read", provider) == "provider-read-token-123456"
+        assert token("admin", provider) == "provider-admin-token-654321"
+        monkeypatch.setenv("MOREL_ENV", "production")
+        from morel.serve.auth import assert_production
+
+        assert_production(provider)
+
     def missing_secret_file(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         from morel.core.errors import Cfg
 

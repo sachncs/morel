@@ -35,7 +35,7 @@ hide:
           <span class="morel-pill morel-pill-strong">Python 3.10+</span>
           <span class="morel-pill">MIT license</span>
           <span class="morel-pill">arxiv 2605.00670</span>
-          <span class="morel-pill">571 tests · 84.24% coverage</span>
+          <span class="morel-pill">572 tests · 84.43% coverage</span>
           <span class="morel-pill">FastAPI inference</span>
           <span class="morel-pill">Prometheus metrics</span>
         </div>
@@ -526,11 +526,11 @@ hide:
             <span class="morel-data__hint">pytest</span>
           </div>
           <div class="morel-data__metric">
-            <span class="morel-data__value">571</span>
+            <span class="morel-data__value">572</span>
             <span class="morel-data__suffix">tests</span>
           </div>
           <div class="morel-bar"><span class="morel-bar__fill" style="width: 98%"></span></div>
-          <p style="margin:0;font-size:0.82rem;color:var(--morel-text-mute);">Unit, integration, property, and research tests; 571 currently pass under the configured collection rules.</p>
+          <p style="margin:0;font-size:0.82rem;color:var(--morel-text-mute);">Unit, integration, property, and research tests; 572 currently pass under the configured collection rules.</p>
         </div>
         <div class="morel-data">
           <div class="morel-data__head">
@@ -538,10 +538,10 @@ hide:
             <span class="morel-data__hint">pytest-cov</span>
           </div>
           <div class="morel-data__metric">
-            <span class="morel-data__value">84.24</span>
+            <span class="morel-data__value">84.43</span>
             <span class="morel-data__suffix">%</span>
           </div>
-          <div class="morel-bar"><span class="morel-bar__fill" style="width: 84.24%"></span></div>
+          <div class="morel-bar"><span class="morel-bar__fill" style="width: 84.43%"></span></div>
           <p style="margin:0;font-size:0.82rem;color:var(--morel-text-mute);">Tracked by pytest-cov with a 70 % CI gate.</p>
         </div>
         <div class="morel-data">

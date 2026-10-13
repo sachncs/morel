@@ -93,6 +93,7 @@ class Stats(BaseModel):
 def create(
     loader: Loader | None = None,
     *,
+    secret_provider: auth.SecretProvider | None = None,
     rate_limit_per_minute: int = 60,
     admin_limit_per_minute: int = 10,
     trusted_proxy_cidrs: tuple[str, ...] | None = None,
@@ -111,6 +112,8 @@ def create(
     Args:
         loader: A pre-configured :class:`morel.serve.Loader`. If ``None``,
             an empty loader is created and every request returns ``503``.
+        secret_provider: Optional external secret resolver. The default reads
+            environment variables and mounted ``*_FILE`` references.
         rate_limit_per_minute: Read-endpoint budget per IP per minute.
         admin_limit_per_minute: Admin-endpoint budget per IP per minute.
         trusted_proxy_cidrs: Networks allowed to supply ``X-Forwarded-For``.
@@ -120,8 +123,8 @@ def create(
     Returns:
         Configured :class:`FastAPI` instance.
     """
-    auth.assert_()  # noqa: PT009 - this is the public auth configuration check
-    auth.assert_production()
+    auth.assert_(secret_provider)  # noqa: PT009 - public auth configuration check
+    auth.assert_production(secret_provider)
     app = FastAPI(title="morel inference", version=__version__)
     app.state.metrics_registry = Registry()
     app.state.loader = loader or Loader()
@@ -144,6 +147,8 @@ def create(
     )
     read_limit = ratelimit_dependency("read", request_limiter)
     admin_limit = ratelimit_dependency("admin", request_limiter)
+    require_read = auth.dependency("read", secret_provider)
+    require_admin = auth.dependency("admin", secret_provider)
 
     @app.exception_handler(HTTPException)
     async def http_error(request: Request, exc: HTTPException) -> JSONResponse:
@@ -249,7 +254,7 @@ def create(
     @app.post("/v1/complete", response_model=Done)
     def complete(
         payload: Fill,
-        _: None = Depends(auth.dependency("read")),
+        _: None = Depends(require_read),
         __: None = Depends(read_limit),
     ) -> Done:
         """Completion endpoint.
@@ -280,7 +285,7 @@ def create(
     def recommend(
         payload: Query,
         request: Request,
-        _: None = Depends(auth.dependency("read")),
+        _: None = Depends(require_read),
         __: None = Depends(read_limit),
     ) -> List:
         """Recommendation endpoint.
@@ -304,7 +309,7 @@ def create(
     @app.post("/v1/feedback", response_model=Tell)
     def feedback(
         payload: Ask,
-        _: None = Depends(auth.dependency("admin")),
+        _: None = Depends(require_admin),
         __: None = Depends(admin_limit),
     ) -> Tell:
         """Feedback endpoint."""
@@ -319,7 +324,7 @@ def create(
     @app.post("/v1/rollback", response_model=Rollback)
     def rollback(
         steps: int = 1,
-        _: None = Depends(auth.dependency("admin")),
+        _: None = Depends(require_admin),
         __: None = Depends(admin_limit),
     ) -> Rollback:
         """Rollback endpoint."""
@@ -330,7 +335,7 @@ def create(
 
     @app.get("/v1/stats", response_model=Stats)
     def stats(
-        _: None = Depends(auth.dependency("admin")),
+        _: None = Depends(require_admin),
         __: None = Depends(admin_limit),
     ) -> Stats:
         """Stats endpoint."""
