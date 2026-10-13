@@ -86,7 +86,7 @@ def init(backend: str | None = None) -> dict[str, Any]:
         backend = "nccl" if torch.cuda.is_available() else "gloo"
     try:
         torch.distributed.init_process_group(backend=backend)
-    except Exception as exc:
+    except (OSError, RuntimeError, ValueError) as exc:
         raise Error(f"failed to init distributed group with backend={backend}: {exc}") from exc
     state.backend = backend
     state.initialized = True

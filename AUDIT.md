@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **563 passed**, 84.01% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **563 passed**, 84.04% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -188,7 +188,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 563/84.01 baseline.
+  stale documentation counts were updated to the current 563/84.04 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -203,7 +203,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 563-test/84.01%-coverage evidence across the audit, docs, and site.
+  the current 563-test/84.04%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -355,12 +355,12 @@ until a Pages deployment is published and rechecked.
     an `argpartition`-style optimization. This is a performance/correctness
     contract mismatch for large catalogs.
 16. **Partially addressed:** CLI logging now catches only expected
-    configuration/YAML/filesystem failures and preserves cancellation. The
-    loader, HTTP boundary, distributed backend, and API-generation boundaries
-    still intentionally catch broad ordinary exceptions to clean up, sanitize,
-    or wrap third-party failures; distributed initialization now has explicit
-    failure-injection coverage, but the remaining boundaries need continued
-    fault-injection coverage and an explicit exception taxonomy.
+    configuration/YAML/filesystem failures and preserves cancellation.
+    Distributed initialization and API generation now catch only expected
+    runtime/import failures; the loader and HTTP boundary still intentionally
+    catch broad ordinary exceptions to clean up or sanitize third-party
+    failures. The remaining boundaries need continued fault-injection coverage
+    and an explicit exception taxonomy.
 
 ### P2 — architecture and API design
 

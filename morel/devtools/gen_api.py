@@ -108,7 +108,7 @@ def generate(top: str = "morel") -> str:
                 continue
             try:
                 sub = importlib.import_module(full_name)
-            except Exception as exc:
+            except ImportError as exc:
                 lines.append(f"## {full_name}")
                 lines.append("")
                 lines.append(f"_(import error: {exc})_")
