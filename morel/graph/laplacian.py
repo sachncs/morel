@@ -152,6 +152,10 @@ def basis(eigvals: np.ndarray, eigvecs: np.ndarray, *, tol: float = TOL) -> np.n
 #: see :func:`pe` for what that means for reproducibility.
 LIMIT = 2048
 
+# A small negative shift keeps the normalized Laplacian invertible while
+# focusing shift-invert ARPACK on its smallest eigenvalues.
+SHIFT = -1e-7
+
 
 def straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bool:
     """Return whether a degenerate cluster is cut in half by the ``want`` cutoff.
@@ -168,30 +172,41 @@ def straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bool:
 def bottom(lap: sp.csr_matrix, count: int, nodes: int, *, k: int) -> tuple[np.ndarray, np.ndarray]:
     """Return the ``count`` smallest eigenpairs, sparsely when that is possible.
 
-    Small graphs go through the dense solver because it is deterministic;
-    ARPACK cannot return every eigenpair of a matrix anyway, so requests that
-    approach the matrix size also use the dense path.
+    Small graphs go through the dense solver because it is deterministic.
+    Large-graph convergence failures raise a typed error instead of falling
+    back to an unbounded dense allocation.
     """
-    if count >= nodes or nodes <= LIMIT:
+    if nodes <= LIMIT:
         dense_vals, dense_vecs = np.linalg.eigh(lap.toarray())
         return dense_vals, dense_vecs
+    if count >= nodes:
+        raise Net(
+            "sparse positional encoding would require the full spectrum; "
+            f"graph has {nodes} nodes and boundary request is {count}"
+        )
     try:
-        sparse_vals, sparse_vecs = spla.eigsh(lap, k=count, which="SM", v0=start(nodes))
+        sparse_vals, sparse_vecs = spla.eigsh(
+            lap,
+            k=count,
+            sigma=SHIFT,
+            which="LM",
+            v0=start(nodes),
+        )
     except spla.ArpackNoConvergence as exc:
         log.warning(
-            "eigsh did not converge; falling back to dense eigh",
+            "shift-invert eigsh did not converge",
             extra={"k": k, "nodes": nodes, "reason": str(exc)},
         )
-        dense_vals, dense_vecs = np.linalg.eigh(lap.toarray())
-        return dense_vals, dense_vecs
+        raise Net(f"sparse positional encoding did not converge for {nodes}-node graph") from exc
     return sparse_vals, sparse_vecs
 
 
 def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
     """Compute the bottom-k nontrivial Laplacian PE.
 
-    Uses Lanczos/ARPACK for sparse matrices and dense ``eigh`` for small ones.
-    Catches only ``ArpackNoConvergence``; all other exceptions propagate.
+    Uses shift-invert Lanczos/ARPACK for large sparse matrices and dense
+    ``eigh`` for small ones. Large-graph convergence failures raise a typed
+    domain error rather than attempting an unbounded dense fallback.
 
     The result is deterministic. Four things are pinned that otherwise vary
     between runs: ARPACK's start vector (it would be drawn from numpy's global
@@ -325,6 +340,7 @@ class Laplace(nn.Module):
 
 __all__ = [
     "LIMIT",
+    "SHIFT",
     "TOL",
     "Laplace",
     "basis",

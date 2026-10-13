@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **565 passed**, 84.07% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **566 passed**, 84.16% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -193,7 +193,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 565/84.07 baseline.
+  stale documentation counts were updated to the current 566/84.16 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -208,7 +208,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 565-test/84.07%-coverage evidence across the audit, docs, and site.
+  the current 566-test/84.16%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -396,12 +396,13 @@ and release operations.
     1.73x lower anchor-selection time with the shared index. Serving also
     enforces a validated retrieval-node budget and fails with a typed domain
     error when it is exceeded. A bounded 1k run is
-    approximately 969 ms, but the current uncapped 10k smoke measured 19.58s
-    per forward pass; the 10k Laplacian positional encoding alone took 17.53s
-    in this environment. Representative production-scale latency thresholds,
-    persisted graph encodings and further traversal optimization remain
-    required before production-scale claims; serving now warms the encoding at
-    startup so that cost is not paid by the first request.
+    approximately 969 ms. The 10k Laplacian positional encoding now uses
+    shift-invert ARPACK and measures approximately 30 ms locally, down from
+    17.1 s with the previous smallest-magnitude solver; large-graph failures
+    now raise instead of attempting dense allocation. Retrieval construction
+    still needs representative production latency thresholds and further
+    traversal optimization; serving warms persisted or computed encodings at
+    startup so the cost is not paid by the first request.
 23. **Closed locally; serialized bundles intentionally exclude derived state:**
     `Pipeline.wire()` prepares graph-normalizing rankers once and the serving
     score path reuses that cache without re-hashing the CSR matrix on every

@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         565 passed, 84.07% coverage
+pytest -q                         566 passed, 84.16% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -87,8 +87,9 @@ against a Pages-shaped `/morel/` artifact.
   measured 1.73x lower anchor-selection time with the shared index. End-to-end
   retrieval/relevance hot-path benchmarking is still required before setting
   latency budgets. The bounded local 1k-item benchmark currently measures
-  approximately 969 ms for one default-MAGE run; an uncapped 10k forward pass
-  measured 19.58s, including 17.53s for Laplacian positional encoding, so
+  approximately 969 ms for one default-MAGE run; shift-invert Laplacian
+  positional encoding for a 10k-node graph measures approximately 30 ms
+  locally, so
   persisted/warmed graph encodings and catalog-scale retrieval remain open.
 - Repeated recommendation scores reuse an explicit completed-catalog cache;
   the cache is invalidated on corpus attachment and when training mode begins.

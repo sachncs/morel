@@ -148,3 +148,22 @@ class Checker:
         vectors = pe(ring(60), k=20)
         gram = vectors.T @ vectors
         assert np.abs(gram - np.eye(vectors.shape[1])).max() < 1e-8
+
+    def sparse_path(self) -> None:
+        """Large sparse graphs use the bounded shift-invert solver path."""
+        nodes = 2_200
+        offsets = np.arange(nodes)
+        next_nodes = (offsets + 1) % nodes
+        adjacency = sp.csr_matrix(
+            (
+                np.ones(2 * nodes, dtype=np.float32),
+                (
+                    np.concatenate([offsets, next_nodes]),
+                    np.concatenate([next_nodes, offsets]),
+                ),
+            ),
+            shape=(nodes, nodes),
+        )
+        output = pe(adjacency, k=4)
+        assert output.shape == (nodes, 4)
+        assert np.isfinite(output).all()
