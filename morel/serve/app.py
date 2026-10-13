@@ -237,7 +237,7 @@ def create(
         return {
             "status": "ready",
             "loader_keys": app.state.loader.registered(),
-            "items": int(getattr(pipeline, "items", 0)) if pipeline is not None else 0,
+            "items": pipeline.item_count if pipeline is not None else 0,
         }
 
     @app.get(metrics_path)
@@ -433,9 +433,8 @@ def suggest(
         )
     import torch
 
-    score = getattr(pipeline, "score", None)
-    item_count = int(getattr(recommender, "items", top))
-    user_count = int(getattr(recommender, "users", payload.user + 1))
+    item_count = pipeline.item_count
+    user_count = pipeline.user_count
     if payload.user >= user_count:
         raise HTTPException(status_code=422, detail=f"user id must be in [0, {user_count})")
     if item_count <= 0:
@@ -444,16 +443,7 @@ def suggest(
     user_id = torch.tensor([int(payload.user)], dtype=torch.long)
     try:
         with torch.no_grad():
-            if callable(score):
-                scores = score(user_id, item_ids.squeeze(0)).squeeze(0)
-            else:
-                ui_graph = getattr(pipeline, "ui_graph", None)
-                if ui_graph is None:
-                    raise HTTPException(
-                        status_code=503,
-                        detail="loaded pipeline has no user-item graph",
-                    )
-                scores = recommender(user_id, item_ids, ui_graph).squeeze(0)
+            scores = pipeline.score(user_id, item_ids.squeeze(0)).squeeze(0)
     except HTTPException:
         raise
     except Exception as exc:  # pragma: no cover - recommender-specific

@@ -154,6 +154,8 @@ class Pipeline(nn.Module):
                 )
         self.recommender: nn.Module | None = None
         self.ui_graph: sp.csr_matrix | None = None
+        self._user_count = 0
+        self._item_count = 0
         self.cfeat: dict[str, np.ndarray] | None = None
         self.cmask: np.ndarray | None = None
         self.cadj: sp.csr_matrix | None = None
@@ -221,6 +223,8 @@ class Pipeline(nn.Module):
         """
         users = ui_graph.shape[0]
         items = ui_graph.shape[1]
+        self._user_count = int(users)
+        self._item_count = int(items)
         self.ui_graph = ui_graph.tocsr(copy=True)
         recommender = build_recommend(
             self.config.recommend.kind,
@@ -236,6 +240,16 @@ class Pipeline(nn.Module):
         if isinstance(recommender, Fits):
             recommender.fit(ui_graph)
         self.recommender = recommender
+
+    @property
+    def user_count(self) -> int:
+        """Return the number of users in the wired serving corpus."""
+        return self._user_count
+
+    @property
+    def item_count(self) -> int:
+        """Return the number of items in the wired serving corpus."""
+        return self._item_count
 
     def attach(
         self,

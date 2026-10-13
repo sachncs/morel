@@ -198,6 +198,7 @@ class Checker:
 
     def named_protocols(self) -> None:
         """Raw-feature and graph-encoder protocols remain distinct and usable."""
+        from morel.complete import Completer, Decoders
         from morel.data import Feature, FeatureEncoder, Random
         from morel.encode import Enc, GraphEncoder, Identity
         from morel.retrieve import KIND, RetrievalStrategy
@@ -206,6 +207,7 @@ class Checker:
         assert Enc is GraphEncoder
         assert isinstance(Random(4), FeatureEncoder)
         assert isinstance(Identity({"text": 4}, 0, 4), GraphEncoder)
+        assert isinstance(Decoders(latent_dim=4, dims={"text": 2}), Completer)
         assert all(isinstance(strategy, RetrievalStrategy) for strategy in KIND.values())
 
     def modality_mask_name(self) -> None:

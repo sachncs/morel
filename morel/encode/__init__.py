@@ -38,7 +38,7 @@ def build(
         ValueError: If ``kind`` is not a known encoder name.
     """
     if kind == "transformer":
-        return Transformer(
+        encoder: nn.Module = Transformer(
             dims=dims,
             pe_dim=pe_dim,
             hidden=hidden,
@@ -46,9 +46,13 @@ def build(
             heads=heads,
             dropout=dropout,
         )
-    if kind == "identity":
-        return Identity(dims, pe_dim, hidden)
-    raise Cfg(f"unknown encoder '{kind}'; available: transformer, identity")
+    elif kind == "identity":
+        encoder = Identity(dims, pe_dim, hidden)
+    else:
+        raise Cfg(f"unknown encoder '{kind}'; available: transformer, identity")
+    if not isinstance(encoder, GraphEncoder):
+        raise Cfg(f"encoder '{kind}' does not satisfy the GraphEncoder contract")
+    return encoder
 
 
 #: Map from config name to encoder class for introspection.

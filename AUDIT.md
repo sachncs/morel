@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **565 passed**, 84.04% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **565 passed**, 84.07% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -15,6 +15,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - `mypy morel/`: passes with no configuration warnings.
 - Ruff now enforces Google-style docstrings across source and tests; the legacy
   NumPy section underlines have been removed.
+- The serving protocol now requires explicit `user_count`, `item_count`, and
+  `score()` capabilities; incomplete structural implementations are rejected
+  before caching instead of falling back to reflective dispatch.
 - `make audit-critical`: passes with per-subsystem coverage floors for serving
   (79%), pipeline (77%), CLI (71%), and checkpoint loading (84%).
 - The corrected forward benchmark uses a bounded 32-query batch; the local
@@ -190,7 +193,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 565/84.04 baseline.
+  stale documentation counts were updated to the current 565/84.07 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -205,7 +208,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 565-test/84.04%-coverage evidence across the audit, docs, and site.
+  the current 565-test/84.07%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -373,9 +376,10 @@ and release operations.
 18. **Closed in this worktree:** Recommenders and encoders do not share a single stable runtime contract.
     `Light`, `MF`, and `Pop` are selected through registries but are not unified
     behind a documented abstract interface with capability declarations.
-19. **Partially addressed:** Serving factories now accept runtime validators and
-    the CLI/runtime register the serving-pipeline contract before caching a
-    model. The broader pipeline still uses string-keyed registries and
+19. **Partially addressed:** Serving factories now accept runtime validators,
+    and the CLI/runtime register an explicit serving contract requiring
+    `score`, `user_count`, and `item_count` before caching a model. The broader
+    pipeline still uses string-keyed registries and
     `getattr`-based optional methods at composition boundaries; typed factories
     and protocol/abstract-base contracts are still needed for retrieval,
     encoding, codebooks, completion, and recommendation.

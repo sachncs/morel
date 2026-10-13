@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any, Protocol, runtime_checkable
 
 import numpy as np
 import scipy.sparse as sp
+import torch
+
+
+class CompletionOutput(Protocol):
+    """Minimum output shape required by the completion endpoint."""
+
+    completed: dict[str, torch.Tensor]
 
 
 @runtime_checkable
@@ -17,10 +23,15 @@ class ServingPipeline(Protocol):
     cmask: np.ndarray | None
     cadj: sp.csr_matrix | None
     ui_graph: sp.csr_matrix | None
-    recommender: Callable[..., Any] | None
+    recommender: object | None
+    user_count: int
+    item_count: int
 
-    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+    def __call__(self, *args: Any, **kwargs: Any) -> CompletionOutput:
         """Complete a batch of item features."""
+
+    def score(self, users: torch.Tensor, items: torch.Tensor) -> torch.Tensor:
+        """Score explicit user and item id batches."""
 
 
 def is_serving_pipeline(value: object) -> bool:
@@ -28,4 +39,4 @@ def is_serving_pipeline(value: object) -> bool:
     return isinstance(value, ServingPipeline)
 
 
-__all__ = ["ServingPipeline", "is_serving_pipeline"]
+__all__ = ["CompletionOutput", "ServingPipeline", "is_serving_pipeline"]

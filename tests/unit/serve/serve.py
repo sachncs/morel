@@ -57,6 +57,16 @@ class StubPipeline:
         self.cadj = sp.csr_matrix((items, items), dtype=np.float32)
         self.ui_graph = sp.csr_matrix(np.eye(users, items, dtype=np.float32))
 
+    @property
+    def user_count(self) -> int:
+        """Return the configured test user count."""
+        return self.users
+
+    @property
+    def item_count(self) -> int:
+        """Return the configured test item count."""
+        return self.items
+
     def __call__(self, features, mask, adjacency=None, index=None, training=False):
         import torch
 
@@ -69,6 +79,10 @@ class StubPipeline:
                 }
 
         return _Out(self.dims, n)
+
+    def score(self, users, items):
+        """Score through the test recommender using the explicit contract."""
+        return self.recommender(users, items.unsqueeze(0), self.ui_graph)
 
     @property
     def recommender(self) -> StubRecommender:
