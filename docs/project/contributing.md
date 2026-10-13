@@ -71,8 +71,16 @@ Adding a new algorithm:
 
 ## Release process
 
-1. Bump version with `setuptools_scm` from a git tag.
-2. CI publishes to PyPI via OIDC trusted publishing on tag push.
+1. Add a matching `## [MAJOR.MINOR.PATCH]` section to
+   `docs/project/changelog.md`.
+2. Push an annotated `vMAJOR.MINOR.PATCH` tag. `setuptools_scm` derives the
+   package version from that tag.
+3. The release workflow builds one wheel, verifies its metadata against the
+   tag and changelog, checks the package metadata, generates an SBOM, and then
+   publishes to PyPI via OIDC trusted publishing.
+
+The workflow is tag-only so a branch or manually dispatched job cannot publish
+an unversioned development build.
 
 ## Contact
 

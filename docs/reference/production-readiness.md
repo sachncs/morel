@@ -70,6 +70,8 @@ against a Pages-shaped `/morel/` artifact.
   high/critical OS and library vulnerabilities, and runs a local-environment
   vulnerability audit in addition to the hash-pinned lockfile audit. An
   artifact SBOM is generated from the runtime lock during release.
+- Versioned PyPI publication is tag-only and rejects a wheel whose metadata or
+  changelog section does not match the semantic-version tag.
 - A bounded repeated mixed-traffic test, named `make fault-injection` gate,
   repeatable local `make rollback-drill`, two-worker lifecycle smoke, and
   bounded concurrent HTTP soak are release gates. A 60-second local soak also

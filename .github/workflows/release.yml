@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "v*.*.*"
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -34,6 +33,9 @@ jobs:
 
       - name: Verify metadata
         run: twine check dist/*
+
+      - name: Verify versioned release
+        run: python scripts/check_release.py "$GITHUB_REF_NAME"
 
       - name: Generate SBOM
         run: |

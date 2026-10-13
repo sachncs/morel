@@ -22,6 +22,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Retrieval strategy resolution now validates the registered callable against
   the runtime `RetrievalStrategy` protocol before execution, closing another
   untyped plugin boundary.
+- Release publication is now tag-only and verifies the built wheel version and
+  changelog release section against the pushed semantic-version tag before
+  PyPI upload.
 - The serving protocol now requires explicit `user_count`, `item_count`, and
   `score()` capabilities; incomplete structural implementations are rejected
   before caching instead of falling back to reflective dispatch.
@@ -328,8 +331,9 @@ and release operations.
    issue, not only a copy issue.
 6. **Partially addressed:** The built and deployed site includes a static
    `/docs/` redirect to the canonical documentation tree, so Pages retains a
-   working compatibility route. External documentation hosting and a fully
-   versioned release process remain deployment follow-ups.
+   working compatibility route. External documentation hosting remains a
+   deployment follow-up; the PyPI release workflow now enforces tag/version
+   consistency before publication.
 
 ### P1 — correctness and security
 
