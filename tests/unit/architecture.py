@@ -101,12 +101,26 @@ def documented() -> dict[str, set[str]]:
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
         if len(cells) != 3:
             continue
-        # The middle cell names the registry; only rows that name one in
-        # ALL-CAPS are part of the extension-point table.
+        # The middle cell names the public map. Legacy ALL-CAPS aliases remain
+        # supported for data registries; model stages use package-qualified
+        # ``morel.<package>.KIND`` names.
         registry = cells[1].strip("`")
-        if not registry.isupper():
+        if registry.isupper():
+            key = registry
+        elif registry.startswith("morel.") and registry.endswith(".KIND"):
+            package = registry.removeprefix("morel.").removesuffix(".KIND")
+            key = {
+                "retrieve": "STRATEGIES",
+                "encode": "ENCODERS",
+                "route": "ROUTERS",
+                "codebook": "CODEBOOKS",
+                "complete": "COMPLETERS",
+                "recommend": "RECOMMENDERS",
+            }.get(package, "")
+        else:
             continue
-        found[registry] = {k.strip().strip("`") for k in cells[2].split(",")}
+        if key:
+            found[key] = {k.strip().strip("`") for k in cells[2].split(",")}
     return found
 
 
@@ -188,9 +202,7 @@ class Checker:
             "RECOMMENDERS": RECOMMEND_KIND,
         }
         doc = documented()
-        assert set(doc) == set(registries), (
-            f"doc registries {sorted(documented)} != {sorted(registries)}"
-        )
+        assert set(doc) == set(registries), f"doc registries {sorted(doc)} != {sorted(registries)}"
         for name, registry in registries.items():
             assert doc[name] == set(registry), (
                 f"{name}: docs list {sorted(doc[name])}, code registers {sorted(set(registry))}"

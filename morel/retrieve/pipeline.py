@@ -7,6 +7,7 @@ mask for downstream sequence models.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
@@ -15,6 +16,7 @@ import scipy.sparse as sp
 import torch
 
 from morel.core.errors import Cfg, Net
+from morel.core.factory import FactoryRegistry
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.anchor import AnchorIndex
 from morel.retrieve.anchor import prepare as prepare_anchor
@@ -201,13 +203,14 @@ def none(
 
 
 #: Map from config name to strategy function. Module-local; no global registry.
-KIND: dict[str, RetrievalStrategy] = {
+KIND: dict[str, Callable[..., set[int]]] = {
     "mage": mage,
     "acs": acs,
     "anchor": anchor,
     "bfs": bfs,
     "none": none,
 }
+_STRATEGIES = FactoryRegistry[set[int]]("retrieval strategy", KIND)
 
 
 def retrieve(
@@ -245,11 +248,7 @@ def retrieve(
     Raises:
         Cfg: If ``kind`` is not a registered strategy.
     """
-    if kind not in KIND:
-        raise Cfg(
-            f"unknown retrieval strategy {kind!r}; available: {', '.join(sorted(KIND)) or '(none)'}"
-        )
-    strategy = KIND[kind]
+    strategy = _STRATEGIES.resolve(kind)
     observed = [name for idx, name in enumerate(features.keys()) if mask[query, idx] > 0]
     if not observed and kind != "bfs":
         return {int(query)}
