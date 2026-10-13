@@ -138,3 +138,17 @@ class Checker:
         monkeypatch.setattr(torch, "load", blocked_load)
         with pytest.raises(PermissionError, match="denied"):
             load(path)
+
+    def save_cleans_failed_temporary(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """A failed checkpoint write leaves neither a partial file nor a temp artifact."""
+        target = tmp_path / "checkpoint.pt"
+        state = State(model={}, optimizer=None, epoch=0, metric=0.0, rng=None, cfg_hash="")
+
+        def fail_save(*args, **kwargs):
+            raise OSError("disk full")
+
+        monkeypatch.setattr(torch, "save", fail_save)
+        with pytest.raises(OSError, match="disk full"):
+            state.save(target)
+        assert not target.exists()
+        assert list(tmp_path.glob("checkpoint.pt.*.tmp")) == []

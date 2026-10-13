@@ -5,6 +5,8 @@ from __future__ import annotations
 import hashlib
 import json
 import math
+import os
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from pickle import UnpicklingError
@@ -136,9 +138,14 @@ class State:
             "cfg_hash": self.cfg_hash,
             "extras": self.extras,
         }
-        tmp = path.with_suffix(path.suffix + ".tmp")
-        torch.save(payload, tmp)
-        tmp.replace(path)
+        fd, temporary = tempfile.mkstemp(prefix=f"{path.name}.", suffix=".tmp", dir=path.parent)
+        os.close(fd)
+        tmp = Path(temporary)
+        try:
+            torch.save(payload, tmp)
+            tmp.replace(path)
+        finally:
+            tmp.unlink(missing_ok=True)
 
     @classmethod
     def load(cls, target: Path | str, *, expected_config_hash: str | None = None) -> State:
