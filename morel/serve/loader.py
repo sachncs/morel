@@ -165,34 +165,29 @@ class Loader:
                 self.cache.move_to_end(key)
                 return cached
         deadline = _Deadline.after(self.factory_timeout)
+        completed = False
         try:
             model = build_factory()
             if model is None:
                 raise Model(f"loader factory returned None for key {key!r}")
             if validator is not None and not validator(model):
                 raise Model(f"loader factory returned an incompatible value for key {key!r}")
-        except Exception:
-            self._abort_build(key, cond)
-            raise
-        except (KeyboardInterrupt, SystemExit):
-            # Do not leave waiters blocked when the process is interrupted
-            # during a factory call. Cancellation is intentionally preserved.
-            self._abort_build(key, cond)
-            raise
-        if deadline.expired():
-            # The factory only completed after the per-key timeout.
-            # Discard the result so we don't cache a model that exceeded
-            # the wait budget, and notify any waiters that the build is
-            # over (they will see no cache entry and time out on their
-            # next wait).
-            with self.lock:
-                self.building.pop(key, None)
-            with cond:
-                cond.notify_all()
-            raise Model(
-                f"loader factory for {key!r} took longer than "
-                f"{self.factory_timeout:.1f}s to complete"
-            )
+            if deadline.expired():
+                # The factory only completed after the per-key timeout.
+                # Discard the result so we don't cache a model that exceeded
+                # the wait budget, and notify any waiters that the build is
+                # over (they will see no cache entry and time out on their
+                # next wait).
+                raise Model(
+                    f"loader factory for {key!r} took longer than "
+                    f"{self.factory_timeout:.1f}s to complete"
+                )
+            completed = True
+        finally:
+            # This cleanup also covers cancellation and process interrupts,
+            # while leaving the original exception intact for the caller.
+            if not completed:
+                self._abort_build(key, cond)
         with self.lock:
             self.cache[key] = model
             while len(self.cache) > self.capacity:
