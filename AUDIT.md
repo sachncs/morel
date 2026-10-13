@@ -105,10 +105,10 @@ Scope: repository, local Python package, local React site, and the deployed
   credentials: `/health` returns 200, `/health/ready` returns 503 without a
   model bundle, and `/metrics` returns 200; the image runs as the non-root
   user.
-- Direct browser inspection confirms the deployed site is still the old build:
-  it shows the superseded production-ready copy, zeroed performance counters,
-  and `/morel/docs/` links that return 404. The redesign is local and has not
-  been published.
+- GitHub Pages deployment `38451394978` published the redesigned artifact after
+  the real Linux runner passed all 14 browser checks; `curl -fsSIL
+  https://sachncs.github.io/morel/` returns HTTP 200 and the live HTML contains
+  the `/morel/` favicon, truthful product copy, and canonical site metadata.
 
 ## Implemented in the current worktree
 
@@ -260,8 +260,9 @@ open defects:
   local portions of 43–48.
 - **Partially addressed:** 16, 19, 21, 22, 24, 25, 33, 41,
   50, 51, 52, and 53.
-- **Still open:** 5–6 (deployment truth), and the
-  live/deployment portions of 50–53.
+- **Still open:** the remaining technical portions of 5–6 and the partially
+  addressed items listed below; the deployment portions of 43–53 are now
+  verified by Pages run `38451394978` and the live URL check.
 
 The local pipeline boundary now validates modality names and shapes and stores
 defensive snapshots of feature, mask, and adjacency inputs; this closes the
@@ -302,10 +303,10 @@ until a Pages deployment is published and rechecked.
    animated stat counters as zero until/while they run and the claims are not
    tied to a generated artifact or release. This is a trust and correctness
    issue, not only a copy issue.
-6. **Partially addressed locally:** The built site now includes a static
-   `/docs/` redirect to the canonical documentation tree, so Pages deployments
-   retain a working compatibility route. The currently deployed site still
-   returns 404 until the redesigned artifact is published.
+6. **Partially addressed:** The built and deployed site includes a static
+   `/docs/` redirect to the canonical documentation tree, so Pages retains a
+   working compatibility route. External documentation hosting and a fully
+   versioned release process remain deployment follow-ups.
 
 ### P1 — correctness and security
 
@@ -497,39 +498,39 @@ until a Pages deployment is published and rechecked.
 
 ### P5 — deployed site UX/UI and branding
 
-43. **Closed locally; live deployment remains open:** The palette is over-dependent on saturated purple/indigo gradients, glow,
+43. **Closed and deployed:** The palette is over-dependent on saturated purple/indigo gradients, glow,
     glass, and dark backgrounds. It reduces hierarchy and makes the page feel
     like a generic AI landing page rather than a graph/recommendation tool.
-44. **Closed locally; live deployment remains open:** The mobile menu is a full-screen sheet with large controls and no visible
+44. **Closed and deployed:** The mobile menu is a full-screen sheet with large controls and no visible
     focus trap/focus restoration. In the observed narrow viewport it dominates
     the initial experience and can obscure the primary content.
-45. **Closed locally; live deployment remains open:** The desktop/mobile responsive states need explicit breakpoint QA; the live
+45. **Closed and deployed:** The desktop/mobile responsive states need explicit breakpoint QA; the live
     page was observed at a narrow viewport with the menu open and a horizontal
     scrollbar visible.
-46. **Closed locally; live deployment remains open:** The logo is a low-information radial network mark with a duplicated SVG
+46. **Closed and deployed:** The logo is a low-information radial network mark with a duplicated SVG
     gradient ID (`logoGrad`) rendered in multiple places. Replace it with a
     distinctive, scalable mark that communicates “morel” plus graph/modality
     completion, with stable unique IDs or no ID-dependent paint.
-47. **Closed locally; live deployment remains open:** Other inline SVGs reuse IDs such as `perf-line`; duplicate IDs can make
+47. **Closed and deployed:** Other inline SVGs reuse IDs such as `perf-line`; duplicate IDs can make
     gradients resolve against the wrong definition. Generate unique IDs or use
     CSS/currentColor paints.
-48. **Closed locally; live deployment remains open:** Footer GitHub links concatenate `SITE.repo` with `blob/...` without a slash,
+48. **Closed and deployed:** Footer GitHub links concatenate `SITE.repo` with `blob/...` without a slash,
     producing broken URLs such as `github.com/sachncs/morelblob/master/...`.
 49. **Closed in this worktree:** The site imports Google Fonts at runtime, adding
     a third-party dependency and a render-blocking network path without a local
     fallback metric or documented privacy/performance decision. The redesign now
     uses the system font stack and has no Google Fonts runtime dependency.
-50. **Closed locally; live deployment remains open:** The landing page now
+50. **Closed and deployed:** The landing page now
     puts problem → mechanism → proof → quickstart before decorative
     architecture and adoption sections.
-51. **Closed locally; live deployment remains open:** Unsupported scaling and
+51. **Closed and deployed:** Unsupported scaling and
     production claims were removed or qualified; performance cards link to the
     benchmark methodology and readiness evidence, with dataset/configuration
     limitations stated in the copy.
-52. **Closed locally; live deployment remains open:** The page exposes the API
+52. **Closed and deployed:** The page exposes the API
     version, test/coverage snapshot, and dated last-verified value from the
     shared `VERIFICATION` source.
-53. **Closed locally; live deployment remains open:** Dialog semantics, focus
+53. **Closed and deployed:** Dialog semantics, focus
     trapping/restoration, Escape handling, reduced-motion behavior, contrast,
     and decorative SVG labelling are covered by the local browser and axe
     suite.
