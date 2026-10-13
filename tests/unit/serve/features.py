@@ -339,14 +339,14 @@ class Checker:
     def loss(self) -> None:
         updater = Updater(
             Tiny(),
-            cooldown_seconds=30,
+            cooldown_seconds=7,
             loss_step=lambda batch: float("nan"),
         )
         for i in range(16):
             updater.accept(user=i, item=i, signal="like")
         result = updater.tick()
         assert result.committed is False
-        assert updater.cooldown > time.time()
+        assert 6.0 < updater.cooldown - time.time() <= 7.0
 
     def version(self) -> None:
         updater = Updater(
@@ -450,3 +450,12 @@ class Checker:
         result = custom.tick()
         assert result.committed is True
         assert abs(result.loss - 0.42) < 1e-6
+
+    def validates_controls(self) -> None:
+        """Reject updater controls that could silently disable safeguards."""
+        with pytest.raises(ValueError, match="cooldown_seconds"):
+            Updater(Tiny(), cooldown_seconds=-1)
+        with pytest.raises(ValueError, match="ratio"):
+            Updater(Tiny(), ratio=1.1)
+        with pytest.raises(ValueError, match="val_ratio"):
+            Updater(Tiny(), val_ratio=-0.1)

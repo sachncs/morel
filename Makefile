@@ -1,4 +1,4 @@
-.PHONY: help install dev test test-fast lint lint-fix format format-check typecheck build audit-artifact clean bench serve serve-workers-smoke serve-model-smoke serve-soak fault-injection reproduce fidelity docs docs-check lock lock-check check-urls verify-metrics site site-test site-unit-test site-pages-test audit-python audit-critical audit
+.PHONY: help install dev test test-fast lint lint-fix format format-check typecheck build audit-artifact clean bench serve serve-workers-smoke serve-model-smoke serve-soak fault-injection rollback-drill reproduce fidelity docs docs-check lock lock-check check-urls verify-metrics site site-test site-unit-test site-pages-test audit-python audit-critical audit
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -64,6 +64,9 @@ serve-soak: ## Run the bounded concurrent two-worker HTTP soak gate
 fault-injection: ## Exercise loader, HTTP, updater, and checkpoint failure paths
 	pytest -q --no-cov tests/unit/serve/serve.py tests/unit/serve/updater.py tests/unit/train/checkpoint.py tests/property/http.py tests/property/checkpoint.py -k 'factory_failure or factory_timeout or build_capacity or interrupt or hides_internal_error or update_is_atomic or feedback or payload or schema or malformed'
 
+rollback-drill: ## Exercise updater rollback and divergence recovery paths
+	pytest -q --no-cov tests/unit/serve/features.py tests/unit/serve/updater.py -k 'loss or divergence or version or restores or state'
+
 reproduce: ## Run end-to-end reproduction
 	python -m morel train completion
 
@@ -122,7 +125,7 @@ audit-critical: ## Enforce coverage floors for critical runtime subsystems
 	python -m coverage run -m pytest tests/unit/train/checkpoint.py --no-cov
 	python -m coverage report --include='morel/train/checkpoint.py' --fail-under=70
 
-audit: audit-python audit-critical docs-check fault-injection serve-workers-smoke serve-model-smoke serve-soak site site-unit-test site-test site-pages-test ## Run the local release-quality audit
+audit: audit-python audit-critical docs-check fault-injection rollback-drill serve-workers-smoke serve-model-smoke serve-soak site site-unit-test site-test site-pages-test ## Run the local release-quality audit
 
 check-urls: ## Fail CI if any tracked file references the legacy repo URL
 	@if grep -rln 'robust-multimodal-recommendation' \

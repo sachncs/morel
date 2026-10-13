@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         572 passed, 84.43% coverage
+pytest -q                         573 passed, 84.46% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -17,6 +17,7 @@ make lock-check                  pass
 pip-audit --strict ...            no known vulnerabilities
 make audit-artifact              built wheel installs and imports successfully
 make fault-injection              11 targeted failure-path tests pass
+make rollback-drill               updater rollback and divergence tests pass
 make serve-workers-smoke          two-worker lifecycle and fail-closed readiness pass
 make serve-model-smoke            two-worker real-checkpoint inference pass
 make serve-soak                   bounded concurrent two-worker HTTP soak pass
@@ -58,10 +59,10 @@ against a Pages-shaped `/morel/` artifact.
 
 ## Not yet verified or published
 
-- The redesigned site has not been pushed to `master`; the public GitHub Pages
-  URL still serves the previous build.
+- The redesigned site is deployed from `master`; the live Pages route and its
+  `/morel/` base-path browser gate are verified in CI.
 - The rebuilt Pages artifact includes a compatibility redirect at `/docs/` for
-  older inbound links; the live route remains unverified until deployment.
+  older inbound links; the live route is checked after each Pages deployment.
 - The production Docker image now builds locally and in CI with CPU-only
   PyTorch, explicit serving dependencies, a non-root writable log directory,
   and a health/readiness smoke contract.
@@ -70,9 +71,10 @@ against a Pages-shaped `/morel/` artifact.
   vulnerability audit in addition to the hash-pinned lockfile audit. An
   artifact SBOM is generated from the runtime lock during release.
 - A bounded repeated mixed-traffic test, named `make fault-injection` gate,
-  two-worker lifecycle smoke, and bounded concurrent HTTP soak are release
-  gates. A 60-second local soak also passes with four concurrent clients;
-  production-scale full-load characterization and rollback drills remain open.
+  repeatable local `make rollback-drill`, two-worker lifecycle smoke, and
+  bounded concurrent HTTP soak are release gates. A 60-second local soak also
+  passes with four concurrent clients; production-scale full-load
+  characterization and external rollback/alert drills remain open.
 - Critical-module coverage is now gated separately for serving, pipeline, CLI,
   and checkpoint loading via `make audit-critical`.
 - Malformed HTTP payload property coverage and data-stream boundary tests are

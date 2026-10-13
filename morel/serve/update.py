@@ -177,6 +177,13 @@ class Updater:
         self.replay: deque[Event] = deque(maxlen=replay_capacity)
         self.rollback: deque[dict[str, Any]] = deque(maxlen=rollback_window)
         self.cooldown: float = 0.0
+        if cooldown_seconds < 0:
+            raise ValueError("cooldown_seconds must be non-negative")
+        self.cooldown_seconds = float(cooldown_seconds)
+        if not 0 <= ratio <= 1:
+            raise ValueError("ratio must be between 0 and 1")
+        if not 0 <= val_ratio <= 1:
+            raise ValueError("val_ratio must be between 0 and 1")
         self.ratio = float(ratio)
         self.val = float(val_ratio)
         self.loss_step: Step = loss_step or Default()
@@ -317,17 +324,17 @@ class Updater:
     ) -> tuple[bool, int]:
         """Apply an update while the model write lock is already held."""
         if not math.isfinite(loss):
-            self.cooldown = time.time() + 60.0
+            self.cooldown = time.time() + self.cooldown_seconds
             log.warning("divergence: non-finite loss; rolling back and cooling down")
             self.pipeline.load_state_dict(pre_snapshot)
             return False, self.version
         if valid_loss is not None and not math.isfinite(valid_loss):
-            self.cooldown = time.time() + 60.0
+            self.cooldown = time.time() + self.cooldown_seconds
             log.warning("divergence: non-finite valid loss; rolling back and cooling down")
             self.pipeline.load_state_dict(pre_snapshot)
             return False, self.version
         if self.window and loss > 3 * (sum(self.window) / len(self.window)):
-            self.cooldown = time.time() + 60.0
+            self.cooldown = time.time() + self.cooldown_seconds
             log.warning("divergence: loss explosion; rolling back and cooling down")
             self.pipeline.load_state_dict(pre_snapshot)
             return False, self.version

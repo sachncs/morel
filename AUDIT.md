@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **572 passed**, 84.43% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **573 passed**, 84.46% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -201,7 +201,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 572/84.43 baseline.
+  stale documentation counts were updated to the current 573/84.46 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -216,13 +216,17 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 572-test/84.43%-coverage evidence across the audit, docs, and site.
+  the current 573-test/84.46%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
 - Corrected vectorized relevance aggregation so candidates with no jointly
   observed modality are excluded from the mean instead of diluting it with
   artificial zeros, with a regression test for the sparse-mask case.
+- Fixed the updater’s divergence cooldown to honor the validated configured
+  `cooldown_seconds` instead of a hard-coded minute, added control-range
+  validation, and exposed a repeatable `make rollback-drill` gate for rollback
+  and recovery behavior.
 - Corrected stale README links to renamed documentation paths and added a
   documentation gate that rejects broken repository-relative README links.
   The security policy now distinguishes the safe production checkpoint path
