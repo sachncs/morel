@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **578 passed**, 84.48% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **579 passed**, 84.48% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -34,6 +34,8 @@ Scope: repository, local Python package, local React site, and the deployed
   regression tests cover both permission failures and failed writes.
 - Admin rollback requests now bound `steps` to a positive finite range before
   entering the updater loop, preventing query-parameter amplification.
+- Feedback requests now enforce non-negative IDs and a closed set of supported
+  signal values before events enter the bounded updater buffers.
 - The serving protocol now requires explicit `user_count`, `item_count`, and
   `score()` capabilities; incomplete structural implementations are rejected
   before caching instead of falling back to reflective dispatch.
@@ -220,7 +222,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 578/84.48 baseline.
+  stale documentation counts were updated to the current 579/84.48 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -235,7 +237,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 578-test/84.48%-coverage evidence across the audit, docs, and site.
+  the current 579-test/84.48%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.

@@ -483,6 +483,17 @@ class Checker:
             )
         assert all(response.status_code == 422 for response in responses)
 
+    async def feedback_payload_is_bounded(self) -> None:
+        """Feedback rejects invalid IDs and unsupported signal values."""
+        app = create()
+        async with make(app) as client:
+            responses = await asyncio.gather(
+                post(client, "/v1/feedback", json={"user": -1, "item": 0, "signal": "like"}),
+                post(client, "/v1/feedback", json={"user": 0, "item": -1, "signal": "like"}),
+                post(client, "/v1/feedback", json={"user": 0, "item": 0, "signal": "unknown"}),
+            )
+        assert all(response.status_code == 422 for response in responses)
+
     async def recommend(self) -> None:
         """``/v1/recommend`` ranks via the recommender, not a uniform fake slice."""
         app, _, _ = make_app_with_factory()

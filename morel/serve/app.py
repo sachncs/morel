@@ -6,7 +6,7 @@ import logging
 import os
 import time
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi import Query as FastAPIQuery
@@ -48,9 +48,11 @@ class Ask(BaseModel):
         signal: One of 'like', 'dislike', 'view', 'purchase'.
     """
 
-    user: int = Field(..., description="User id.")
-    item: int = Field(..., description="Item id.")
-    signal: str = Field(..., description="One of 'like', 'dislike', 'view', 'purchase'.")
+    user: int = Field(..., ge=0, description="User id.")
+    item: int = Field(..., ge=0, description="Item id.")
+    signal: Literal["like", "dislike", "view", "purchase"] = Field(
+        ..., description="Feedback signal type."
+    )
 
 
 class Tell(BaseModel):
