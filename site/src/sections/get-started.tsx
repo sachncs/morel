@@ -85,7 +85,11 @@ export function GetStarted() {
               </span>
               <span className="font-mono text-[10px]">⌘</span>
             </div>
-            <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-[1.75]">
+            <pre
+              tabIndex={0}
+              aria-label="Morel quickstart commands"
+              className="overflow-x-auto p-5 font-mono text-[13px] leading-[1.75]"
+            >
               <code>
                 <span className="text-ink-500"># 1. Get the code</span>
                 {"\n"}

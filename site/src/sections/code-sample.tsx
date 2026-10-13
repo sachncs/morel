@@ -125,7 +125,11 @@ function CodeBlock({ code, filename }: { code: string; filename: string }) {
           )}
         </button>
       </div>
-      <pre className="overflow-x-auto p-5 text-[13px] leading-[1.7]">
+      <pre
+        tabIndex={0}
+        aria-label={`${filename} source code`}
+        className="overflow-x-auto p-5 text-[13px] leading-[1.7]"
+      >
         <code className="font-mono">
           {tokens.map((t, i) => (
             <span key={i} className={t.cls}>

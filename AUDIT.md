@@ -256,7 +256,7 @@ The numbered inventory below is intentionally retained as the complete issue
 history. This status map prevents historical findings from being mistaken for
 open defects:
 
-- **Closed in this worktree:** 1–4, 7–15, 17–20, 23, 26–32, 34–39, 42, 49, 54–59, and the
+- **Closed in this worktree:** 1–4, 7–15, 17–20, 23, 26–32, 34–39, 42, 49, 54–60, and the
   local portions of 43–48.
 - **Partially addressed:** 16, 19, 21, 22, 24, 25, 33, 41,
   50, 51, 52, and 53.
@@ -422,6 +422,12 @@ until a Pages deployment is published and rechecked.
     hard edge budget, so one high-degree user could force a quadratic Python
     list allocation. Both paths now group items by user and fail closed at a
     validated directed-edge limit.
+
+60. **Closed in this worktree:** The scrollable quickstart and source-code
+    blocks were not keyboard-focusable, causing the Pages axe gate to reject
+    the redesigned site with `scrollable-region-focusable`. Both blocks now
+    expose a keyboard focus target and accessible label; desktop and
+    `/morel/` base-path browser gates pass locally.
 
 ### P3 — testing and quality gates
 
