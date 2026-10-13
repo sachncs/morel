@@ -21,7 +21,7 @@ ALLOWED = {"model", "optimizer", "epoch", "metric", "rng", "cfg_hash", "extras"}
 # bytes, unsupported pickle opcodes, pytorch tightening weights_only=True).
 # I/O problems (PermissionError, IsADirectoryError) bubble up unchanged so
 # callers can handle them with their preferred retry / fallback policy.
-_LOAD_ERRORS: tuple[type[BaseException], ...] = (UnpicklingError, RuntimeError, OSError)
+_LOAD_ERRORS: tuple[type[BaseException], ...] = (UnpicklingError, RuntimeError)
 
 
 def load(target: Path | str) -> dict[str, Any]:
@@ -42,9 +42,9 @@ def load(target: Path | str) -> dict[str, Any]:
             I/O reasons. These propagate so the caller can decide between
             a config error, a degraded-mode fallback, or a hard abort.
         Model: If the payload is not a dict or has keys outside the
-            morel checkpoint contract, or if ``torch.load`` raised a
-            ``UnpicklingError`` / ``RuntimeError`` / ``OSError`` that
-            indicates a corrupted or unsupported checkpoint.
+            morel checkpoint contract, or if ``torch.load`` raised an
+            ``UnpicklingError`` or ``RuntimeError`` that indicates a
+            corrupted or unsupported checkpoint.
     """
     path = Path(target)
     if not path.exists():

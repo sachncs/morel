@@ -126,3 +126,15 @@ class Checker:
     def raises(self, tmp_path: Path) -> None:
         with pytest.raises(FileNotFoundError):
             load(tmp_path / "nope.pt")
+
+    def preserves_io_errors(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Filesystem failures remain distinguishable from corrupt checkpoints."""
+        path = tmp_path / "checkpoint.pt"
+        path.touch()
+
+        def blocked_load(*args, **kwargs):
+            raise PermissionError("denied")
+
+        monkeypatch.setattr(torch, "load", blocked_load)
+        with pytest.raises(PermissionError, match="denied"):
+            load(path)

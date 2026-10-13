@@ -26,7 +26,7 @@ export const HERO_PILLS = [
 // Updated only from a completed local audit; keep claims traceable to a
 // dated verification run instead of silently presenting illustrative values.
 export const VERIFICATION = {
-  tests: 575,
+  tests: 576,
   coverage: 84.49,
   lastVerified: "2026-10-13",
 } as const;
