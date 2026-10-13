@@ -76,18 +76,21 @@ from ``X-Forwarded-For``. Never trust that header from arbitrary clients.
 
 ### Custom metrics
 
-In your own server module, attach new metrics to the same registry:
+In your own server module, attach new metrics to the app-scoped registry. Each
+worker owns its registry, so Prometheus must scrape every worker through the
+service's normal load-balancing policy or use a process-level aggregation
+strategy:
 
 ```python
-from morel.serve.metrics import REGISTRY
+from fastapi import Request
 
 
 @app.get("/internal")
-def my_endpoint() -> ...:
-    REGISTRY.counter_inc("morel_app_my_total", {"kind": "internal"})
+def my_endpoint(request: Request) -> ...:
+    request.app.state.metrics_registry.counter_inc("morel_app_my_total", {"kind": "internal"})
 ```
 
-The exporter picks them up automatically. Use a stable metric name
+The app's `/metrics` exporter picks them up automatically. Use a stable metric name
 spaced by your component (``morel_app_*`` for application-level
 metrics) so dashboards and alerts can find them.
 

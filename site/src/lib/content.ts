@@ -27,7 +27,7 @@ export const HERO_PILLS = [
 // dated verification run instead of silently presenting illustrative values.
 export const VERIFICATION = {
   tests: 571,
-  coverage: 84.20,
+  coverage: 84.24,
   lastVerified: "2026-10-13",
 } as const;
 

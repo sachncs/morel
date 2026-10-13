@@ -175,7 +175,7 @@ class Checker:
 
     def production_preflight(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Production startup rejects unsafe logging configuration."""
-        from morel.core.config import Config, Log
+        from morel.core.config import Config, Log, Serve
         from morel.core.errors import Cfg
 
         monkeypatch.setenv("MOREL_ENV", "production")
@@ -183,6 +183,8 @@ class Checker:
             validate_preflight(Config(log=Log(structured=False)))
         with pytest.raises(Cfg, match="DEBUG"):
             validate_preflight(Config(log=Log(level="DEBUG")))
+        with pytest.raises(Cfg, match="metrics endpoint"):
+            validate_preflight(Config(serve=Serve(metrics_enabled=False)))
         validate_preflight(Config(), environ={"MOREL_ENV": "development"})
 
     def production_requires_model_bundle(self) -> None:

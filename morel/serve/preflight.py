@@ -37,6 +37,8 @@ def validate(
         raise Cfg("MOREL_ENV=production requires structured logging")
     if config.log.level.upper() == "DEBUG":
         raise Cfg("MOREL_ENV=production does not allow DEBUG logging")
+    if not config.serve.metrics_enabled:
+        raise Cfg("MOREL_ENV=production requires the metrics endpoint")
     inherited = variables.get("MOREL_SERVE_MODEL_DIR", "").strip()
     if not (model_dir or inherited):
         raise Cfg("MOREL_ENV=production requires MOREL_SERVE_MODEL_DIR or --model-dir")

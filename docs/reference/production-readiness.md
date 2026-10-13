@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         571 passed, 84.20% coverage
+pytest -q                         571 passed, 84.24% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -93,4 +93,6 @@ against a Pages-shaped `/morel/` artifact.
   graph encodings keep that cost out of the first request.
 - Repeated recommendation scores reuse an explicit completed-catalog cache;
   the cache is invalidated on corpus attachment and when training mode begins.
-- External deployment observability, rollback, and alert drills remain open.
+- The in-process Prometheus exporter is now required in production and its
+  per-worker scrape behavior is documented. External secret-manager
+  integration, rollback exercises, and alert drills remain open.
