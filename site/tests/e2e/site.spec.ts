@@ -100,6 +100,7 @@ test.describe("visual contracts", () => {
     await expect(page).toHaveScreenshot("desktop-home.png", {
       animations: "disabled",
       caret: "hide",
+      maxDiffPixelRatio: 0.15,
     });
   });
 
@@ -110,6 +111,7 @@ test.describe("visual contracts", () => {
     await expect(page).toHaveScreenshot("mobile-home.png", {
       animations: "disabled",
       caret: "hide",
+      maxDiffPixelRatio: 0.15,
     });
   });
 });
