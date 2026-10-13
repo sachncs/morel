@@ -234,7 +234,7 @@ def retrieve(
         anchors: Number of cosine neighbours per observed modality.
         iters: Expansion budget, interpreted by the strategy.
         fallback: Behaviour when expansion finds no collision root.
-        kind: Registered retrieval strategy; see ``morel.retrieve.STRATEGIES``.
+        kind: Registered retrieval strategy; see ``morel.retrieve.KIND``.
         relevance_index: Optional precomputed relevance index.
         anchor_index: Optional precomputed normalized anchor index.
         max_nodes: Optional upper bound on the returned subgraph size.

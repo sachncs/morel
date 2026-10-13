@@ -88,12 +88,12 @@ their existing typed protocols.
 |---|---|---|
 | `masking.kind` | `MASKS` | `bernoulli`, `block` |
 | `encoder.text` / `encoder.visual` | `EXTRACTORS` | `random`, `sentence-transformers/all-MiniLM-L6-v2`, `resnet50` |
-| `retrieve.kind` | `STRATEGIES` | `mage`, `acs`, `anchor`, `bfs`, `none` |
-| `encode.kind` | `ENCODERS` | `transformer`, `identity` |
-| `route.kind` | `ROUTERS` | `top`, `dense`, `gumbel`, `fixed` |
-| `codebook.kind` | `CODEBOOKS` | `gumbel`, `vq`, `identity` |
-| `complete.kind` | `COMPLETERS` | `mlp` |
-| `recommend.kind` | `RECOMMENDERS` | `light`, `mf`, `pop` |
+| `retrieve.kind` | `morel.retrieve.KIND` | `mage`, `acs`, `anchor`, `bfs`, `none` |
+| `encode.kind` | `morel.encode.KIND` | `transformer`, `identity` |
+| `route.kind` | `morel.route.KIND` | `top`, `dense`, `gumbel`, `fixed` |
+| `codebook.kind` | `morel.codebook.KIND` | `gumbel`, `vq`, `identity` |
+| `complete.kind` | `morel.complete.KIND` | `mlp` |
+| `recommend.kind` | `morel.recommend.KIND` | `light`, `mf`, `pop` |
 
 Adding an implementation requires an explicit adapter and contract check in
 the owning package; dynamic mutation of production registries is deliberately
