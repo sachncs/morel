@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 import uuid
@@ -29,6 +30,8 @@ from morel.serve.schema import (
     Query,
     serialize,
 )
+
+log = logging.getLogger("morel.serve.app")
 
 if TYPE_CHECKING:
     pass
@@ -191,6 +194,26 @@ def create(
             headers={"X-Request-ID": request_id},
         )
 
+    @app.exception_handler(Exception)
+    async def internal_error(request: Request, exc: Exception) -> JSONResponse:
+        """Sanitize unexpected failures while retaining an operator trace."""
+        request_id = getattr(request.state, "request_id", "unknown")
+        log.exception(
+            "unexpected serving failure",
+            extra={"request_id": request_id, "path": request.url.path},
+        )
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": {
+                    "code": "internal_error",
+                    "message": "unexpected serving failure; see server logs with the request id",
+                    "request_id": request_id,
+                }
+            },
+            headers={"X-Request-ID": request_id},
+        )
+
     @app.middleware("http")
     async def observe(request: Request, call_next: Any) -> Any:
         """Count every request and serve Prometheus-formatted /metrics."""
@@ -203,7 +226,25 @@ def create(
             response.headers["X-Request-ID"] = request_id
             return response
         started = time.perf_counter()
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception:
+            log.exception(
+                "unexpected serving failure",
+                extra={"request_id": request_id, "path": request.url.path},
+            )
+            response = JSONResponse(
+                status_code=500,
+                content={
+                    "error": {
+                        "code": "internal_error",
+                        "message": (
+                            "unexpected serving failure; see server logs with the request id"
+                        ),
+                        "request_id": request_id,
+                    }
+                },
+            )
         response.headers["X-Request-ID"] = request_id
         registry.observe_request(
             endpoint=request.url.path,

@@ -339,6 +339,24 @@ class Checker:
         assert body["fields"]
         assert all("input" not in field for field in body["fields"])
 
+    async def unexpected_error_envelope(self) -> None:
+        """Unexpected handler failures are sanitized and correlated."""
+        app = create()
+
+        async def explode() -> None:
+            raise RuntimeError("database password=do-not-leak")
+
+        app.add_api_route("/explode", explode, methods=["GET"])
+        async with make(app) as client:
+            r = await get(client, "/explode", headers={"X-Request-ID": "internal-123"})
+        assert r.status_code == 500
+        assert "database password" not in r.text
+        assert r.json()["error"] == {
+            "code": "internal_error",
+            "message": "unexpected serving failure; see server logs with the request id",
+            "request_id": "internal-123",
+        }
+
     async def health_ready_with_factory(self) -> None:
         """A registered factory yields a 200 ready response."""
         app, _, _ = make_app_with_factory()
@@ -384,6 +402,7 @@ class Checker:
         assert "text/plain" in r.headers.get("content-type", "")
         body = r.text
         assert "morel_requests_total" in body
+        assert "morel_request_duration_seconds" in body
 
     async def metrics_isolation(self) -> None:
         """Separate app instances must not share request counters."""
