@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import numpy as np
 import pytest
 import scipy.sparse as sp
 
 from morel.core.errors import Datum
-from morel.data.build import bipartite, cooccurrence, kcore
+from morel.data.build import bipartite, cooccurrence, cooccurrence_stream, kcore
 
 
 class Checker:
@@ -60,3 +63,18 @@ class Checker:
     def rejects(self) -> None:
         with pytest.raises(Datum):
             bipartite(np.array([0, 1]), np.array([0]), 2, 2)
+
+    def streamed_groups(self, tmp_path: Path) -> None:
+        """The streaming builder preserves user boundaries inside chunks."""
+        path = tmp_path / "reviews.json"
+        path.write_text(
+            "\n".join(
+                json.dumps({"reviewerID": user, "asin": item})
+                for user, item in [("u1", "0"), ("u1", "1"), ("u2", "1"), ("u2", "2")]
+            ),
+            encoding="utf-8",
+        )
+        graph = cooccurrence_stream(path, items=3, min_edges=1, chunk_size=8)
+        assert graph[0, 1] == 1
+        assert graph[1, 2] == 1
+        assert graph[0, 2] == 0

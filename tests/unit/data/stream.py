@@ -53,6 +53,23 @@ class Checker:
         with pytest.raises(Datum, match="equal lengths"):
             cooc(iter([(np.array([0]), np.array([0, 1]))]), items=4)
 
+    def groups_by_user(self) -> None:
+        """Items from separate users must not become false co-occurrences."""
+        graph = cooc(
+            iter([(np.array([0, 1]), np.array([0, 1]))]),
+            items=2,
+        )
+        assert graph.nnz == 0
+
+    def edge_budget(self) -> None:
+        """A high-degree stream fails before its COO lists grow without bound."""
+        with pytest.raises(Datum, match="edge budget"):
+            cooc(
+                iter([(np.array([0, 0, 0]), np.array([0, 1, 2]))]),
+                items=3,
+                max_edges=2,
+            )
+
     def duplicate_edges_do_not_inflate_kcore(self, tmp_path: Path) -> None:
         """The exact two-pass filter counts unique user-item edges only."""
         path = tmp_path / "duplicates.json"

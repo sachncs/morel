@@ -10,7 +10,7 @@ import scipy.sparse as sp
 
 from morel.core.errors import Datum
 from morel.core.log import get as logger
-from morel.data.stream import confirmed
+from morel.data.stream import MAX_COO_EDGES, confirmed
 
 log = logger("data.build")
 
@@ -161,6 +161,7 @@ def cooccurrence_stream(
     items: int,
     min_edges: int = 5,
     chunk_size: int = 100_000,
+    max_edges: int = MAX_COO_EDGES,
 ) -> sp.csr_matrix:
     """Build an item co-occurrence graph in a single streaming pass.
 
@@ -175,6 +176,8 @@ def cooccurrence_stream(
         items: Number of items in the catalogue.
         min_edges: Online degree filter applied while streaming.
         chunk_size: Reviews per streaming chunk.
+        max_edges: Maximum number of directed COO entries accumulated before
+            failing closed.
 
     Returns
     -------
@@ -182,22 +185,31 @@ def cooccurrence_stream(
     """
     from morel.data.stream import stream
 
+    if isinstance(max_edges, bool) or not isinstance(max_edges, int) or max_edges <= 0:
+        raise Datum(f"max_edges must be a positive integer, got {max_edges!r}")
     rows: list[int] = []
     cols: list[int] = []
     data: list[int] = []
-    for _user_chunk, item_chunk in stream(review_path, min_edges=min_edges, chunk_size=chunk_size):
-        # For each user the items they touched form a clique in the
-        # item co-occurrence graph. Track pairs by keeping the items
-        # in a small fixed buffer (one user's worth) before iterating.
-        per_user_items = sorted({int(i) for i in item_chunk})
-        for idx, a in enumerate(per_user_items):
-            for b in per_user_items[idx + 1 :]:
-                rows.append(a)
-                cols.append(b)
-                data.append(1)
-                rows.append(b)
-                cols.append(a)
-                data.append(1)
+    for user_chunk, item_chunk in stream(review_path, min_edges=min_edges, chunk_size=chunk_size):
+        # Items form a clique only within one user. Grouping here prevents
+        # unrelated users in the same stream chunk from creating false edges.
+        by_user: dict[str, set[int]] = {}
+        for user, item in zip(user_chunk.tolist(), item_chunk.tolist(), strict=True):
+            by_user.setdefault(str(user), set()).add(int(item))
+        for per_user_items_set in by_user.values():
+            per_user_items = sorted(per_user_items_set)
+            for idx, a in enumerate(per_user_items):
+                for b in per_user_items[idx + 1 :]:
+                    if len(rows) + 2 > max_edges:
+                        raise Datum(
+                            f"co-occurrence edge budget exceeded: {max_edges} directed entries"
+                        )
+                    rows.append(a)
+                    cols.append(b)
+                    data.append(1)
+                    rows.append(b)
+                    cols.append(a)
+                    data.append(1)
     matrix = sp.coo_matrix((data, (rows, cols)), shape=(items, items))
     matrix.setdiag(0)
     matrix.eliminate_zeros()

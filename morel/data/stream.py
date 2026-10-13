@@ -18,6 +18,11 @@ import scipy.sparse as sp
 
 from morel.core.errors import Datum
 
+# A COO accumulator stores three Python lists before SciPy compacts it. Keep
+# the default conservative so a single high-degree user cannot turn a stream
+# chunk into an unbounded quadratic allocation.
+MAX_COO_EDGES = 1_000_000
+
 
 def _positive_int(value: int, name: str) -> None:
     """Validate a positive streaming parameter."""
@@ -216,6 +221,7 @@ def cooc(
     ui_chunks: Iterator[tuple[np.ndarray, np.ndarray]],
     *,
     items: int,
+    max_edges: int = MAX_COO_EDGES,
 ) -> sp.csr_matrix:
     """Build an item co-occurrence graph from a stream of bipartite chunks.
 
@@ -230,6 +236,8 @@ def cooc(
         Stream of ``(user_ids, item_ids)`` pairs.
     items : int
         Number of items.
+        max_edges : int
+        Maximum number of directed COO entries accumulated before failing.
 
     Returns
     -------
@@ -237,6 +245,7 @@ def cooc(
         Symmetric ``(items, items)`` item co-occurrence adjacency.
     """
     _positive_int(items, "items")
+    _positive_int(max_edges, "max_edges")
     rows: list[int] = []
     cols: list[int] = []
     data: list[int] = []
@@ -251,15 +260,20 @@ def cooc(
             raise Datum("stream item ids must be integers")
         if items_array.size and (np.any(items_array < 0) or np.any(items_array >= items)):
             raise Datum("stream item id is outside the catalog bounds")
-        per_user_items = sorted({int(i) for i in items_array})
-        for idx, a in enumerate(per_user_items):
-            for b in per_user_items[idx + 1 :]:
-                rows.append(a)
-                cols.append(b)
-                data.append(1)
-                rows.append(b)
-                cols.append(a)
-                data.append(1)
+        for user in np.unique(users_array):
+            per_user_items = sorted({int(i) for i in items_array[users_array == user]})
+            for idx, a in enumerate(per_user_items):
+                for b in per_user_items[idx + 1 :]:
+                    if len(rows) + 2 > max_edges:
+                        raise Datum(
+                            f"co-occurrence edge budget exceeded: {max_edges} directed entries"
+                        )
+                    rows.append(a)
+                    cols.append(b)
+                    data.append(1)
+                    rows.append(b)
+                    cols.append(a)
+                    data.append(1)
     matrix = sp.coo_matrix((data, (rows, cols)), shape=(items, items))
     matrix.setdiag(0)
     matrix.eliminate_zeros()
@@ -267,6 +281,7 @@ def cooc(
 
 
 __all__ = [
+    "MAX_COO_EDGES",
     "confirmed",
     "cooc",
     "review",

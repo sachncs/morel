@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         558 passed, 83.55% coverage
+pytest -q                         561 passed, 84.19% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -78,6 +78,9 @@ against a Pages-shaped `/morel/` artifact.
 - Malformed HTTP payload property coverage and data-stream boundary tests are
   present; malformed-artifact and broader configuration fuzz coverage remains
   incomplete.
+- Streaming co-occurrence construction groups records by user and enforces a
+  directed-edge accumulation budget, failing with a domain error before a
+  high-degree input can trigger an unbounded quadratic allocation.
 - The retrieval encoder uses batched gathers for padded subgraphs; MAGE shares
   one relevance index across a batch and lazily materializes active neighbor
   rows. End-to-end

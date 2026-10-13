@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **558 passed**, 83.55% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **561 passed**, 84.19% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -188,7 +188,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 558/83.55 baseline.
+  stale documentation counts were updated to the current 561/84.19 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -203,7 +203,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 558-test/83.55%-coverage evidence across the audit, docs, and site.
+  the current 561-test/84.19%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -256,7 +256,7 @@ The numbered inventory below is intentionally retained as the complete issue
 history. This status map prevents historical findings from being mistaken for
 open defects:
 
-- **Closed in this worktree:** 1–4, 7–15, 17–20, 23, 26–32, 34–39, 42, 49, 54–58, and the
+- **Closed in this worktree:** 1–4, 7–15, 17–20, 23, 26–32, 34–39, 42, 49, 54–59, and the
   local portions of 43–48.
 - **Partially addressed:** 16, 19, 21, 22, 24, 25, 33, 41,
   50, 51, 52, and 53.
@@ -410,6 +410,13 @@ until a Pages deployment is published and rechecked.
    recycling, and the production model-bundle requirement are now validated
    and wired into startup. A complete production profile still needs secret
    references and explicit observability/exporter settings.
+
+59. **Closed in this worktree:** The streaming co-occurrence builders treated
+    every record in a chunk as belonging to one user, creating false
+    item-item edges across unrelated users. Their COO accumulators also had no
+    hard edge budget, so one high-degree user could force a quadratic Python
+    list allocation. Both paths now group items by user and fail closed at a
+    validated directed-edge limit.
 
 ### P3 — testing and quality gates
 
