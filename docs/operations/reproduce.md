@@ -39,7 +39,7 @@ for full reproducibility.
   torch, torch CUDA, numpy, Python `random`, `PYTHONHASHSEED`, and
   cuDNN. The CLI calls it at startup.
 - Resuming a run requires the saved `config_hash` to match the new
-  Config; mismatched hashes raise `ConfigError`.
+  Config; mismatched hashes raise the typed `Cfg` configuration error.
 - `Manifest` sidecar binding ensures the artifact cannot be silently
   consumed under a different configuration.
 

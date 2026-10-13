@@ -1,35 +1,34 @@
 # How to add a custom component
 
 morel's stages — retrieval, encoding, routing, codebook, completion,
-and recommendation — are registered as factories and selected by a
-`kind` field in the config. Adding a new implementation does not
-require touching morel.
+and recommendation — are selected by a `kind` field in the config. Built-in
+construction is routed through typed adapters and runtime contracts; production
+registries are intentionally not mutable at runtime.
 
 ## The pattern
 
-Every stage exposes a registry and a `build(kind, ...)` function that
-returns a constructed module. Pick the registry that matches your
-stage:
+Every stage exposes a public `KIND` mapping for introspection and a
+`build(kind, ...)` function. Pick the package that matches your stage:
 
 | Stage       | Registry module                | ``Config`` field    |
 |-------------|--------------------------------|---------------------|
-| Retrieval   | ``morel.retrieve.STRATEGIES``  | ``retrieve.kind``   |
-| Encoding    | ``morel.encode.ENCODERS``      | ``encode.kind``     |
-| Routing     | ``morel.route.ROUTERS``        | ``route.kind``      |
-| Codebook    | ``morel.codebook.CODEBOOKS``   | ``codebook.kind``   |
-| Completion  | ``morel.complete.COMPLETERS``  | ``complete.kind``   |
-| Recommendation | ``morel.recommend.RECOMMENDERS`` | ``recommend.kind`` |
-| Masking     | ``morel.data.MASKS``           | ``masking.kind``    |
+| Retrieval   | ``morel.retrieve.KIND``        | ``retrieve.kind``   |
+| Encoding    | ``morel.encode.KIND``           | ``encode.kind``     |
+| Routing     | ``morel.route.KIND``            | ``route.kind``      |
+| Codebook    | ``morel.codebook.KIND``         | ``codebook.kind``   |
+| Completion  | ``morel.complete.KIND``         | ``complete.kind``   |
+| Recommendation | ``morel.recommend.KIND``     | ``recommend.kind`` |
+| Masking     | ``morel.data.MASKS``            | ``masking.kind``    |
 | Extraction  | ``morel.data.EXTRACTORS``      | ``encoder.text`` / ``encoder.visual`` |
 
-Use `register(name)` to add a new factory:
+To add a new implementation, add a typed adapter to the owning package and
+validate its protocol before exposing the new configuration name:
 
 ```python
-from morel.codebook import CODEBOOKS
+from morel.codebook import Codebook
 
 
-@CODEBOOKS.register("my-codebook")
-def build_my_codebook(*, dim, size, router, seed=None):
+def build_my_codebook(*, dim: int, size: int, router, seed=None) -> Codebook:
     return MyCodebook(dim=dim, size=size, router=router, seed=seed)
 ```
 
@@ -46,8 +45,6 @@ codebook:
 ```python
 import torch
 import torch.nn as nn
-
-from morel.codebook import CODEBOOKS
 
 
 class SparseCodebook(nn.Module):
@@ -74,13 +71,12 @@ class SparseCodebook(nn.Module):
         return weights, g
 
 
-@CODEBOOKS.register("sparse")
-def build(*, dim, size, router, seed=None):
+def build(*, dim: int, size: int, router, seed=None) -> Codebook:
     return SparseCodebook(dim=dim, size=size, router=router, seed=seed)
 ```
 
-Put this in your own project, import it once at startup, and select
-it from config:
+Put the adapter in a fork or an explicitly maintained integration package,
+include it in that package's typed factory map, and select it from config:
 
 ```yaml
 codebook:
@@ -90,13 +86,12 @@ codebook:
 
 ## Notes on contracts
 
-- Every factory takes its keyword arguments by name and may ignore
+- Every adapter takes its keyword arguments by name and may ignore
   some; this keeps the signature compatible with the shipped
   factories and lets a config cross-compile.
-- A registered name conflicts with an existing factory unless
-  ``replace=True`` is passed to ``register``.
-- Custom factories in test code are fine; pytest discovers them
-  once the test module is imported.
+- The adapter result must satisfy the stage protocol before it enters
+  composition; incompatible values fail with the typed ``Cfg`` error.
+- Custom adapters should be covered by contract tests before deployment.
 
 ## See also
 

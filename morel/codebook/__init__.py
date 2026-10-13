@@ -8,7 +8,7 @@ from morel.codebook.codebook import (
     balance,
     usage,
 )
-from morel.core.errors import Cfg
+from morel.core.factory import FactoryRegistry
 from morel.route import Router
 
 
@@ -35,13 +35,7 @@ def build(
     Raises:
         ValueError: If ``kind`` is not a known codebook name.
     """
-    if kind == "gumbel":
-        return Soft(dim=dim, size=size, router=router, seed=seed)
-    if kind == "vq":
-        return VQ(dim=dim, size=size, seed=seed)
-    if kind == "identity":
-        return Noop(dim=dim, size=size)
-    raise Cfg(f"unknown codebook '{kind}'; available: gumbel, vq, identity")
+    return _FACTORIES.build(kind, dim=dim, size=size, router=router, seed=seed)
 
 
 #: Map from config name to codebook class for introspection.
@@ -50,6 +44,30 @@ KIND: dict[str, type[Codebook]] = {
     "vq": VQ,
     "identity": Noop,
 }
+
+
+def _build_soft(*, dim: int, size: int, router: Router, seed: int | None) -> Codebook:
+    """Adapt the shared constructor shape to the Gumbel codebook."""
+    return Soft(dim=dim, size=size, router=router, seed=seed)
+
+
+def _build_vq(*, dim: int, size: int, router: Router, seed: int | None) -> Codebook:
+    """Adapt the shared constructor shape to vector quantization."""
+    del router
+    return VQ(dim=dim, size=size, seed=seed)
+
+
+def _build_noop(*, dim: int, size: int, router: Router, seed: int | None) -> Codebook:
+    """Adapt the shared constructor shape to the identity codebook."""
+    del router, seed
+    return Noop(dim=dim, size=size)
+
+
+_FACTORIES = FactoryRegistry[Codebook](
+    "codebook",
+    {"gumbel": _build_soft, "vq": _build_vq, "identity": _build_noop},
+    validator=lambda value: isinstance(value, Codebook),
+)
 
 
 __all__ = [

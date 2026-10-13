@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F  # noqa: N812
 
-from morel.core.errors import Cfg
+from morel.core.factory import FactoryRegistry
 
 
 @dataclass(frozen=True)
@@ -217,15 +217,37 @@ class Gumbel(Router):
 
 def build(kind: str, dim: int, k: int, *, p: int, tau: float) -> Router:
     """Build a router by name."""
-    if kind == "dense":
-        return Dense(dim, k, tau=tau)
-    if kind == "top":
-        return Top(dim, k, p=p, tau=tau)
-    if kind == "gumbel":
-        return Gumbel(dim, k, tau=tau)
-    if kind == "fixed":
-        return Fixed(k)
-    raise Cfg(f"unknown router '{kind}'; available: top, dense, gumbel, fixed")
+    return _FACTORIES.build(kind, dim=dim, k=k, p=p, tau=tau)
+
+
+def _build_top(*, dim: int, k: int, p: int, tau: float) -> Router:
+    """Adapt the shared constructor shape to top-p routing."""
+    return Top(dim, k, p=p, tau=tau)
+
+
+def _build_dense(*, dim: int, k: int, p: int, tau: float) -> Router:
+    """Adapt the shared constructor shape to dense routing."""
+    del p
+    return Dense(dim, k, tau=tau)
+
+
+def _build_gumbel(*, dim: int, k: int, p: int, tau: float) -> Router:
+    """Adapt the shared constructor shape to Gumbel routing."""
+    del p
+    return Gumbel(dim, k, tau=tau)
+
+
+def _build_fixed(*, dim: int, k: int, p: int, tau: float) -> Router:
+    """Adapt the shared constructor shape to fixed routing."""
+    del dim, p, tau
+    return Fixed(k)
+
+
+_FACTORIES = FactoryRegistry[Router](
+    "router",
+    {"top": _build_top, "dense": _build_dense, "gumbel": _build_gumbel, "fixed": _build_fixed},
+    validator=lambda value: isinstance(value, Router),
+)
 
 
 __all__ = ["Dense", "Fixed", "Gumbel", "Router", "Top", "Weights", "build"]

@@ -2,7 +2,7 @@
 
 import torch.nn as nn
 
-from morel.core.errors import Cfg
+from morel.core.factory import FactoryRegistry
 from morel.encode.baseline import Baseline, Enc, GraphEncoder, Identity, Sum
 from morel.encode.input import Input
 from morel.encode.layer import Layer
@@ -37,22 +37,15 @@ def build(
     Raises:
         ValueError: If ``kind`` is not a known encoder name.
     """
-    if kind == "transformer":
-        encoder: nn.Module = Transformer(
-            dims=dims,
-            pe_dim=pe_dim,
-            hidden=hidden,
-            layers=layers,
-            heads=heads,
-            dropout=dropout,
-        )
-    elif kind == "identity":
-        encoder = Identity(dims, pe_dim, hidden)
-    else:
-        raise Cfg(f"unknown encoder '{kind}'; available: transformer, identity")
-    if not isinstance(encoder, GraphEncoder):
-        raise Cfg(f"encoder '{kind}' does not satisfy the GraphEncoder contract")
-    return encoder
+    return _FACTORIES.build(
+        kind,
+        dims=dims,
+        pe_dim=pe_dim,
+        hidden=hidden,
+        layers=layers,
+        heads=heads,
+        dropout=dropout,
+    )
 
 
 #: Map from config name to encoder class for introspection.
@@ -60,6 +53,47 @@ KIND: dict[str, type[nn.Module]] = {
     "transformer": Transformer,
     "identity": Identity,
 }
+
+
+def _build_transformer(
+    *,
+    dims: dict[str, int],
+    pe_dim: int,
+    hidden: int,
+    layers: int,
+    heads: int,
+    dropout: float,
+) -> nn.Module:
+    """Adapt the shared constructor shape to the transformer implementation."""
+    return Transformer(
+        dims=dims,
+        pe_dim=pe_dim,
+        hidden=hidden,
+        layers=layers,
+        heads=heads,
+        dropout=dropout,
+    )
+
+
+def _build_identity(
+    *,
+    dims: dict[str, int],
+    pe_dim: int,
+    hidden: int,
+    layers: int,
+    heads: int,
+    dropout: float,
+) -> nn.Module:
+    """Adapt the shared constructor shape to the identity implementation."""
+    del layers, heads, dropout
+    return Identity(dims, pe_dim, hidden)
+
+
+_FACTORIES = FactoryRegistry[nn.Module](
+    "encoder",
+    {"transformer": _build_transformer, "identity": _build_identity},
+    validator=lambda value: isinstance(value, GraphEncoder),
+)
 
 
 __all__ = [

@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from morel.complete.decoders import Decoders
 from morel.complete.protocol import Completer
-from morel.core.errors import Cfg
+from morel.core.factory import FactoryRegistry
 
 
 def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> nn.Module:
@@ -22,16 +22,14 @@ def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> n
     Raises:
         ValueError: If ``kind`` is not a known completer name.
     """
-    if kind == "mlp":
-        completer: nn.Module = Decoders(latent_dim=latent_dim, dims=dims, hidden=hidden)
-        if not isinstance(completer, Completer):
-            raise Cfg(f"completer '{kind}' does not satisfy the Completer contract")
-        return completer
-    raise Cfg(f"unknown completer '{kind}'; available: mlp")
+    return _FACTORIES.build(kind, latent_dim=latent_dim, dims=dims, hidden=hidden)
 
 
 #: Map from config name to completer class for introspection.
 KIND: dict[str, type[nn.Module]] = {"mlp": Decoders}
+_FACTORIES = FactoryRegistry[nn.Module](
+    "completer", KIND, validator=lambda value: isinstance(value, Completer)
+)
 
 
 __all__ = ["KIND", "Completer", "Decoders", "build"]

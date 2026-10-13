@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **566 passed**, 84.08% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **571 passed**, 84.23% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -15,6 +15,10 @@ Scope: repository, local Python package, local React site, and the deployed
 - `mypy morel/`: passes with no configuration warnings.
 - Ruff now enforces Google-style docstrings across source and tests; the legacy
   NumPy section underlines have been removed.
+- Added a generic `FactoryRegistry[T]` with runtime contract validation and
+  constructor adapters for encoders, routers, codebooks, completers, and
+  recommenders; public `KIND` maps remain available for configuration
+  introspection without being the construction mechanism.
 - The serving protocol now requires explicit `user_count`, `item_count`, and
   `score()` capabilities; incomplete structural implementations are rejected
   before caching instead of falling back to reflective dispatch.
@@ -197,7 +201,7 @@ Scope: repository, local Python package, local React site, and the deployed
   test module.
 - Removed unsupported hard-coded recommendation deltas from the product site;
   performance cards now direct users to reproducible local evaluation, and
-  stale documentation counts were updated to the current 566/84.08 baseline.
+  stale documentation counts were updated to the current 571/84.23 baseline.
 - Corrected deployment documentation to remove unsupported `LOG_LEVEL` and
   `MOREL_MODEL_PATH` controls, and removed a duplicated acquisition docstring
   section.
@@ -212,7 +216,7 @@ Scope: repository, local Python package, local React site, and the deployed
   filesystem failures; cancellation and unexpected programming errors are no
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
-  the current 566-test/84.08%-coverage evidence across the audit, docs, and site.
+  the current 571-test/84.23%-coverage evidence across the audit, docs, and site.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -382,11 +386,12 @@ and release operations.
     behind a documented abstract interface with capability declarations.
 19. **Partially addressed:** Serving factories now accept runtime validators,
     and the CLI/runtime register an explicit serving contract requiring
-    `score`, `user_count`, and `item_count` before caching a model. The broader
-    pipeline still uses string-keyed registries and
-    `getattr`-based optional methods at composition boundaries; typed factories
-    and protocol/abstract-base contracts are still needed for retrieval,
-    encoding, codebooks, completion, and recommendation.
+    `score`, `user_count`, and `item_count` before caching a model. A shared
+    `FactoryRegistry[T]` now validates built-in encoder, router, codebook,
+    completer, and recommender adapters at composition time. Retrieval still
+    resolves a string-keyed strategy map directly, and optional capabilities
+    elsewhere still use `getattr`; third-party extension registration and the
+    remaining protocol boundaries need a typed plugin surface.
 20. **Closed in this worktree:** `Pipeline.attach()` stores mutable corpus dictionaries/arrays by reference.
     Callers can mutate data after attachment and change inference behavior
     without invalidation or a clear lifecycle boundary.

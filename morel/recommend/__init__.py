@@ -2,7 +2,7 @@
 
 import torch.nn as nn
 
-from morel.core.errors import Cfg
+from morel.core.factory import FactoryRegistry
 from morel.recommend.baseline import MF, Pop
 from morel.recommend.bpr import bpr, distinct, negatives, to_ranks
 from morel.recommend.light import Light
@@ -36,24 +36,15 @@ def build(
     Raises:
         ValueError: If ``kind`` is not a known ranker name.
     """
-    if kind == "light":
-        ranker: nn.Module = Light(
-            users=users,
-            items=items,
-            embed=embed,
-            layers=layers,
-            feature_dim=feature_dim,
-            seed=seed,
-        )
-    elif kind == "mf":
-        ranker = MF(users=users, items=items, embed=embed, seed=seed)
-    elif kind == "pop":
-        ranker = Pop(users=users, items=items)
-    else:
-        raise Cfg(f"unknown recommender '{kind}'; available: light, mf, pop")
-    if not isinstance(ranker, Recommender):
-        raise Cfg(f"recommender '{kind}' does not satisfy the Recommender contract")
-    return ranker
+    return _FACTORIES.build(
+        kind,
+        users=users,
+        items=items,
+        embed=embed,
+        layers=layers,
+        feature_dim=feature_dim,
+        seed=seed,
+    )
 
 
 #: Map from config name to ranker class for introspection.
@@ -62,6 +53,61 @@ KIND: dict[str, type[nn.Module]] = {
     "mf": MF,
     "pop": Pop,
 }
+
+
+def _build_light(
+    *,
+    users: int,
+    items: int,
+    embed: int,
+    layers: int,
+    feature_dim: int | None,
+    seed: int | None,
+) -> nn.Module:
+    """Adapt the shared constructor shape to the graph ranker."""
+    return Light(
+        users=users,
+        items=items,
+        embed=embed,
+        layers=layers,
+        feature_dim=feature_dim,
+        seed=seed,
+    )
+
+
+def _build_mf(
+    *,
+    users: int,
+    items: int,
+    embed: int,
+    layers: int,
+    feature_dim: int | None,
+    seed: int | None,
+) -> nn.Module:
+    """Adapt the shared constructor shape to matrix factorization."""
+    del layers, feature_dim
+    return MF(users=users, items=items, embed=embed, seed=seed)
+
+
+def _build_pop(
+    *,
+    users: int,
+    items: int,
+    embed: int,
+    layers: int,
+    feature_dim: int | None,
+    seed: int | None,
+) -> nn.Module:
+    """Adapt the shared constructor shape to popularity ranking."""
+    del embed, layers, feature_dim, seed
+    return Pop(users=users, items=items)
+
+
+_FACTORIES = FactoryRegistry[nn.Module](
+    "recommender",
+    {"light": _build_light, "mf": _build_mf, "pop": _build_pop},
+    validator=lambda value: isinstance(value, Recommender),
+)
 
 
 __all__ = [

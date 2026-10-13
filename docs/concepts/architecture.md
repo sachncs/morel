@@ -77,14 +77,14 @@ A single `Config` dataclass tree at `morel.core.config.Config` is the source of 
 
 ## Extension points
 
-Each pipeline stage is selected by a `kind` in the config and built through a
-registry. The registries are `morel.encode.ENCODERS`, `morel.route.ROUTERS`,
-`morel.codebook.CODEBOOKS`, `morel.complete.COMPLETERS`,
-`morel.recommend.RECOMMENDERS`, `morel.retrieve.STRATEGIES` and
-`morel.data.MASKS` and `morel.data.EXTRACTORS`; each is a
-`morel.core.registry.Registry`.
+Each pipeline stage is selected by a `kind` in the config. The public `KIND`
+maps remain stable, configuration-facing introspection views. Construction
+goes through typed adapters backed by `morel.core.FactoryRegistry`, which
+validates the runtime contract at the composition boundary. Retrieval keeps
+the same contract through `RetrievalStrategy`; data extractors and masks use
+their existing typed protocols.
 
-| Config field | Registry | Shipped kinds |
+| Config field | Public map | Shipped kinds |
 |---|---|---|
 | `masking.kind` | `MASKS` | `bernoulli`, `block` |
 | `encoder.text` / `encoder.visual` | `EXTRACTORS` | `random`, `sentence-transformers/all-MiniLM-L6-v2`, `resnet50` |
@@ -95,15 +95,15 @@ registry. The registries are `morel.encode.ENCODERS`, `morel.route.ROUTERS`,
 | `complete.kind` | `COMPLETERS` | `mlp` |
 | `recommend.kind` | `RECOMMENDERS` | `light`, `mf`, `pop` |
 
-Adding an implementation does not require editing morel. Register a factory
-under a new name and select it from config:
+Adding an implementation requires an explicit adapter and contract check in
+the owning package; dynamic mutation of production registries is deliberately
+not supported. A built-in adapter follows this shape:
 
 ```python
-from morel.codebook import CODEBOOKS
+from morel.codebook import Codebook
 
 
-@CODEBOOKS.register("my-codebook")
-def build_mine(*, dim, size, router, seed=None):
+def build_mine(*, dim: int, size: int, router, seed=None) -> Codebook:
     return MyCodebook(dim, size)
 ```
 
@@ -112,15 +112,15 @@ codebook:
   kind: my-codebook
 ```
 
-A factory takes keyword arguments only, and takes the full set its stage
-supplies even if it ignores some of them, so that all implementations of a
-stage are interchangeable. An unregistered `kind` raises `ConfigError` listing
-the names that are available; registering an existing name raises unless
-`replace=True`.
+A factory takes keyword arguments only and accepts the full set its stage
+supplies, even if it ignores some of them, so implementations of a stage are
+interchangeable. An unregistered `kind` raises the typed `Cfg` configuration
+error listing the available names, and a result that does not satisfy the
+stage protocol is rejected before it enters the pipeline.
 
-`tests/unit/pipeline/test_component_selection.py` checks that every shipped
-combination runs end to end and that a component defined outside the package
-is selectable.
+`tests/unit/pipeline/component.py`, `tests/unit/core/factory.py`, and the
+architecture checks cover shipped combinations, registry validation, and
+import-layer contracts.
 
 ### Ablations
 

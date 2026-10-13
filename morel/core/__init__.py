@@ -26,6 +26,7 @@ from morel.core.errors import (
     Shape,
     Train,
 )
+from morel.core.factory import FactoryRegistry
 from morel.core.fidelity import (
     Entry as FidelityEntry,
 )
@@ -76,6 +77,7 @@ __all__ = [
     "Device",
     "Embedding",
     "Error",
+    "FactoryRegistry",
     "FidelityEntry",
     "FidelityStatus",
     "Model",
