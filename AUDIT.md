@@ -25,6 +25,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Release publication is now tag-only and verifies the built wheel version and
   changelog release section against the pushed semantic-version tag before
   PyPI upload.
+- The real model-backed two-worker smoke now repeats recommendation requests,
+  reports p50/p95/p99 latency, and fails against an explicit configurable p95
+  budget; production hardware-specific calibration remains open.
 - The serving protocol now requires explicit `user_count`, `item_count`, and
   `score()` capabilities; incomplete structural implementations are rejected
   before caching instead of falling back to reflective dispatch.

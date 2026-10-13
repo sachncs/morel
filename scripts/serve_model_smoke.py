@@ -8,10 +8,20 @@ import subprocess
 import sys
 import time
 from collections.abc import Mapping
+from math import ceil
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from serve_workers_smoke import environment
+
+
+def percentile(values: list[float], fraction: float) -> float:
+    """Return a nearest-rank percentile for a non-empty sample."""
+    if not values:
+        raise ValueError("percentile requires at least one value")
+    ordered = sorted(values)
+    index = max(0, min(len(ordered) - 1, ceil(fraction * len(ordered)) - 1))
+    return ordered[index]
 
 
 def fetch(base: str, path: str, body: Mapping[str, object] | None = None) -> tuple[int, object]:
@@ -39,6 +49,12 @@ def main() -> int:
     """Start workers with a real checkpoint and verify inference responses."""
     port = int(os.environ.get("MOREL_MODEL_SMOKE_PORT", "18116"))
     model_dir = os.environ.get("MOREL_MODEL_SMOKE_DIR", "runs/completion")
+    requests = int(os.environ.get("MOREL_MODEL_SMOKE_REQUESTS", "3"))
+    p95_budget = float(os.environ.get("MOREL_MODEL_SMOKE_P95_SECONDS", "30"))
+    if requests < 1:
+        raise ValueError("MOREL_MODEL_SMOKE_REQUESTS must be positive")
+    if p95_budget <= 0:
+        raise ValueError("MOREL_MODEL_SMOKE_P95_SECONDS must be positive")
     base = f"http://127.0.0.1:{port}"
     command = [
         sys.executable,
@@ -90,7 +106,27 @@ def main() -> int:
             raise RuntimeError(f"readiness response was not ready: {ready}")
         if not isinstance(recommendation, dict) or not recommendation.get("items"):
             raise RuntimeError(f"recommendation response was empty: {recommendation}")
-        print(json.dumps({"model_dir": model_dir, "probes": list(results)}))
+        latencies: list[float] = []
+        for _ in range(requests):
+            started = time.perf_counter()
+            status, response = fetch(base, "/v1/recommend", {"user": 0, "top": 3})
+            latencies.append(time.perf_counter() - started)
+            if status != 200:
+                raise RuntimeError(f"/v1/recommend capacity probe returned {status}: {response}")
+        summary = {
+            "model_dir": model_dir,
+            "probes": list(results),
+            "recommendation_latency_seconds": {
+                "count": requests,
+                "p50": round(percentile(latencies, 0.50), 4),
+                "p95": round(percentile(latencies, 0.95), 4),
+                "p99": round(percentile(latencies, 0.99), 4),
+                "budget_p95": p95_budget,
+            },
+        }
+        if summary["recommendation_latency_seconds"]["p95"] > p95_budget:
+            raise RuntimeError(f"recommendation p95 exceeded budget: {summary}")
+        print(json.dumps(summary))
         return 0
     finally:
         process.terminate()

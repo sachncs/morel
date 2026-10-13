@@ -77,6 +77,9 @@ against a Pages-shaped `/morel/` artifact.
   bounded concurrent HTTP soak are release gates. A 60-second local soak also
   passes with four concurrent clients; production-scale full-load
   characterization and external rollback/alert drills remain open.
+- `make serve-model-smoke` now reports p50/p95/p99 recommendation latency and
+  fails on the configured p95 budget (`MOREL_MODEL_SMOKE_P95_SECONDS`, default
+  30 seconds); production hardware-specific budgets still need calibration.
 - Critical-module coverage is now gated separately for serving, pipeline, CLI,
   and checkpoint loading via `make audit-critical`.
 - Malformed HTTP payload property coverage and data-stream boundary tests are
