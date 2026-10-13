@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 MAX_ITEMS_PER_REQUEST = 10_000
 MAX_MODALITIES_PER_REQUEST = 64
 MAX_MODALITY_NAME_LENGTH = 128
+MAX_ROLLBACK_STEPS = 64
 
 
 class Fill(BaseModel):
@@ -106,6 +107,7 @@ def serialize(completed: dict[str, Any]) -> dict[str, list[list[float]]]:
 __all__ = [
     "MAX_MODALITIES_PER_REQUEST",
     "MAX_MODALITY_NAME_LENGTH",
+    "MAX_ROLLBACK_STEPS",
     "Done",
     "Fill",
     "Health",

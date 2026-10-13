@@ -9,7 +9,11 @@ import pytest
 
 from morel.core.errors import Model
 from morel.serve import Loader, create, is_serving_pipeline
-from morel.serve.schema import MAX_ITEMS_PER_REQUEST, MAX_MODALITIES_PER_REQUEST
+from morel.serve.schema import (
+    MAX_ITEMS_PER_REQUEST,
+    MAX_MODALITIES_PER_REQUEST,
+    MAX_ROLLBACK_STEPS,
+)
 
 
 async def get(client: httpx.AsyncClient, path: str, **kwargs) -> httpx.Response:
@@ -466,6 +470,18 @@ class Checker:
         async with make(app) as client:
             r = await post(client, "/v1/complete", json={"items": [0, 1, 2]})
         assert r.status_code == 503
+
+    async def rollback_steps_are_bounded(self) -> None:
+        """Rollback rejects non-positive and excessive loop counts."""
+        app = create()
+        async with make(app) as client:
+            responses = await asyncio.gather(
+                *[
+                    post(client, f"/v1/rollback?steps={steps}")
+                    for steps in (0, -1, MAX_ROLLBACK_STEPS + 1)
+                ]
+            )
+        assert all(response.status_code == 422 for response in responses)
 
     async def recommend(self) -> None:
         """``/v1/recommend`` ranks via the recommender, not a uniform fake slice."""

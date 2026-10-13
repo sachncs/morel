@@ -9,6 +9,7 @@ import uuid
 from typing import TYPE_CHECKING, Any
 
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Query as FastAPIQuery
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -22,6 +23,7 @@ from morel.serve.protocol import ServingPipeline, is_serving_pipeline
 from morel.serve.ratelimit import Limiter, ratelimit_dependency
 from morel.serve.schema import (
     MAX_ITEMS_PER_REQUEST,
+    MAX_ROLLBACK_STEPS,
     Done,
     Fill,
     Health,
@@ -364,7 +366,12 @@ def create(
 
     @app.post("/v1/rollback", response_model=Rollback)
     def rollback(
-        steps: int = 1,
+        steps: int = FastAPIQuery(
+            default=1,
+            ge=1,
+            le=MAX_ROLLBACK_STEPS,
+            description=f"Number of versions to restore, capped at {MAX_ROLLBACK_STEPS}.",
+        ),
         _: None = Depends(require_admin),
         __: None = Depends(admin_limit),
     ) -> Rollback:
