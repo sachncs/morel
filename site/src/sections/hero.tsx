@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative isolate overflow-hidden pb-20 pt-28 sm:pb-32 sm:pt-44"
+      className="relative isolate overflow-hidden pb-16 pt-24 sm:pb-24 sm:pt-32"
     >
       {/* Background glow */}
       <div
@@ -118,7 +118,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.3, ease }}
-          className="relative mx-auto mt-20 max-w-5xl"
+            className="relative mx-auto mt-14 max-w-6xl"
         >
           <div className="absolute -inset-x-12 -inset-y-8 -z-10 rounded-[28px] bg-gradient-to-b from-white/0 via-accent-500/[0.06] to-white/0 blur-2xl dark:from-ink-950/0 dark:via-accent-500/[0.10] dark:to-ink-950/0" />
           <div className="ring-edge overflow-hidden rounded-3xl bg-white/60 p-2 shadow-card backdrop-blur-xl dark:bg-ink-900/40">
@@ -135,7 +135,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.55, ease }}
-          className="mx-auto mt-12 flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-ink-500 dark:text-ink-400"
+          className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-ink-500 dark:text-ink-400"
         >
           <span>{SITE.python}</span>
           <span aria-hidden className="h-1 w-1 rounded-full bg-ink-300 dark:bg-ink-700" />

@@ -1,218 +1,126 @@
 import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+
+const EASE = [0.16, 1, 0.3, 1] as [number, number, number, number];
+const STAGES = [
+  { label: "INTERACTIONS", title: "Graph", accent: "user → item" },
+  { label: "RETRIEVAL", title: "Anchors", accent: "context" },
+  { label: "COMPLETION", title: "Codebook", accent: "fill gaps" },
+  { label: "RANKING", title: "Top-K", accent: "recommend" },
+] as const;
+const CARD_X = [24, 292, 560, 828];
+const CARD_W = 230;
+const FLOW_Y = 180;
+
+function StageCard({ index, active, onActivate }: { index: number; active: boolean; onActivate: () => void }) {
+  const x = CARD_X[index];
+  const stage = STAGES[index];
+  return (
+    <motion.g
+      role="button"
+      tabIndex={0}
+      aria-label={`Highlight ${stage.label.toLowerCase()} stage`}
+      onClick={onActivate}
+      onMouseEnter={onActivate}
+      onFocus={onActivate}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onActivate();
+        }
+      }}
+      initial={false}
+      animate={{ opacity: active ? 1 : 0.74, y: active ? -4 : 0 }}
+      transition={{ duration: 0.25, ease: EASE }}
+      style={{ cursor: "pointer", outline: "none" }}
+    >
+      <rect x={x} y="52" width={CARD_W} height="244" rx="20" fill={active ? "rgba(24,184,157,0.13)" : "rgba(255,255,255,0.025)"} stroke={active ? "rgba(67,203,180,0.68)" : "rgba(255,255,255,0.12)"} strokeWidth={active ? 1.5 : 1} />
+      <text x={x + 20} y="82" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontSize="10" letterSpacing="1.5" fill={active ? "#79e3cf" : "#8a8a98"}>{stage.label}</text>
+      <text x={x + 20} y="112" fontFamily="ui-sans-serif, system-ui" fontSize="20" fontWeight="600" fill="#f7f7f8">{stage.title}</text>
+      <text x={x + 20} y="134" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontSize="10" fill="#8a8a98">{stage.accent}</text>
+      {index === 0 && <GraphGlyph x={x} active={active} />}
+      {index === 1 && <RetrievalGlyph x={x} active={active} />}
+      {index === 2 && <CompletionGlyph x={x} active={active} />}
+      {index === 3 && <RankingGlyph x={x} active={active} />}
+    </motion.g>
+  );
+}
+
+function GraphGlyph({ x, active }: { x: number; active: boolean }) {
+  return (
+    <g transform={`translate(${x + 28} 152)`}>
+      <g stroke="#43cbb4" strokeWidth="1" opacity={active ? 0.66 : 0.38}>
+        {[[0, 0], [0, 1], [1, 1], [1, 2], [2, 2], [2, 3], [3, 3], [3, 4], [1, 4]].map(([user, item], i) => <line key={i} x1="18" y1={user * 27} x2="126" y2={8 + item * 23} />)}
+      </g>
+      <g fill="#43cbb4">{[0, 1, 2, 3].map((user) => <circle key={`u${user}`} cx="18" cy={user * 27} r="5" />)}</g>
+      <g fill="#aef0e1">{[0, 1, 2, 3, 4].map((item) => <circle key={`i${item}`} cx="126" cy={8 + item * 23} r="5" opacity={item === 2 || item === 4 ? 0.45 : 0.95} />)}</g>
+      <text x="18" y="128" textAnchor="middle" fontSize="9" fill="#8a8a98" fontFamily="ui-sans-serif, system-ui">users</text>
+      <text x="126" y="128" textAnchor="middle" fontSize="9" fill="#8a8a98" fontFamily="ui-sans-serif, system-ui">items</text>
+    </g>
+  );
+}
+
+function RetrievalGlyph({ x, active }: { x: number; active: boolean }) {
+  return (
+    <g transform={`translate(${x + 115} 208)`}>
+      <circle r="54" fill="none" stroke="#43cbb4" strokeWidth="1" strokeDasharray="3 5" opacity={active ? 0.65 : 0.35} />
+      <circle r="32" fill="rgba(67,203,180,0.14)" />
+      <circle r="10" fill="#f7f7f8" stroke="#43cbb4" strokeWidth="2" />
+      <text y="4" textAnchor="middle" fontSize="10" fontWeight="600" fill="#0c8f7d" fontFamily="ui-sans-serif, system-ui">q</text>
+      {[[0, -46], [42, -22], [42, 22], [0, 46], [-42, 22], [-42, -22]].map(([cx, cy], i) => <g key={i}><line x1="0" y1="0" x2={cx} y2={cy} stroke="#43cbb4" strokeWidth="1" opacity={active ? 0.65 : 0.35} /><circle cx={cx} cy={cy} r="5" fill="#aef0e1" /></g>)}
+    </g>
+  );
+}
+
+function CompletionGlyph({ x, active }: { x: number; active: boolean }) {
+  return (
+    <g transform={`translate(${x + 30} 158)`}>
+      {Array.from({ length: 6 }).map((_, row) => Array.from({ length: 10 }).map((__, col) => {
+        const bright = (row + col * 2) % 5 === 0;
+        return <rect key={`${row}-${col}`} x={col * 17} y={row * 17} width="12" height="12" rx="3" fill="#43cbb4" opacity={bright ? (active ? 0.9 : 0.56) : 0.14} />;
+      }))}
+      <text x="84" y="126" textAnchor="middle" fontSize="9" fill="#8a8a98" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace">VQ · masked slots → vectors</text>
+    </g>
+  );
+}
+
+function RankingGlyph({ x, active }: { x: number; active: boolean }) {
+  const scores = [0.92, 0.78, 0.67, 0.54, 0.43];
+  return (
+    <g transform={`translate(${x + 30} 160)`}>
+      {scores.map((score, i) => <g key={i}><text x="0" y={i * 23 + 9} fontSize="9" fill="#8a8a98" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace">#{i + 1}</text><rect x="28" y={i * 23} width="150" height="12" rx="6" fill="rgba(255,255,255,0.08)" /><motion.rect x="28" y={i * 23} width={150 * score} height="12" rx="6" fill="#43cbb4" initial={false} animate={{ opacity: active ? 0.9 : 0.52 }} /></g>)}
+      <text x="103" y="132" textAnchor="middle" fontSize="9" fill="#8a8a98" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace">LightGCN · top-K</text>
+    </g>
+  );
+}
 
 export function PipelineDiagram() {
   const reduceMotion = useReducedMotion();
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const timer = window.setInterval(() => setActive((current) => (current + 1) % STAGES.length), 2600);
+    return () => window.clearInterval(timer);
+  }, [reduceMotion]);
 
   return (
-    <motion.svg
-      viewBox="0 0 720 360"
-      role="img"
-      aria-label="morel pipeline: user-item graph, retrieval, completion, ranking"
-      className="h-auto w-full"
-      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
-    >
+    <motion.svg viewBox="0 0 1082 360" aria-labelledby="pipeline-title" className="h-auto w-full" initial={reduceMotion ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: EASE }}>
+      <title id="pipeline-title">Interactive morel pipeline: interactions flow through retrieval and modality completion into ranked recommendations</title>
       <defs>
-        <linearGradient id="pd-edge" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#43cbb4" />
-          <stop offset="100%" stopColor="#aef0e1" />
-        </linearGradient>
-        <linearGradient id="pd-band" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#43cbb4" stopOpacity="0.0" />
-          <stop offset="50%" stopColor="#43cbb4" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#aef0e1" stopOpacity="0.0" />
-        </linearGradient>
-        <radialGradient id="pd-halo" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#43cbb4" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#43cbb4" stopOpacity="0" />
-        </radialGradient>
-        <pattern id="pd-grid" width="32" height="32" patternUnits="userSpaceOnUse">
-          <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(127,127,160,0.08)" strokeWidth="0.5" />
-        </pattern>
+        <linearGradient id="pd-band" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stopColor="#43cbb4" stopOpacity="0" /><stop offset="50%" stopColor="#43cbb4" stopOpacity="0.36" /><stop offset="100%" stopColor="#aef0e1" stopOpacity="0" /></linearGradient>
+        <pattern id="pd-grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(127,127,160,0.08)" strokeWidth="0.5" /></pattern>
+        <marker id="pd-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="none" stroke="#43cbb4" strokeWidth="1.2" /></marker>
       </defs>
-
-      <rect width="720" height="360" fill="url(#pd-grid)" rx="16" />
-
-      {/* Stage labels */}
-      <g fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontSize="9" letterSpacing="0.5">
-        <text x="40" y="28" fill="#8a8a98" textAnchor="middle">INTERACTIONS</text>
-        <text x="220" y="28" fill="#8a8a98" textAnchor="middle">RETRIEVAL</text>
-        <text x="430" y="28" fill="#8a8a98" textAnchor="middle">COMPLETION</text>
-        <text x="640" y="28" fill="#8a8a98" textAnchor="middle">RANKING</text>
-      </g>
-
-      {/* Energy band across the top */}
-      <rect x="0" y="14" width="720" height="2" fill="url(#pd-band)" opacity="0.7" />
-
-      {/* === Stage 1: User-item graph === */}
-      <motion.g
-        transform="translate(40, 60)"
-        initial={false}
-        animate={{ opacity: 1 }}
-      >
-        {/* Users on left */}
-        <g fill="#43cbb4">
-          <circle cx="0" cy="20" r="3.4" />
-          <circle cx="0" cy="60" r="3.4" />
-          <circle cx="0" cy="100" r="3.4" />
-          <circle cx="0" cy="140" r="3.4" />
-          <circle cx="0" cy="180" r="3.4" />
-        </g>
-        {/* Items on right */}
-        <g fill="#aef0e1">
-          <circle cx="80" cy="30" r="3.4" />
-          <circle cx="80" cy="70" r="3.4" />
-          <circle cx="80" cy="110" r="3.4" opacity="0.45" />
-          <circle cx="80" cy="150" r="3.4" />
-          <circle cx="80" cy="190" r="3.4" opacity="0.45" />
-        </g>
-        {/* Edges */}
-        <g stroke="url(#pd-edge)" strokeWidth="0.8" opacity="0.7">
-          <line x1="0" y1="20" x2="80" y2="30" />
-          <line x1="0" y1="20" x2="80" y2="70" />
-          <line x1="0" y1="60" x2="80" y2="30" />
-          <line x1="0" y1="60" x2="80" y2="70" />
-          <line x1="0" y1="100" x2="80" y2="70" />
-          <line x1="0" y1="100" x2="80" y2="110" />
-          <line x1="0" y1="100" x2="80" y2="150" />
-          <line x1="0" y1="140" x2="80" y2="150" />
-          <line x1="0" y1="180" x2="80" y2="150" />
-          <line x1="0" y1="180" x2="80" y2="190" />
-        </g>
-        {/* Arrow */}
-        <g stroke="rgba(127,127,160,0.6)" strokeWidth="1.2" fill="none">
-          <line x1="92" y1="105" x2="142" y2="105" />
-          <path d="M 138 102 L 142 105 L 138 108" />
-        </g>
-      </motion.g>
-
-      {/* === Stage 2: Retrieval === */}
-      <motion.g
-        transform="translate(190, 80)"
-        initial={false}
-        animate={{ opacity: 1 }}
-      >
-        {/* Anchor ring */}
-        <circle cx="60" cy="100" r="60" fill="none" stroke="url(#pd-edge)" strokeWidth="1" strokeDasharray="2 4" opacity="0.55" />
-        {/* Query node */}
-        <circle cx="60" cy="100" r="32" fill="url(#pd-halo)" />
-        <circle cx="60" cy="100" r="10" fill="#fff" stroke="url(#pd-edge)" strokeWidth="1.6" />
-        <text x="60" y="103" textAnchor="middle" fontSize="9" fontWeight="600" fill="#0c8f7d" fontFamily="ui-sans-serif, system-ui">q</text>
-        {/* Retrieved nodes */}
-        <g fill="#aef0e1" stroke="#fff" strokeWidth="0.5">
-          <circle cx="60" cy="30" r="4" />
-          <circle cx="115" cy="100" r="4" />
-          <circle cx="60" cy="170" r="4" />
-          <circle cx="20" cy="80" r="3.4" />
-          <circle cx="20" cy="120" r="3.4" />
-          <circle cx="100" cy="80" r="3.4" />
-          <circle cx="100" cy="120" r="3.4" />
-        </g>
-        <g stroke="url(#pd-edge)" strokeWidth="0.9" opacity="0.8">
-          <line x1="60" y1="100" x2="60" y2="30" />
-          <line x1="60" y1="100" x2="115" y2="100" />
-          <line x1="60" y1="100" x2="60" y2="170" />
-          <line x1="60" y1="100" x2="20" y2="80" />
-          <line x1="60" y1="100" x2="20" y2="120" />
-          <line x1="60" y1="100" x2="100" y2="80" />
-          <line x1="60" y1="100" x2="100" y2="120" />
-        </g>
-        {/* Arrow */}
-        <g stroke="rgba(127,127,160,0.6)" strokeWidth="1.2" fill="none">
-          <line x1="138" y1="100" x2="188" y2="100" />
-          <path d="M 184 97 L 188 100 L 184 103" />
-        </g>
-      </motion.g>
-
-      {/* === Stage 3: Completion (codebook) === */}
-      <motion.g
-        transform="translate(400, 80)"
-        initial={false}
-        animate={{ opacity: 1 }}
-      >
-        {/* Codebook grid */}
-        <g>
-          {Array.from({ length: 8 }).map((_, row) =>
-            Array.from({ length: 10 }).map((_, col) => (
-              <motion.rect
-                key={`${row}-${col}`}
-                x={col * 11 + 8}
-                y={row * 18 + 12}
-                width="8"
-                height="14"
-                rx="2"
-                fill="url(#pd-edge)"
-                opacity={(row + col) % 5 === 0 ? 0.85 : 0.18}
-                initial={reduceMotion ? false : { opacity: 0 }}
-                animate={{ opacity: (row + col) % 5 === 0 ? 0.85 : 0.18 }}
-                transition={{ delay: reduceMotion ? 0 : 0.82 + row * 0.04 + col * 0.012, duration: 0.22 }}
-              />
-            )),
-          )}
-        </g>
-        {/* Pipeline flow into codebook */}
-        <g stroke="rgba(127,127,160,0.6)" strokeWidth="1.2" fill="none">
-          <line x1="-12" y1="80" x2="6" y2="80" />
-          <path d="M 2 77 L 6 80 L 2 83" />
-        </g>
-        {/* Output to ranking */}
-        <g stroke="rgba(127,127,160,0.6)" strokeWidth="1.2" fill="none">
-          <line x1="120" y1="80" x2="170" y2="80" />
-          <path d="M 166 77 L 170 80 L 166 83" />
-        </g>
-      </motion.g>
-
-      {/* === Stage 4: Ranking === */}
-      <motion.g
-        transform="translate(580, 80)"
-        initial={false}
-        animate={{ opacity: 1 }}
-      >
-        <g stroke="url(#pd-edge)" strokeWidth="1" fill="none">
-          <line x1="0" y1="20" x2="100" y2="20" opacity="0.85" />
-          <line x1="0" y1="40" x2="100" y2="40" opacity="0.6" />
-          <line x1="0" y1="60" x2="100" y2="60" opacity="0.5" />
-          <line x1="0" y1="80" x2="100" y2="80" opacity="0.45" />
-          <line x1="0" y1="100" x2="100" y2="100" opacity="0.4" />
-          <line x1="0" y1="120" x2="100" y2="120" opacity="0.35" />
-          <line x1="0" y1="140" x2="100" y2="140" opacity="0.25" />
-        </g>
-        {/* Score bars on the right */}
-        <g>
-          {[18, 36, 30, 42, 26, 36, 22, 30, 18, 24].map((h, i) => (
-            <motion.rect
-              key={i}
-              x={104 + i * 4}
-              y={70 - h / 2}
-              width="2.4"
-              height={h}
-              fill="url(#pd-edge)"
-              opacity={0.4 + i * 0.05}
-              rx="1"
-              initial={reduceMotion ? false : { scaleY: 0 }}
-              animate={{ scaleY: 1 }}
-              style={{ transformOrigin: `${105 + i * 4}px 70px` }}
-              transition={{ delay: reduceMotion ? 0 : 1.08 + i * 0.035, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            />
-          ))}
-        </g>
-        {/* Top item callout */}
-        <g transform="translate(0, -8)">
-          <rect x="0" y="-4" width="100" height="14" rx="3" fill="url(#pd-edge)" opacity="0.18" />
-          <circle cx="6" cy="3" r="2" fill="#43cbb4" />
-          <text x="13" y="6" fontSize="7" fontFamily="ui-sans-serif, system-ui" fill="#0c8f7d">
-            top-1
-          </text>
-        </g>
-      </motion.g>
-
-      {/* Bottom annotation */}
-      <g fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="10" fill="#8a8a98">
-        <text x="360" y="335" textAnchor="middle" letterSpacing="0.3">
-          user–item interactions → graph retrieval → modality completion → LightGCN ranking
-        </text>
-      </g>
+      <rect width="1082" height="360" rx="20" fill="url(#pd-grid)" />
+      <rect x="0" y="22" width="1082" height="2" fill="url(#pd-band)" />
+      {STAGES.slice(0, -1).map((_, i) => {
+        const start = CARD_X[i] + CARD_W + 10;
+        const end = CARD_X[i + 1] - 10;
+        return <g key={i} aria-hidden="true"><line x1={start} y1={FLOW_Y} x2={end} y2={FLOW_Y} stroke="#31514f" strokeWidth="2" markerEnd="url(#pd-arrow)" /><motion.circle r="4" fill="#aef0e1" initial={{ opacity: 0 }} animate={reduceMotion ? { opacity: 0 } : { opacity: [0, 1, 1, 0], cx: [start, start + 22, end - 22, end], cy: FLOW_Y }} transition={{ duration: 1.4, delay: i * 0.35, repeat: Infinity, repeatDelay: 2.2, ease: "linear" }} /></g>;
+      })}
+      {STAGES.map((stage, i) => <g key={stage.label} fontFamily="ui-sans-serif, system-ui"><text x={CARD_X[i] + CARD_W / 2} y="36" textAnchor="middle" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace" fontSize="10" letterSpacing="1.5" fill={active === i ? "#79e3cf" : "#8a8a98"}>{String(i + 1).padStart(2, "0")} · {stage.label}</text><StageCard index={i} active={active === i} onActivate={() => setActive(i)} /></g>)}
+      <text x="541" y="337" textAnchor="middle" fontSize="10" fill="#8a8a98" fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace">hover or focus a stage · the data path runs left → right</text>
     </motion.svg>
   );
 }

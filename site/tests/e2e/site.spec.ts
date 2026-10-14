@@ -108,6 +108,15 @@ test("Astro docs render as task-oriented pages inside the site build", async ({ 
   expect(hrefs.some((href) => href.endsWith(".md"))).toBe(false);
 });
 
+test("hero pipeline stages support pointer and keyboard interaction", async ({ page }) => {
+  await page.goto("./");
+  const completion = page.getByRole("button", { name: "Highlight completion stage" });
+  await completion.focus();
+  await expect(completion).toHaveAttribute("tabindex", "0");
+  await completion.press("Enter");
+  await expect(completion).toHaveAttribute("opacity", "1");
+});
+
 test("desktop page has no axe WCAG A/AA violations", async ({ page }) => {
   await page.goto("./");
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

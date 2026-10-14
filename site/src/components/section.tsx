@@ -24,12 +24,12 @@ export function Section({
 }: SectionProps) {
   const isCenter = align === "center";
   return (
-    <section id={id} className={cn("relative px-4 py-24 sm:px-6 sm:py-32", className)}>
+    <section id={id} className={cn("relative px-4 py-20 sm:px-6 sm:py-24", className)}>
       <div className={cn("container", innerClassName)}>
         {(eyebrow || title || description) && (
           <header
             className={cn(
-              "mx-auto mb-16 max-w-3xl",
+              "mx-auto mb-12 max-w-3xl",
               isCenter && "text-center",
             )}
           >

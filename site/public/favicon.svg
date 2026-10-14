@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="morel logo">
-  <rect width="64" height="64" rx="16" fill="#09131a" />
-  <path d="M32 9 51 20v22L32 53 13 42V20L32 9Z" fill="none" stroke="#79e3cf" stroke-width="2.2" stroke-linejoin="round" />
-  <path d="m13 20 19 11 19-11M32 31v22" fill="none" stroke="#43cbb4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-  <path d="M21 25 32 19l11 6-11 6-11-6Z" fill="#18b89d" fill-opacity=".2" stroke="#79e3cf" stroke-width="1.6" stroke-linejoin="round" />
-  <g fill="#43cbb4" stroke="#09131a" stroke-width="1.4"><circle cx="13" cy="20" r="3.2" /><circle cx="51" cy="20" r="3.2" /><circle cx="32" cy="9" r="3.2" /><circle cx="32" cy="53" r="3.2" /></g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="morel logo">
+  <defs><linearGradient id="morel-mark" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse"><stop stop-color="#79e3cf"/><stop offset="1" stop-color="#43cbb4" stop-opacity=".58"/></linearGradient></defs>
+  <path d="M32 9 51 20v22L32 53 13 42V20L32 9Z" fill="none" stroke="url(#morel-mark)" stroke-width="2.2" stroke-linejoin="round"/>
+  <path d="m13 20 19 11 19-11M32 31v22" fill="none" stroke="#43cbb4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".72"/>
+  <path d="M21 25 32 19l11 6-11 6-11-6Z" fill="#43cbb4" fill-opacity=".18" stroke="#43cbb4" stroke-width="1.6" stroke-linejoin="round"/>
+  <g fill="#43cbb4" stroke="#09131a" stroke-width="1.4"><circle cx="13" cy="20" r="3.2"/><circle cx="51" cy="20" r="3.2"/><circle cx="32" cy="9" r="3.2"/><circle cx="32" cy="53" r="3.2"/></g>
 </svg>
