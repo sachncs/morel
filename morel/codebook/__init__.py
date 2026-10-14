@@ -10,7 +10,7 @@ from morel.codebook.codebook import (
     balance,
     usage,
 )
-from morel.core.factory import FactoryRegistry
+from morel.core.factory import FactoryRegistry, _accepts_keywords
 from morel.route import Router
 
 
@@ -77,6 +77,7 @@ _FACTORIES = FactoryRegistry[Codebook](
     "codebook",
     {"gumbel": _build_soft, "vq": _build_vq, "identity": _build_noop},
     validator=lambda value: isinstance(value, Codebook),
+    factory_validator=lambda value: _accepts_keywords(value, ("dim", "size", "router", "seed")),
 )
 
 

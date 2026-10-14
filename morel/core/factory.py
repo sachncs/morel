@@ -2,12 +2,37 @@
 
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable, Iterable, Mapping
 from typing import Generic, TypeVar
 
 from morel.core.errors import Cfg, Error
 
 T = TypeVar("T")
+
+
+def _accepts_keywords(factory: object, names: tuple[str, ...]) -> bool:
+    """Return whether a factory can receive every required keyword.
+
+    Registration uses this structural check before a plugin becomes visible.
+    It intentionally rejects positional-only callables because extension
+    points invoke factories with stable keyword names.
+    """
+    if not callable(factory):
+        return False
+    try:
+        parameters = inspect.signature(factory).parameters
+    except (TypeError, ValueError):
+        return False
+    has_kwargs = any(parameter.kind is parameter.VAR_KEYWORD for parameter in parameters.values())
+    if any(name not in parameters and not has_kwargs for name in names):
+        return False
+    return all(
+        name not in parameters
+        or parameters[name].kind
+        in (parameters[name].POSITIONAL_OR_KEYWORD, parameters[name].KEYWORD_ONLY)
+        for name in names
+    )
 
 
 class FactoryRegistry(Generic[T]):

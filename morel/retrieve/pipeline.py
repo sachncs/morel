@@ -16,7 +16,7 @@ import scipy.sparse as sp
 import torch
 
 from morel.core.errors import Cfg, Net
-from morel.core.factory import FactoryRegistry
+from morel.core.factory import FactoryRegistry, _accepts_keywords
 from morel.core.types import Array
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.anchor import AnchorIndex
@@ -214,7 +214,24 @@ KIND: dict[str, Callable[..., set[int]]] = {
 _STRATEGIES = FactoryRegistry[set[int]](
     "retrieval strategy",
     KIND,
-    factory_validator=lambda value: isinstance(value, RetrievalStrategy),
+    factory_validator=lambda value: (
+        isinstance(value, RetrievalStrategy)
+        and _accepts_keywords(
+            value,
+            (
+                "query",
+                "features",
+                "mask",
+                "adj",
+                "anchors",
+                "iters",
+                "fallback",
+                "relevance_index",
+                "anchor_index",
+                "max_nodes",
+            ),
+        )
+    ),
 )
 
 

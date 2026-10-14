@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import torch.nn as nn
 
-from morel.core.factory import FactoryRegistry
+from morel.core.factory import FactoryRegistry, _accepts_keywords
 from morel.recommend.baseline import MF, Pop
 from morel.recommend.bpr import bpr, distinct, negatives, to_ranks
 from morel.recommend.light import Light
@@ -117,6 +117,9 @@ _FACTORIES = FactoryRegistry[nn.Module](
     "recommender",
     {"light": _build_light, "mf": _build_mf, "pop": _build_pop},
     validator=lambda value: isinstance(value, Recommender),
+    factory_validator=lambda value: _accepts_keywords(
+        value, ("users", "items", "embed", "layers", "feature_dim", "seed")
+    ),
 )
 
 

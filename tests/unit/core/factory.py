@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from morel.core.errors import Cfg
-from morel.core.factory import FactoryRegistry
+from morel.core.factory import FactoryRegistry, _accepts_keywords
 
 
 class Checker:
@@ -107,3 +107,23 @@ class Checker:
         with pytest.raises(Cfg, match="incompatible factory registration"):
             registry.register("broken", broken)
         assert "broken" not in registry
+
+    def keyword_contract(self) -> None:
+        """Keyword-based extension points reject incompatible call shapes."""
+
+        def explicit(*, dims: object, hidden: object) -> None:
+            del dims, hidden
+
+        def variadic(**kwargs: object) -> None:
+            del kwargs
+
+        def missing(*, dims: object) -> None:
+            del dims
+
+        def positional_only(dims: object, /, hidden: object) -> None:
+            del dims, hidden
+
+        assert _accepts_keywords(explicit, ("dims", "hidden"))
+        assert _accepts_keywords(variadic, ("dims", "hidden"))
+        assert not _accepts_keywords(missing, ("dims", "hidden"))
+        assert not _accepts_keywords(positional_only, ("dims", "hidden"))

@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F  # noqa: N812
 
-from morel.core.factory import FactoryRegistry
+from morel.core.factory import FactoryRegistry, _accepts_keywords
 
 
 @dataclass(frozen=True)
@@ -253,6 +253,7 @@ _FACTORIES = FactoryRegistry[Router](
     "router",
     {"top": _build_top, "dense": _build_dense, "gumbel": _build_gumbel, "fixed": _build_fixed},
     validator=lambda value: isinstance(value, Router),
+    factory_validator=lambda value: _accepts_keywords(value, ("dim", "k", "p", "tau")),
 )
 
 

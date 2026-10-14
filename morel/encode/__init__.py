@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import torch.nn as nn
 
-from morel.core.factory import FactoryRegistry
+from morel.core.factory import FactoryRegistry, _accepts_keywords
 from morel.encode.baseline import Baseline, Enc, GraphEncoder, Identity, Sum
 from morel.encode.input import Input
 from morel.encode.layer import Layer
@@ -103,6 +103,9 @@ _FACTORIES = FactoryRegistry[nn.Module](
     "encoder",
     {"transformer": _build_transformer, "identity": _build_identity},
     validator=lambda value: isinstance(value, GraphEncoder),
+    factory_validator=lambda value: _accepts_keywords(
+        value, ("dims", "pe_dim", "hidden", "layers", "heads", "dropout")
+    ),
 )
 
 

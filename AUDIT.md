@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **608 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **609 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -633,8 +633,10 @@ error code, log fields, and retry/no-retry behavior.
    `FactoryRegistry` now enforces its factory validator while the registry is
    constructed and exposes additive duplicate-safe registration; all six
    built-in extension packages expose typed public `register` entry points.
-   Remaining work is to run the same contract suite through every external
-   plugin package and real pipeline → trainer → checkpoint → serving flow.
+    Built-in registries now also reject factories that cannot accept their
+    documented keyword construction contract. Remaining work is to run the
+    same contract suite through every external plugin package and real
+    pipeline → trainer → checkpoint → serving flow.
 3. Document public, semi-private, and private naming; import boundaries;
    deprecation policy; ownership; immutability; and cache invalidation rules.
 4. Run every built-in and test plugin through the same contract suite, including

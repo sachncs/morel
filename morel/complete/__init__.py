@@ -6,7 +6,7 @@ import torch.nn as nn
 
 from morel.complete.decoders import Decoders
 from morel.complete.protocol import Completer
-from morel.core.factory import FactoryRegistry
+from morel.core.factory import FactoryRegistry, _accepts_keywords
 
 
 def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> nn.Module:
@@ -30,7 +30,10 @@ def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> n
 #: Map from config name to completer class for introspection.
 KIND: dict[str, type[nn.Module]] = {"mlp": Decoders}
 _FACTORIES = FactoryRegistry[nn.Module](
-    "completer", KIND, validator=lambda value: isinstance(value, Completer)
+    "completer",
+    KIND,
+    validator=lambda value: isinstance(value, Completer),
+    factory_validator=lambda value: _accepts_keywords(value, ("latent_dim", "dims", "hidden")),
 )
 
 
