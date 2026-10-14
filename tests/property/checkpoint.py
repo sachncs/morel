@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
@@ -54,7 +55,9 @@ class Checker:
             path = Path(directory) / "random.pt"
             path.write_bytes(payload)
             try:
-                loaded = load(path)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", UserWarning)
+                    loaded = load(path)
             except Model:
                 return
             assert isinstance(loaded, dict)

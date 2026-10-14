@@ -9,8 +9,9 @@ import numpy as np
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from morel.core.errors import Datum
+from morel.core.errors import Datum, Model
 from morel.data.store import load_graph, load_npz
+from morel.serve.factory import _load_mask
 
 
 class Checker:
@@ -66,3 +67,18 @@ class Checker:
             except Datum:
                 return
             assert graph.ndim == 2
+
+    @given(st.binary(max_size=512))
+    @settings(max_examples=30, deadline=None)
+    def malformed_mask_never_leaks_internal_errors(self, payload: bytes) -> None:
+        """Arbitrary mask bytes reject as ``Model`` or load as valid arrays."""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "random-mask.npy"
+            path.write_bytes(payload)
+            try:
+                mask = _load_mask(path)
+            except Model:
+                return
+            assert mask.ndim == 2
+            assert np.issubdtype(mask.dtype, np.number)
+            assert np.isfinite(mask).all()
