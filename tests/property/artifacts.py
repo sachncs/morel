@@ -10,7 +10,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from morel.core.errors import Datum
-from morel.data.store import load_graph
+from morel.data.store import load_graph, load_npz
 
 
 class Checker:
@@ -47,3 +47,16 @@ class Checker:
             assert graph.ndim == 2
             assert graph.shape[0] >= 0
             assert graph.shape[1] >= 0
+
+    @given(st.binary(max_size=512))
+    @settings(max_examples=30, deadline=None)
+    def malformed_npz_never_leaks_internal_errors(self, payload: bytes) -> None:
+        """Arbitrary artifact bytes reject as ``Datum`` or load as mappings."""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "fuzz-arrays.npz"
+            path.write_bytes(payload)
+            try:
+                arrays = load_npz(path)
+            except Datum:
+                return
+            assert isinstance(arrays, dict)

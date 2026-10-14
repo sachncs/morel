@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import tempfile
+import zipfile
 from collections.abc import Callable
 from pathlib import Path
 
@@ -126,7 +127,7 @@ def load_npz(
     try:
         with np.load(path, allow_pickle=False) as npz:
             return {key: npz[key] for key in npz.files}
-    except (OSError, TypeError, ValueError, KeyError) as exc:
+    except (OSError, EOFError, TypeError, ValueError, KeyError, zipfile.BadZipFile) as exc:
         raise Datum(f"invalid npz artifact: {path}") from exc
 
 
