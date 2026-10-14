@@ -344,7 +344,7 @@ open defects:
 
 - **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
   50–70, and the local/deployed portions of 43–48.
-- **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
+- **Partially addressed:** 6, 16, 19, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
   check.
