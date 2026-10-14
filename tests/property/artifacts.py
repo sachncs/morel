@@ -11,7 +11,7 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from morel.core.errors import Datum, Model
-from morel.data.store import load_graph, load_npz, save_graph
+from morel.data.store import MAX_GRAPH_NODES, load_graph, load_npz, save_graph
 from morel.serve.factory import _load_mask
 
 
@@ -115,3 +115,22 @@ class Checker:
             assert mask.ndim == 2
             assert np.issubdtype(mask.dtype, np.number)
             assert np.isfinite(mask).all()
+
+    @given(st.integers(min_value=MAX_GRAPH_NODES + 1, max_value=MAX_GRAPH_NODES + 1024))
+    @settings(max_examples=20, deadline=None)
+    def oversized_graph_metadata_fails_before_allocation(self, oversized: int) -> None:
+        """Graph dimensions over the safety bound become typed data errors."""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "oversized-graph.npz"
+            np.savez(
+                path,
+                data=np.asarray([], dtype=np.float32),
+                row=np.asarray([], dtype=np.int64),
+                col=np.asarray([], dtype=np.int64),
+                shape=np.asarray([oversized, 1], dtype=np.int64),
+            )
+            try:
+                load_graph(path)
+            except Datum:
+                return
+            raise AssertionError("oversized graph metadata was accepted")

@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **649 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **650 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -630,8 +630,9 @@ and release operations.
     arbitrary manifest JSON. Configuration, manifest sidecars, and safe
     checkpoints now have bounded input sizes and typed malformed-file errors.
     Empty, isolated, duplicate-edge, and self-loop graph cases are covered;
-    arbitrary checkpoint and serving-mask bytes are now covered; invariant
-    controls and arbitrary sparse values now have a 40-example property matrix.
+    arbitrary checkpoint and serving-mask bytes are now covered; oversized
+    sparse-graph metadata is rejected before allocation; invariant controls
+    and arbitrary sparse values now have a 40-example property matrix.
     Broader artifact fuzzing remains open.
     Persisted sparse graphs now enforce explicit node and edge budgets at save
     and load boundaries, including caller-selectable lower limits for services.
