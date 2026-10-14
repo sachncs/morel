@@ -68,7 +68,7 @@ class Manifest:
         except (TypeError, json.JSONDecodeError, RecursionError) as exc:
             raise Datum("manifest is not valid JSON") from exc
         if not isinstance(payload, Mapping):
-            raise Datum("manifest must contain a JSON object")
+            raise Datum("manifest must contain a valid JSON object")
 
         required = {
             "dataset",
