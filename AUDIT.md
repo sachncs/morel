@@ -209,9 +209,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Repaired documentation and GitHub links, removed false production-ready
   wording from the landing page, and made initial performance counters truthful
   instead of rendering zero before animation.
-- Reworked the logo into a morel-cap/mycelium graph mark, updated favicon,
-  package/docs/social assets, and shifted the palette from saturated purple to
-  warm mushroom gold and charcoal.
+- Reworked the logo into a scalable tetrahedral graph mark, updated favicon,
+  package/docs/social assets, and shifted the palette from low-contrast warm
+  gold/charcoal to a higher-contrast teal, blue-black, and near-white system.
 - Added basic mobile dialog semantics, focus restoration, and Escape-to-close
   behavior to the site navigation.
 - Added a validated, manifest-bound serving factory and `morel serve
