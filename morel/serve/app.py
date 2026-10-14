@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from morel import __version__
 from morel.core.errors import Error
 from morel.serve import auth
+from morel.serve.failures import classify
 from morel.serve.loader import Loader
 from morel.serve.metrics import Registry, metrics_response
 from morel.serve.observe import ObserveMiddleware
@@ -475,14 +476,21 @@ def suggest(
             scores = pipeline.score(user_id, item_ids.squeeze(0)).squeeze(0)
     except HTTPException:
         raise
-    except (Error, IndexError, OSError, RuntimeError, TypeError, ValueError) as exc:
+    except (Error, IndexError, OSError, RuntimeError, TypeError, TimeoutError, ValueError) as exc:
+        policy = classify(exc)
         log.exception(
             "recommender scoring failed",
-            extra={"request_id": request_id, "user": payload.user, "top": top},
+            extra={
+                "request_id": request_id,
+                "user": payload.user,
+                "top": top,
+                "failure_kind": policy.kind.value,
+                "retryable": policy.retryable,
+            },
         )
+        headers = {"Retry-After": "1"} if policy.retryable else None
         raise HTTPException(
-            status_code=503,
-            detail="recommender scoring failed; see server logs with the request id",
+            status_code=policy.status_code, detail=policy.detail, headers=headers
         ) from exc
     k = min(top, item_count)
     topk = torch.topk(scores, k=k)

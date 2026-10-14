@@ -52,6 +52,12 @@ trusted reverse proxy is present, set ``MOREL_TRUSTED_PROXY_CIDRS`` to its
 network(s); only then will the service use the right-most untrusted address
 from ``X-Forwarded-For``. Never trust that header from arbitrary clients.
 
+Serving failures use an explicit policy: domain/dependency failures return a
+sanitized retryable ``503``, scoring timeouts return ``504`` with
+``Retry-After: 1``, and programmer-shape failures return a non-retryable
+``500``. Logs retain the request id, failure kind, and retryability without
+exposing backend details.
+
 ### Counters
 
 | Name | Labels | Meaning |

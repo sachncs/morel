@@ -700,9 +700,24 @@ class Checker:
             r = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
         assert r.status_code == 503
         assert r.json()["error"]["message"] == (
-            "recommender scoring failed; see server logs with the request id"
+            "recommender scoring is unavailable; see server logs with the request id"
         )
         assert "backend credential" not in r.text
+
+    async def recommend_timeout_is_retryable(self) -> None:
+        """Timeouts have an explicit 504 policy and retry guidance."""
+
+        class TimeoutPipeline(StubPipeline):
+            def score(self, users, items):
+                raise TimeoutError("backend deadline exceeded")
+
+        loader = Loader()
+        loader.register("default", lambda: TimeoutPipeline())
+        async with make(create(loader)) as client:
+            r = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
+        assert r.status_code == 504
+        assert r.headers["retry-after"] == "1"
+        assert "backend deadline" not in r.text
 
     async def recommend_without_ranker(self) -> None:
         """A loaded pipeline without a ranker fails closed instead of fabricating scores."""

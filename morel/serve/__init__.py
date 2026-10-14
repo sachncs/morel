@@ -17,6 +17,7 @@ from morel.serve.auth import (
     token,
     viewer,
 )
+from morel.serve.failures import FailureKind, FailurePolicy, classify
 from morel.serve.loader import Loader
 from morel.serve.lock import Read, RWLock, Write, reader, writer
 from morel.serve.protocol import ServingPipeline, is_serving_pipeline
@@ -44,6 +45,8 @@ __all__ = [
     "Done",
     "EnvironmentSecretProvider",
     "Event",
+    "FailureKind",
+    "FailurePolicy",
     "Fill",
     "Health",
     "List",
@@ -65,6 +68,7 @@ __all__ = [
     "Write",
     "admin",
     "assert_",
+    "classify",
     "create",
     "dependency",
     "is_serving_pipeline",
