@@ -400,12 +400,11 @@ browser-content checks.
 5. **Closed in this worktree:** The public product page now uses the audited
    verification snapshot, qualifies production limitations, and renders its
    truthful counters directly without an observer/RAF zero state.
-6. **Partially addressed:** The built and deployed site includes a static
-   `/docs/` redirect to the canonical documentation tree, and the Pages
-   workflow now retries and verifies both the live root and compatibility route
-   after deployment. External documentation hosting remains a deployment
-   follow-up; the PyPI release workflow enforces tag/version consistency before
-   publication.
+6. **Partially addressed:** The Pages artifact now builds and publishes the
+   strict MkDocs documentation site under `/docs/`, and the workflow verifies
+   the generated artifact plus the live docs route after deployment. The new
+   hosted route still needs one successful post-change Pages deployment; the
+   PyPI release workflow enforces tag/version consistency before publication.
 
 ### P1 — correctness and security
 

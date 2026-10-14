@@ -10,7 +10,7 @@ describe("published site content", () => {
 
   it("uses canonical repository and documentation targets", () => {
     expect(SITE.repo).toBe("https://github.com/sachncs/morel");
-    expect(SITE.docs).toContain("github.com/sachncs/morel");
+    expect(SITE.docs).toBe("https://sachncs.github.io/morel/docs/");
     expect(SITE.url).toMatch(/sachncs\.github\.io\/morel\/$/);
   });
 });

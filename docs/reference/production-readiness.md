@@ -66,8 +66,9 @@ against a Pages-shaped `/morel/` artifact.
 
 - The redesigned site is deployed from `master`; the live Pages route and its
   `/morel/` base-path browser gate are verified in CI.
-- The rebuilt Pages artifact includes a compatibility redirect at `/docs/` for
-  older inbound links; the live route is checked after each Pages deployment.
+- The Pages artifact now includes the strict MkDocs documentation site at
+  `/docs/`; the deployment job checks both the generated artifact and live
+  route. The first post-change deployment remains pending.
 - The production Docker image now builds locally and in CI with CPU-only
   PyTorch, explicit serving dependencies, a non-root writable log directory,
   and a health/readiness smoke contract.
