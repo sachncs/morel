@@ -62,3 +62,25 @@ class Checker:
         item_copy = item.adjacency()
         item_copy[0, 1] = 0
         assert item.edges == 2
+
+    def empty(self) -> None:
+        """Zero-item and isolated graphs remain valid value objects."""
+        zero_items = Item.bip(Bipartite(sp.csr_matrix((3, 0), dtype=np.float32)))
+        assert zero_items.items == 0
+        assert zero_items.edges == 0
+
+        isolated = Item.bip(Bipartite(sp.csr_matrix((2, 3), dtype=np.float32)))
+        assert isolated.items == 3
+        assert isolated.edges == 0
+
+    def duplicate_edges(self) -> None:
+        """Duplicate sparse entries are canonicalized before graph derivation."""
+        source = sp.coo_matrix(([1.0, 1.0], ([0, 0], [1, 1])), shape=(1, 2))
+        item = Item.bip(Bipartite(source))
+        assert item.edges == 0
+
+    def self_loops_are_removed(self) -> None:
+        """Co-occurrence self-loops are removed during item graph construction."""
+        source = sp.csr_matrix(np.eye(3, dtype=np.float32))
+        item = Item.bip(Bipartite(source))
+        assert item.edges == 0

@@ -20,6 +20,10 @@ def symmetric(adj: sp.spmatrix, *, atol: float = 1e-6) -> None:
     diff = adj - adj.T
     if isinstance(diff, sp.spmatrix):
         diff = diff.tocsr()
+        if diff.nnz == 0:
+            return
+    elif np.size(diff) == 0:
+        return
     if abs(diff).max() > atol:
         raise Net("graph is not symmetric")
 
