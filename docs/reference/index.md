@@ -30,6 +30,11 @@ build artifacts (fidelity report, benchmarks, production readiness).
     measures.</p>
   </div>
   <div class="morel-feature">
+    <h3><a href="capacity-baseline/">Capacity baseline</a></h3>
+    <p>Reproducible local latency evidence with environment context and
+    production-calibration limits.</p>
+  </div>
+  <div class="morel-feature">
     <h3><a href="production-readiness/">Production readiness</a></h3>
     <p>Audit trail of every change since the pre-1.0 release.</p>
   </div>
