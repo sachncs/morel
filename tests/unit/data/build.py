@@ -79,7 +79,7 @@ class Checker:
         assert graph[1, 2] == 1
         assert graph[0, 2] == 0
 
-    def malformed_graph_inputs_are_rejected(self) -> None:
+    def malformed_graph_inputs_are_rejected(self, tmp_path: Path) -> None:
         """Graph builders convert malformed inputs into domain errors."""
         with pytest.raises(Datum, match="dimensions must be integers"):
             bipartite(np.array([0]), np.array([0]), 2.0, 2)  # type: ignore[arg-type]
@@ -88,3 +88,9 @@ class Checker:
         invalid = sp.csr_matrix(np.array([[0.0, np.nan], [np.nan, 0.0]]))
         with pytest.raises(Datum, match="finite numeric"):
             cooccurrence(invalid)
+        with pytest.raises(Datum, match="non-negative integer"):
+            kcore(sp.eye(2, format="csr"), min_edges=-1)
+        with pytest.raises(Datum, match="must be sparse"):
+            kcore(np.eye(2, dtype=np.float32), min_edges=1)  # type: ignore[arg-type]
+        with pytest.raises(Datum, match="positive integer"):
+            cooccurrence_stream(tmp_path / "missing.json", items=0)

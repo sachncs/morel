@@ -91,7 +91,16 @@ def kcore(graph: sp.csr_matrix, min_edges: int) -> sp.csr_matrix:
     Returns:
         The largest subgraph satisfying the k-core invariant.
     """
-    if min_edges <= 0:
+    if isinstance(min_edges, bool) or not isinstance(min_edges, int) or min_edges < 0:
+        raise Datum(f"min_edges must be a non-negative integer, got {min_edges!r}")
+    if not sp.issparse(graph):
+        raise Datum("k-core graph must be sparse")
+    graph = graph.tocsr(copy=True)
+    if graph.ndim != 2 or graph.shape[0] != graph.shape[1]:
+        raise Datum("k-core graph must be a square 2-D matrix")
+    if not np.issubdtype(graph.data.dtype, np.number) or not np.isfinite(graph.data).all():
+        raise Datum("k-core graph must contain finite numeric values")
+    if min_edges == 0:
         return graph
     current = graph.copy()
     while True:
@@ -193,6 +202,8 @@ def cooccurrence_stream(
     """
     from morel.data.stream import stream
 
+    if isinstance(items, bool) or not isinstance(items, int) or items <= 0:
+        raise Datum(f"items must be a positive integer, got {items!r}")
     if isinstance(max_edges, bool) or not isinstance(max_edges, int) or max_edges <= 0:
         raise Datum(f"max_edges must be a positive integer, got {max_edges!r}")
     rows: list[int] = []
