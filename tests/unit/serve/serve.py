@@ -285,6 +285,20 @@ class Checker:
         assert "secret backend password" not in str(caught.value)
         assert "p" not in loader.building
 
+    def validator_failure_is_typed(self) -> None:
+        """A plugin validator failure becomes a sanitized model error."""
+        loader = Loader()
+
+        def invalid(_: object) -> bool:
+            raise RuntimeError("validator secret")
+
+        loader.register("p", lambda: object(), validator=invalid)
+        with pytest.raises(Model, match="loader result validation failed") as caught:
+            loader.get("p")
+        assert isinstance(caught.value.__cause__, RuntimeError)
+        assert "validator secret" not in str(caught.value)
+        assert "p" not in loader.building
+
     def build_capacity_fails_closed(self) -> None:
         """A full build map never evicts an active factory or duplicates work."""
         import threading

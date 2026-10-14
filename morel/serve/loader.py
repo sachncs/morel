@@ -178,8 +178,13 @@ class Loader:
                 raise Model(f"loader factory for {key!r} failed") from exc
             if model is None:
                 raise Model(f"loader factory returned None for key {key!r}")
-            if validator is not None and not validator(model):
-                raise Model(f"loader factory returned an incompatible value for key {key!r}")
+            if validator is not None:
+                try:
+                    valid = validator(model)
+                except Exception as exc:
+                    raise Model(f"loader result validation failed for key {key!r}") from exc
+                if not valid:
+                    raise Model(f"loader factory returned an incompatible value for key {key!r}")
             if deadline.expired():
                 # The factory only completed after the per-key timeout.
                 # Discard the result so we don't cache a model that exceeded

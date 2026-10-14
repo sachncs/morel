@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **636 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **637 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -46,6 +46,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Sparse graph writers now reject non-finite or non-numeric weights before
   creating an artifact, keeping invalid state from entering the persistence
   layer.
+- Loader result validators now normalize their own ordinary exceptions to
+  typed model failures, preserving the serving error taxonomy at plugin
+  boundaries.
 - Graph invariant helpers now enforce sparse square inputs, finite values,
   non-negative tolerances, and valid degree controls through typed `Net`
   failures instead of leaking shape/type exceptions.
