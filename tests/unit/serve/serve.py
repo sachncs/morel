@@ -494,6 +494,29 @@ class Checker:
             )
         assert all(response.status_code == 422 for response in responses)
 
+    async def stats_serializes_unavailable_losses(self) -> None:
+        """Idle updater NaNs become JSON null rather than invalid JSON."""
+        import math
+
+        class IdleUpdater:
+            def stats(self):
+                return {
+                    "events_buffered": 0,
+                    "updates_applied": 0,
+                    "last_loss": math.nan,
+                    "valid_loss": math.nan,
+                    "current_version": 0,
+                    "cooldown_until": 0.0,
+                }
+
+        app = create()
+        app.state.updater = IdleUpdater()
+        async with make(app) as client:
+            response = await get(client, "/v1/stats")
+        assert response.status_code == 200
+        assert response.json()["last_loss"] is None
+        assert response.json()["valid_loss"] is None
+
     async def recommend(self) -> None:
         """``/v1/recommend`` ranks via the recommender, not a uniform fake slice."""
         app, _, _ = make_app_with_factory()

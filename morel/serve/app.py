@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import os
 import time
 import uuid
@@ -91,8 +92,8 @@ class Stats(BaseModel):
 
     events_buffered: int
     updates_applied: int
-    last_loss: float
-    valid_loss: float
+    last_loss: float | None
+    valid_loss: float | None
     current_version: int
     cooldown_until: float
 
@@ -393,11 +394,13 @@ def create(
         if updater is None:
             raise HTTPException(status_code=503, detail="Updater not mounted")
         s = updater.stats()
+        last_loss = float(s["last_loss"])
+        valid_loss = float(s["valid_loss"])
         return Stats(
             events_buffered=int(s["events_buffered"]),
             updates_applied=int(s["updates_applied"]),
-            last_loss=float(s["last_loss"]),
-            valid_loss=float(s["valid_loss"]),
+            last_loss=last_loss if math.isfinite(last_loss) else None,
+            valid_loss=valid_loss if math.isfinite(valid_loss) else None,
             current_version=int(s["current_version"]),
             cooldown_until=float(s["cooldown_until"]),
         )
