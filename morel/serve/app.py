@@ -492,6 +492,38 @@ def suggest(
         raise HTTPException(
             status_code=policy.status_code, detail=policy.detail, headers=headers
         ) from exc
+    if not isinstance(scores, torch.Tensor) or scores.ndim != 1:
+        log.error(
+            "recommender returned an invalid score shape",
+            extra={
+                "request_id": request_id,
+                "user": payload.user,
+                "top": top,
+                "score_type": type(scores).__name__,
+                "score_shape": getattr(scores, "shape", None),
+            },
+        )
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "recommender returned an invalid score vector; see server logs with the request id"
+            ),
+        )
+    if scores.shape[0] != item_count or not bool(torch.isfinite(scores).all()):
+        log.error(
+            "recommender returned invalid score values",
+            extra={
+                "request_id": request_id,
+                "user": payload.user,
+                "top": top,
+                "expected_items": item_count,
+                "score_count": int(scores.shape[0]),
+            },
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="recommender returned invalid scores; see server logs with the request id",
+        )
     k = min(top, item_count)
     topk = torch.topk(scores, k=k)
     return [

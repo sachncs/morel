@@ -704,6 +704,40 @@ class Checker:
         )
         assert "backend credential" not in r.text
 
+    async def recommend_rejects_invalid_score_shape(self) -> None:
+        """Malformed plugin score shapes fail closed before ranking."""
+
+        class InvalidShapePipeline(StubPipeline):
+            def score(self, users, items):
+                import torch
+
+                return torch.zeros((self.items, 1), dtype=torch.float32)
+
+        loader = Loader()
+        loader.register("default", lambda: InvalidShapePipeline())
+        async with make(create(loader)) as client:
+            response = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "http_503"
+        assert "score vector" in response.json()["error"]["message"]
+
+    async def recommend_rejects_nonfinite_scores(self) -> None:
+        """NaN or infinite plugin scores never reach top-k ranking."""
+
+        class NonFinitePipeline(StubPipeline):
+            def score(self, users, items):
+                import torch
+
+                return torch.full((1, self.items), float("nan"))
+
+        loader = Loader()
+        loader.register("default", lambda: NonFinitePipeline())
+        async with make(create(loader)) as client:
+            response = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "http_503"
+        assert "invalid scores" in response.json()["error"]["message"]
+
     async def recommend_timeout_is_retryable(self) -> None:
         """Timeouts have an explicit 504 policy and retry guidance."""
 
