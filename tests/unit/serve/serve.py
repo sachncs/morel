@@ -490,6 +490,23 @@ class Checker:
         assert "visual" in body["completed"]
         assert len(body["completed"]["visual"]) == 3
 
+    async def complete_dependency_failure(self) -> None:
+        """Expected completion failures become retryable, sanitized 503 responses."""
+
+        class FailingPipeline(StubPipeline):
+            def __call__(self, *args, **kwargs):
+                raise RuntimeError("backend credential must not escape")
+
+        loader = Loader()
+        loader.register("default", lambda: FailingPipeline())
+        async with make(create(loader)) as client:
+            response = await post(client, "/v1/complete", json={"items": [0]})
+        assert response.status_code == 503
+        assert response.json()["error"]["message"] == (
+            "completion is unavailable; see server logs with the request id"
+        )
+        assert "backend credential" not in response.text
+
     async def complete_oversize(self) -> None:
         """Oversized item lists are rejected before the handler runs."""
         app, _, _ = make_app_with_factory()

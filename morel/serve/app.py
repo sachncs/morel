@@ -272,6 +272,7 @@ def create(
     @app.post("/v1/complete", response_model=Done)  # type: ignore[untyped-decorator]
     def complete(
         payload: Fill,
+        request: Request,
         _: None = Depends(require_read),
         __: None = Depends(read_limit),
     ) -> Done:
@@ -296,7 +297,11 @@ def create(
                 status_code=503,
                 detail="loaded factory returned an incompatible pipeline",
             )
-        completed = run(pipeline, payload)
+        completed = run(
+            pipeline,
+            payload,
+            request_id=getattr(request.state, "request_id", "unknown"),
+        )
         return Done(completed=serialize(completed))
 
     @app.post("/v1/recommend", response_model=List)  # type: ignore[untyped-decorator]
@@ -385,7 +390,12 @@ require_read = auth.dependency("read")
 require_admin = auth.dependency("admin")
 
 
-def run(pipeline: ServingPipeline, payload: Fill) -> dict[str, Any]:
+def run(
+    pipeline: ServingPipeline,
+    payload: Fill,
+    *,
+    request_id: str = "unknown",
+) -> dict[str, Any]:
     """Run completion for item ids in the loaded corpus.
 
     The serving contract requires a pipeline with an attached feature corpus,
@@ -415,13 +425,33 @@ def run(pipeline: ServingPipeline, payload: Fill) -> dict[str, Any]:
         for name, values in corpus.items()
     }
     mask_t = torch.from_numpy(np.asarray(corpus_mask, dtype=np.float32)[indices])
-    output = pipeline(
-        features,
-        mask_t,
-        adjacency=adjacency,
-        index=torch.from_numpy(indices),
-        training=False,
-    )
+    try:
+        output = pipeline(
+            features,
+            mask_t,
+            adjacency=adjacency,
+            index=torch.from_numpy(indices),
+            training=False,
+        )
+    except HTTPException:
+        raise
+    except (Error, IndexError, OSError, RuntimeError, TypeError, TimeoutError, ValueError) as exc:
+        policy = classify(exc, operation="completion")
+        log.exception(
+            "completion failed",
+            extra={
+                "request_id": request_id,
+                "items": len(items),
+                "failure_kind": policy.kind.value,
+                "retryable": policy.retryable,
+            },
+        )
+        headers = {"Retry-After": "1"} if policy.retryable else None
+        raise HTTPException(
+            status_code=policy.status_code,
+            detail=policy.detail,
+            headers=headers,
+        ) from exc
     if payload.modalities:
         return {
             name: tensor for name, tensor in output.completed.items() if name in payload.modalities

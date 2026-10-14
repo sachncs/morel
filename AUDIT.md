@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **614 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **615 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -114,6 +114,9 @@ Scope: repository, local Python package, local React site, and the deployed
   it logs the request ID and returns a stable sanitized 500 envelope, while
   still recording the request latency sample; both behaviors have regression
   coverage.
+- Completion failures now use the same typed timeout/domain/dependency policy
+  as recommendation scoring, returning sanitized retryable 503 responses while
+  preserving programmer-error and cancellation semantics.
 - Fixed `make audit-artifact` to select the newest wheel instead of installing
   every stale wheel left in `dist/`, which previously made a valid build fail
   with a misleading dependency-resolution conflict.
