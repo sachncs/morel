@@ -47,18 +47,47 @@ class FactoryRegistry(Generic[T]):
         self._factories = dict(factories)
         self._validator = validator
         self._factory_validator = factory_validator
-        if factory_validator is not None:
-            invalid: list[str] = []
-            for kind, factory in self._factories.items():
-                try:
-                    valid = factory_validator(factory)
-                except Exception as exc:
-                    raise Cfg(f"{name} factory contract validation failed") from exc
-                if not valid:
-                    invalid.append(kind)
-            if invalid:
-                names = ", ".join(repr(kind) for kind in invalid)
-                raise Cfg(f"{name} registry has incompatible factory registration: {names}")
+        invalid = [
+            kind for kind, factory in self._factories.items() if not self._valid_factory(factory)
+        ]
+        if invalid:
+            names = ", ".join(repr(kind) for kind in invalid)
+            raise Cfg(f"{name} registry has incompatible factory registration: {names}")
+
+    def _valid_factory(self, factory: Callable[..., T]) -> bool:
+        """Validate one factory while sanitizing plugin implementation errors."""
+        if self._factory_validator is None:
+            return True
+        try:
+            return bool(self._factory_validator(factory))
+        except Exception as exc:
+            raise Cfg(f"{self.name} factory contract validation failed") from exc
+
+    def register(self, kind: str, factory: Callable[..., T]) -> None:
+        """Register one new factory after validating its extension contract.
+
+        Registration is intentionally additive: replacing a configured name
+        could silently change a deployed model, so callers must choose a new
+        name or construct a fresh registry.
+
+        Args:
+            kind: Stable configuration name for the new implementation.
+            factory: Callable matching the registry's construction contract.
+
+        Raises:
+            Cfg: If the name is already registered or the factory contract is
+                incompatible.
+            ValueError: If the name or factory is malformed.
+        """
+        if not isinstance(kind, str) or not kind.strip():
+            raise ValueError("factory kind must be a non-empty string")
+        if not callable(factory):
+            raise ValueError("factory must be callable")
+        if kind in self._factories:
+            raise Cfg(f"{self.name} factory name already registered: {kind!r}")
+        if not self._valid_factory(factory):
+            raise Cfg(f"{self.name} registry has incompatible factory registration: {kind!r}")
+        self._factories[kind] = factory
 
     def __contains__(self, kind: object) -> bool:
         """Return whether ``kind`` is registered."""

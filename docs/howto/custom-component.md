@@ -2,8 +2,9 @@
 
 morel's stages — retrieval, encoding, routing, codebook, completion,
 and recommendation — are selected by a `kind` field in the config. Built-in
-construction is routed through typed adapters and runtime contracts; production
-registries are intentionally not mutable at runtime.
+construction and external retrieval registration are routed through typed
+adapters and runtime contracts. Registration is additive and rejects duplicate
+names so a live implementation cannot be silently replaced.
 
 ## The pattern
 

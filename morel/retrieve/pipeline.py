@@ -218,6 +218,16 @@ _STRATEGIES = FactoryRegistry[set[int]](
 )
 
 
+def register(kind: str, strategy: Callable[..., set[int]]) -> None:
+    """Register a typed retrieval strategy for later configuration use.
+
+    The strategy is validated before it becomes visible in ``KIND``. Existing
+    names cannot be replaced in a live process.
+    """
+    _STRATEGIES.register(kind, strategy)
+    KIND[kind] = strategy
+
+
 def retrieve(
     query: int,
     features: dict[str, Array],
@@ -334,4 +344,4 @@ def cast(
     return nodes, mask_t, sizes
 
 
-__all__ = ["Cfg", "Result", "batch", "cast", "retrieve"]
+__all__ = ["Cfg", "Result", "batch", "cast", "register", "retrieve"]

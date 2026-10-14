@@ -75,3 +75,35 @@ class Checker:
             FactoryRegistry[int]("number", {})
         with pytest.raises(ValueError, match="name must be non-empty"):
             FactoryRegistry[int]("", {"one": lambda: 1})
+
+    def registration(self) -> None:
+        """External factories can register without replacing a live name."""
+        registry = FactoryRegistry[int](
+            "number",
+            {"one": lambda: 1},
+            factory_validator=callable,
+        )
+        registry.register("two", lambda: 2)
+        assert registry.build("two") == 2
+        with pytest.raises(Cfg, match="already registered"):
+            registry.register("one", lambda: 3)
+
+    def registration_contract(self) -> None:
+        """Incompatible external factories are rejected before publication."""
+
+        def valid() -> int:
+            return 1
+
+        valid.plugin_ok = True  # type: ignore[attr-defined]
+        registry = FactoryRegistry[int](
+            "number",
+            {"one": valid},
+            factory_validator=lambda value: getattr(value, "plugin_ok", False),
+        )
+
+        def broken() -> int:
+            return 2
+
+        with pytest.raises(Cfg, match="incompatible factory registration"):
+            registry.register("broken", broken)
+        assert "broken" not in registry

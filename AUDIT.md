@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **599 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **602 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -631,8 +631,10 @@ error code, log fields, and retry/no-retry behavior.
 2. Require validators for third-party factory registrations and reject an
    incompatible plugin at registration/startup rather than first request.
    `FactoryRegistry` now enforces its factory validator while the registry is
-   constructed; the remaining work is to apply the same typed contract suite
-   consistently to every extension point and external plugin package.
+   constructed and exposes additive duplicate-safe registration; retrieval
+   exposes this through a typed public `register` entry point. The remaining
+   work is to apply the same registration surface consistently to every
+   extension point and external plugin package.
 3. Document public, semi-private, and private naming; import boundaries;
    deprecation policy; ownership; immutability; and cache invalidation rules.
 4. Run every built-in and test plugin through the same contract suite, including

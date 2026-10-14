@@ -9,7 +9,7 @@ from morel.retrieve.anchor import query as anchor
 from morel.retrieve.bfs import bfs, neighbors_map, path, walk
 from morel.retrieve.mage import batch as mage_batch
 from morel.retrieve.mage import expand as mage
-from morel.retrieve.pipeline import KIND, Result, RetrievalStrategy, cast, retrieve
+from morel.retrieve.pipeline import KIND, Result, RetrievalStrategy, cast, register, retrieve
 from morel.retrieve.pipeline import batch as batch
 from morel.retrieve.relevance import rel, relevance
 
@@ -30,6 +30,7 @@ __all__ = [
     "neighbors_map",
     "path",
     "prepare_anchors",
+    "register",
     "rel",
     "relevance",
     "retrieve",

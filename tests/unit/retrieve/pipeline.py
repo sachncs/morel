@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import scipy.sparse as sp
 
-from morel.retrieve.pipeline import batch, retrieve
+from morel.retrieve.pipeline import batch, register, retrieve
 
 
 def path(n: int) -> sp.csr_matrix:
@@ -68,3 +68,16 @@ class Checker:
         mask = np.ones((5, 1), dtype=np.float32)
         batch([0, 1, 2], features, mask, g, anchors=2, iters=2)
         assert calls == 1
+
+    def external_strategy(self) -> None:
+        """A third-party strategy can be registered through the public contract."""
+        kind = "test_external"
+
+        def strategy(query, features, mask, adj, **kwargs):
+            return {int(query)}
+
+        register(kind, strategy)
+        g = path(2)
+        features = {"visual": np.eye(2, dtype=np.float32)}
+        mask = np.ones((2, 1), dtype=np.float32)
+        assert retrieve(1, features, mask, g, kind=kind) == {1}
