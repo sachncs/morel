@@ -1,9 +1,10 @@
-# RENAME_MAP.md — Twelve Hard Rules Single-Word Rename
+# RENAME_MAP.md — Historical Phase-2 Rename Map
 
-Generated for `/Users/sachin/repo/morel`. Every entry below is a rename applied
-in Phase 2. The intent is to satisfy Rule D (single-word naming), Rule C
-(no leading underscores), Rule F (no dict-based dispatch), and Rule I/J
-(no dead code, no shims).
+Generated for `/Users/sachin/repo/morel`. Every entry below records a rename
+applied in the historical Phase 2 migration. Its old Rule C prohibited leading
+underscores; that migration rule is superseded by the current visibility
+contract in `docs/engineering.md`, which explicitly permits `_name` for
+implementation details and semi-private extension points.
 
 ## Test-file convention chosen (Rule D)
 

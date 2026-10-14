@@ -43,7 +43,9 @@ refactor: rename _backtrack to backtrack
 
 ## Code style
 
-- Single-word naming: no `_` prefixes, no suffixes, no `get_`/`compute_`/`make_` prefixes.
+- Use public names for supported APIs and a leading `_` for implementation
+  details or semi-private extension points; follow `docs/engineering.md`.
+- Prefer direct domain names over redundant `get_`/`compute_`/`make_` prefixes.
 - Strict mypy: every public function has typed parameters and return type.
 - Test coverage: every new module gets a `tests/unit/<package>/test_<module>.py`.
 - No print statements in library code — use the `morel.core.log` logger.

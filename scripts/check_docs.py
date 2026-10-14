@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DOCS = (
     ROOT / "README.md",
     ROOT / "SECURITY.md",
+    ROOT / "CONTRIBUTING.md",
     *sorted((ROOT / "docs").rglob("*.md")),
 )
 SITE_CONTENT = ROOT / "site" / "src" / "lib" / "content.ts"
@@ -39,6 +40,10 @@ def main() -> int:
     stale = [f"{name} ({replacement})" for name, replacement in forbidden.items() if name in text]
     if stale:
         raise SystemExit("stale documentation API/claim(s): " + ", ".join(stale))
+    contributing = (ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+    required_guidance = ("leading `_`", "semi-private", "docs/engineering.md")
+    if any(marker not in contributing for marker in required_guidance):
+        raise SystemExit("CONTRIBUTING.md is missing the current visibility guidance")
     broken = local_readme_links()
     if broken:
         raise SystemExit("broken local README link(s): " + ", ".join(broken))
