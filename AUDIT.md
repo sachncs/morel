@@ -525,9 +525,11 @@ browser-content checks.
     adjacency state through `Module.to`/`cuda` without serializing it as model
     weights.
 24. **Partially addressed:** The loader now supports explicit result validators,
-    and production CLI/runtime registrations reject incompatible serving
-    pipelines before caching. Unvalidated third-party registrations can still
-    defer failure until first access and need a common typed factory surface.
+    and production CLI/runtime registrations use strict validator-required mode
+    to reject incompatible serving pipelines before caching. Development and
+    test loaders remain permissive for lightweight fixtures; unvalidated
+    third-party registrations outside the production entry points still need a
+    common typed factory surface and contract suite.
 25. **Partially addressed:** Serving budgets, factory timeout, trusted-proxy
    policy, per-worker concurrency, keep-alive, graceful shutdown, request
    recycling, and the production model-bundle requirement are now validated

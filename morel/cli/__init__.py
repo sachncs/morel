@@ -282,7 +282,7 @@ def api(argv: list[str]) -> int:
     from morel.serve.loader import Loader
     from morel.serve.protocol import is_serving_pipeline
 
-    loader = Loader(factory_timeout=config.serve.factory_timeout)
+    loader = Loader(factory_timeout=config.serve.factory_timeout, require_validators=True)
     if args.model_dir is not None:
         from morel.serve.factory import from_run
 

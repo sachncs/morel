@@ -26,7 +26,7 @@ def create_app() -> FastAPI:
     config = Config.env()
     model_dir = os.environ.get("MOREL_SERVE_MODEL_DIR", "").strip()
     validate_preflight(config, model_dir=model_dir)
-    loader = Loader(factory_timeout=config.serve.factory_timeout)
+    loader = Loader(factory_timeout=config.serve.factory_timeout, require_validators=True)
     if model_dir:
         root = Path(model_dir)
         loader.register("default", lambda: from_run(root), validator=is_serving_pipeline)

@@ -168,6 +168,12 @@ class Checker:
         loader.register("default", lambda: StubPipeline(), validator=is_serving_pipeline)
         assert loader.get("default").items == 8
 
+        strict = Loader(require_validators=True)
+        with pytest.raises(ValueError, match="result validator is required"):
+            strict.register("default", lambda: StubPipeline())
+        strict.register("default", lambda: StubPipeline(), validator=is_serving_pipeline)
+        assert strict.get("default").items == 8
+
     def caches(self) -> None:
         loader = Loader(capacity=2)
         calls = []

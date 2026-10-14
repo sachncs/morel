@@ -48,6 +48,7 @@ class Loader:
         capacity: int = 4,
         building_capacity: int | None = None,
         factory_timeout: float = 60.0,
+        require_validators: bool = False,
     ) -> None:
         """Initialize the pipeline loader.
 
@@ -57,6 +58,10 @@ class Loader:
                 factory builds. Defaults to ``capacity`` when ``None``.
             factory_timeout: Seconds to wait for the first caller's
                 factory to complete before bailing out with ``TimeoutError``.
+            require_validators: Require every registered factory to declare a
+                result validator. Production startup enables this to reject
+                incompatible extensions before the first request; development
+                and tests may leave it disabled for simple fixtures.
         """
         if capacity <= 0:
             raise ValueError("capacity must be positive")
@@ -67,6 +72,7 @@ class Loader:
         if self.building_capacity <= 0:
             raise ValueError("building_capacity must be positive")
         self.factory_timeout = float(factory_timeout)
+        self.require_validators = bool(require_validators)
         self.cache: OrderedDict[str, Any] = OrderedDict()
         self.factories: dict[str, Callable[[], Any]] = {}
         self.validators: dict[str, Callable[[object], bool]] = {}
@@ -98,6 +104,8 @@ class Loader:
             raise ValueError("key must be a non-empty string")
         if not callable(factory):
             raise ValueError("factory must be callable")
+        if self.require_validators and validator is None:
+            raise ValueError("a result validator is required for this loader")
         if validator is not None and not callable(validator):
             raise ValueError("validator must be callable")
         with self.lock:
