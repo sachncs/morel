@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 
 from morel.core.errors import Cfg, Model
-from morel.train.checkpoint import State, hash_config, load, unsafe
+from morel.train.checkpoint import MAX_CHECKPOINT_BYTES, State, hash_config, load, unsafe
 from morel.train.legacy import load_trusted
 from morel.train.monitor import Monitor
 
@@ -122,6 +122,21 @@ class Checker:
         torch.save(42, p)
         with pytest.raises(Model):
             load(p)
+
+    def bounded(self, tmp_path: Path) -> None:
+        """Checkpoint loading rejects oversized files before deserialization."""
+        path = tmp_path / "oversized.pt"
+        with path.open("wb") as handle:
+            handle.truncate(MAX_CHECKPOINT_BYTES + 1)
+        with pytest.raises(Model, match="exceeds"):
+            load(path)
+
+    def malformed_bytes_are_typed(self, tmp_path: Path) -> None:
+        """Malformed checkpoint bytes do not leak parser implementation errors."""
+        path = tmp_path / "malformed.pt"
+        path.write_bytes(b"")
+        with pytest.raises(Model, match="could not be loaded safely"):
+            load(path)
 
     def raises(self, tmp_path: Path) -> None:
         with pytest.raises(FileNotFoundError):

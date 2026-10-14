@@ -18,12 +18,20 @@ from morel.core.errors import Cfg, Model
 from morel.train.legacy import load_trusted
 
 ALLOWED = {"model", "optimizer", "epoch", "metric", "rng", "cfg_hash", "extras"}
+MAX_CHECKPOINT_BYTES = 1 << 30
 
 # Exceptions that indicate a problem with the checkpoint itself (corrupted
 # bytes, unsupported pickle opcodes, pytorch tightening weights_only=True).
 # I/O problems (PermissionError, IsADirectoryError) bubble up unchanged so
 # callers can handle them with their preferred retry / fallback policy.
-_LOAD_ERRORS: tuple[type[BaseException], ...] = (UnpicklingError, RuntimeError)
+_LOAD_ERRORS: tuple[type[BaseException], ...] = (
+    EOFError,
+    IndexError,
+    KeyError,
+    RuntimeError,
+    UnpicklingError,
+    ValueError,
+)
 
 
 def load(target: Path | str) -> dict[str, Any]:
@@ -51,6 +59,12 @@ def load(target: Path | str) -> dict[str, Any]:
     path = Path(target)
     if not path.exists():
         raise FileNotFoundError(path)
+    try:
+        size = path.stat().st_size
+    except OSError:
+        raise
+    if size > MAX_CHECKPOINT_BYTES:
+        raise Model(f"checkpoint at {path} exceeds the {MAX_CHECKPOINT_BYTES}-byte limit")
     try:
         payload = torch.load(path, map_location="cpu", weights_only=True)
     except _LOAD_ERRORS as exc:
@@ -176,4 +190,4 @@ def hash_config(config: object) -> str:
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-__all__ = ["State", "hash_config", "load", "unsafe"]
+__all__ = ["MAX_CHECKPOINT_BYTES", "State", "hash_config", "load", "unsafe"]
