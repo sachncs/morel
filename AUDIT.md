@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **619 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **620 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -251,6 +251,9 @@ Scope: repository, local Python package, local React site, and the deployed
   longer silently swallowed there.
 - Added a dated `VERIFICATION` source for product-site metrics and synchronized
   the current 580-test/84.60%-coverage evidence across the audit, docs, and site.
+- Training metrics loading now enforces a bounded JSONL file size, scans only
+  the latest record, and converts malformed or non-object records into typed
+  training failures.
 - Added the documented `Config.from_dict()` and `Config.from_yaml()` aliases
   with a YAML round-trip regression test, eliminating another public-example
   API mismatch.
@@ -308,7 +311,7 @@ history. This status map prevents historical findings from being mistaken for
 open defects:
 
 - **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
-  50–62, and the local/deployed portions of 43–48.
+  50–63, and the local/deployed portions of 43–48.
 - **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
@@ -502,6 +505,11 @@ and release operations.
     state after validation. `Bipartite` and `Item` now snapshot and freeze
     their CSR buffers, return copy-on-read adjacency values, and revalidate
     unpickled state.
+
+63. **Closed in this worktree:** Training metrics loading read every JSONL line
+    into memory and leaked parse/type errors from malformed final records. The
+    monitor now enforces a size cap, scans only the latest line, and raises a
+    typed training error for malformed metrics.
 
 ### P3 — testing and quality gates
 

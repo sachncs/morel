@@ -8,10 +8,10 @@ import pytest
 import torch
 import torch.nn as nn
 
-from morel.core.errors import Cfg, Model
+from morel.core.errors import Cfg, Model, Train
 from morel.train.checkpoint import MAX_CHECKPOINT_BYTES, State, hash_config, load, unsafe
 from morel.train.legacy import load_trusted
-from morel.train.monitor import Monitor
+from morel.train.monitor import MAX_METRICS_BYTES, Monitor
 
 
 class Marker:
@@ -67,6 +67,22 @@ class Checker:
     def none(self, tmp_path: Path) -> None:
         mon = Monitor(tmp_path)
         assert mon.latest() is None
+
+    def monitor_boundary(self, tmp_path: Path) -> None:
+        """Malformed or oversized metrics fail as typed training errors."""
+        mon = Monitor(tmp_path)
+        mon.path.write_text("not json\n", encoding="utf-8")
+        with pytest.raises(Train, match="invalid final record"):
+            mon.latest()
+
+        mon.path.write_text("[]\n", encoding="utf-8")
+        with pytest.raises(Train, match="must be an object"):
+            mon.latest()
+
+        with mon.path.open("wb") as handle:
+            handle.truncate(MAX_METRICS_BYTES + 1)
+        with pytest.raises(Train, match="exceeds"):
+            mon.latest()
 
     def payload(self, tmp_path: Path) -> None:
         """Load refuses payloads that contain a __reduce__ exploit class."""
