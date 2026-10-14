@@ -74,6 +74,14 @@ class Checker:
         with pytest.raises(Datum, match="exceeds"):
             load_graph(oversized)
 
+    def decompression_bound(self, tmp_path: Path) -> None:
+        """NPZ loaders reject highly compressible expansion before array load."""
+        target = tmp_path / "compressed.npz"
+        np.savez_compressed(target, values=np.zeros(100_000, dtype=np.float32))
+        limit = target.stat().st_size + 1
+        with pytest.raises(Datum, match="uncompressed size"):
+            load_npz(target, max_bytes=limit)
+
     def invalid_graph(self, tmp_path: Path) -> None:
         target = tmp_path / "bad-graph.npz"
         np.savez(

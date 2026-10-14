@@ -35,6 +35,17 @@ def _check_artifact_size(path: Path, max_bytes: int) -> None:
         raise Datum(f"artifact exceeds the {max_bytes}-byte limit: {path}")
 
 
+def _check_uncompressed_size(path: Path, max_bytes: int) -> None:
+    """Reject ZIP members whose combined expansion exceeds the artifact bound."""
+    try:
+        with zipfile.ZipFile(path) as archive:
+            expanded = sum(info.file_size for info in archive.infolist())
+    except (OSError, zipfile.BadZipFile) as exc:
+        raise Datum(f"invalid npz artifact: {path}") from exc
+    if expanded > max_bytes:
+        raise Datum(f"artifact uncompressed size exceeds the {max_bytes}-byte limit: {path}")
+
+
 def _check_graph_bounds(
     shape: tuple[int, int],
     edges: int,
@@ -122,6 +133,7 @@ def load_npz(
     if not path.exists():
         raise Datum(f"npz artifact not found: {path}")
     _check_artifact_size(path, max_bytes)
+    _check_uncompressed_size(path, max_bytes)
     if manifest.locate(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
     try:
@@ -190,6 +202,7 @@ def load_graph(
     if not path.exists():
         raise Datum(f"graph artifact not found: {path}")
     _check_artifact_size(path, max_bytes)
+    _check_uncompressed_size(path, max_bytes)
     if manifest.locate(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
     try:
