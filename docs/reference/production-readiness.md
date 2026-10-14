@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         609 passed, at least 84.57% coverage
+pytest -q                         610 passed, at least 84.57% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -80,6 +80,9 @@ against a Pages-shaped `/morel/` artifact.
 - `make serve-model-smoke` now reports p50/p95/p99 recommendation latency and
   fails on the configured p95 budget (`MOREL_MODEL_SMOKE_P95_SECONDS`, default
   30 seconds); production hardware-specific budgets still need calibration.
+- The serving failure-policy matrix is directly tested for timeout, domain,
+  dependency, programmer, and cancellation behavior; cancellation remains
+  outside the HTTP 500 boundary.
 - Critical-module coverage is now gated separately for serving, pipeline, CLI,
   and checkpoint loading via `make audit-critical`.
 - Malformed HTTP payload property coverage and data-stream boundary tests are
