@@ -1,6 +1,6 @@
 # Site UX/UI review
 
-Review date: 2026-10-15  
+Review date: 2026-10-15; launch-readiness follow-up: 2026-10-15
 Reviewed surface: published `https://sachncs.github.io/morel/`  
 Lens: premium product craft, clarity, restraint, and accessibility—an Apple-style
 product review, not a visual imitation of Apple branding.
@@ -8,9 +8,10 @@ product review, not a visual imitation of Apple branding.
 ## Executive assessment
 
 The redesign is materially stronger than the former presentation: the opening
-screen has a clear headline, a distinctive graph mark, a restrained dark
-palette, strong contrast, and a credible technical point of view. The product
-feels intentional and the page is usable on a narrow viewport.
+screen has a clear outcome-led headline, a distinctive graph mark, a restrained
+dark palette, strong contrast, and a credible technical point of view. The
+headline now fits a 360px viewport without clipping, and the product/docs
+surfaces use the same teal graph identity.
 
 The next level is not more polish or more sections. It is reduction. The page
 currently tries to be a landing page, API brochure, benchmark report, research
@@ -35,25 +36,27 @@ and move secondary detail behind deliberate paths.
 
 ## Highest-priority improvements
 
-### 1. Make the first viewport about the user outcome
+### 1. Make the first viewport about the user outcome — improved
 
-The hero currently combines a long technical paragraph, four capability pills,
-several provenance badges, the diagram, and two competing calls to action.
-The result is credible but cognitively busy.
+The hero now leads with the outcome—completing missing modalities and ranking
+with graph context—and the mobile headline no longer overruns the viewport.
+The page still combines a technical diagram, capability pills, and two actions,
+so the next polish pass should continue reducing competing signals.
 
 Recommended change:
 
 - Keep one short promise, one proof point, and one primary action above the fold.
 - Move test count, coverage, license, paper ID, and infrastructure badges into a
   compact trust row below the first interaction.
-- Change the secondary action to a quieter text link such as “Explore the
-  pipeline”. Keep GitHub as the persistent utility action.
+- Keep GitHub as the persistent utility action; consider making it a quieter
+  text link after launch telemetry confirms the primary install path.
 
-### 2. Show the product, not only the architecture
+### 2. Show the product, not only the architecture — partially improved
 
-The page explains the pipeline well, but it does not let a first-time visitor
-feel the value of “incomplete features become ranked recommendations.” Add one
-small, deterministic before/after interaction or animated example:
+The page now animates the pipeline and codebook diagrams, but it still does not
+let a first-time visitor feel the value of “incomplete features become ranked
+recommendations.” Add one small, deterministic before/after interaction or
+animated example:
 
 ```text
 missing modality → graph retrieval → completed embedding → ranked items
@@ -90,8 +93,8 @@ quality requires stronger visual feedback than semantic correctness alone.
 
 ## Mobile-specific review
 
-The live narrow viewport has a strong centered hero and readable primary action.
-The main risks are vertical fatigue and code density:
+The current 360px viewport has a centered hero, a readable primary action, and
+no headline clipping. Remaining risks are vertical fatigue and code density:
 
 - the diagram begins near the fold and should not displace the core action;
 - pills should wrap without becoming a second navigation bar;
@@ -102,10 +105,10 @@ The main risks are vertical fatigue and code density:
 
 ## Trust and content consistency
 
-The site currently shows a conservative `84.57%` coverage floor while local
-verification is higher. Label this as `≥84.57% coverage` so the distinction is
-intentional rather than appearing stale. Keep the test count synchronized with
-the verification script, as it is now 659.
+The site and docs should continue to show a conservative `≥84.57% coverage`
+floor when presenting the published baseline, rather than implying that the
+floor is the latest local run. Keep the test count synchronized with the
+verification script, as it is now 659.
 
 The phrase “ready to validate” is appropriately cautious. Avoid stronger
 production language until the explicitly out-of-scope deployment work has

@@ -46,8 +46,8 @@ hide:
           <title id="hero-svg-title">Graph retrieval-enhanced modality completion, in one diagram</title>
           <defs>
             <linearGradient id="hero-edge" x1="0" x2="1" y1="0" y2="1">
-              <stop offset="0%" stop-color="#3D5AFE"/>
-              <stop offset="100%" stop-color="#5E3DAB"/>
+              <stop offset="0%" stop-color="#43cbb4"/>
+              <stop offset="100%" stop-color="#aef0e1"/>
             </linearGradient>
             <pattern id="hero-grid" width="20" height="20" patternUnits="userSpaceOnUse">
               <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(61,90,254,0.08)" stroke-width="0.5"/>
@@ -63,13 +63,13 @@ hide:
           </g>
           <g stroke="url(#hero-edge)" stroke-width="1" fill="none" stroke-linecap="round">
             <!-- User nodes. -->
-            <circle cx="22" cy="50"  r="3" fill="#3D5AFE"/>
-            <circle cx="22" cy="90"  r="3" fill="#3D5AFE"/>
-            <circle cx="22" cy="130" r="3" fill="#3D5AFE"/>
+            <circle cx="22" cy="50"  r="3" fill="#43cbb4"/>
+            <circle cx="22" cy="90"  r="3" fill="#43cbb4"/>
+            <circle cx="22" cy="130" r="3" fill="#43cbb4"/>
             <!-- Item nodes (right). -->
-            <circle cx="64" cy="62"  r="3" fill="#5E3DAB"/>
-            <circle cx="64" cy="105" r="3" fill="#5E3DAB"/>
-            <circle cx="64" cy="148" r="3" fill="#5E3DAB"/>
+            <circle cx="64" cy="62"  r="3" fill="#aef0e1"/>
+            <circle cx="64" cy="105" r="3" fill="#aef0e1"/>
+            <circle cx="64" cy="148" r="3" fill="#aef0e1"/>
             <!-- Item-to-item edges (item graph). -->
             <line x1="64" y1="62"  x2="64" y2="105" stroke-dasharray="2 2"/>
             <line x1="64" y1="105" x2="64" y2="148" stroke-dasharray="2 2"/>
@@ -78,19 +78,19 @@ hide:
 
           <!-- Query node with missing modality. -->
           <g>
-            <circle cx="135" cy="105" r="11" fill="#fff" stroke="#3D5AFE" stroke-width="1.4"/>
-            <circle cx="135" cy="105" r="11" fill="none" stroke="#3D5AFE" stroke-dasharray="2 1.6"/>
+            <circle cx="135" cy="105" r="11" fill="#fff" stroke="#43cbb4" stroke-width="1.4"/>
+            <circle cx="135" cy="105" r="11" fill="none" stroke="#43cbb4" stroke-dasharray="2 1.6"/>
             <text x="135" y="108" font-size="8" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif"
-                  fill="#3D5AFE" font-weight="600">q</text>
+                  fill="#43cbb4" font-weight="600">q</text>
             <text x="135" y="130" font-size="9" text-anchor="middle" fill="#4a4a55"
                   font-family="ui-sans-serif, system-ui, sans-serif">query, modality gap</text>
           </g>
 
           <!-- Retrieved subgraph (highlighted cluster). -->
           <g stroke="url(#hero-edge)" stroke-width="1" fill="none" stroke-linecap="round">
-            <circle cx="195" cy="80"  r="3.2" fill="#5E3DAB"/>
-            <circle cx="225" cy="105" r="3.2" fill="#5E3DAB"/>
-            <circle cx="195" cy="130" r="3.2" fill="#5E3DAB"/>
+            <circle cx="195" cy="80"  r="3.2" fill="#aef0e1"/>
+            <circle cx="225" cy="105" r="3.2" fill="#aef0e1"/>
+            <circle cx="195" cy="130" r="3.2" fill="#aef0e1"/>
             <line x1="195" y1="80"  x2="225" y2="105"/>
             <line x1="225" y1="105" x2="195" y2="130"/>
             <line x1="195" y1="80"  x2="195" y2="130"/>
@@ -110,12 +110,12 @@ hide:
           <!-- Completion block (output). -->
           <g>
             <rect x="258" y="80" width="92" height="50" rx="6" fill="#fff"
-                  stroke="#3D5AFE" stroke-width="1.4"/>
+                  stroke="#43cbb4" stroke-width="1.4"/>
             <text x="304" y="98" font-size="9" text-anchor="middle"
-                  font-family="ui-sans-serif, system-ui, sans-serif" fill="#3D5AFE" font-weight="600">completed</text>
-            <line x1="266" y1="106" x2="342" y2="106" stroke="#3D5AFE" stroke-width="0.6"/>
-            <line x1="266" y1="113" x2="342" y2="113" stroke="#3D5AFE" stroke-width="0.6" opacity="0.6"/>
-            <line x1="266" y1="120" x2="320" y2="120" stroke="#3D5AFE" stroke-width="0.6" opacity="0.4"/>
+                  font-family="ui-sans-serif, system-ui, sans-serif" fill="#43cbb4" font-weight="600">completed</text>
+            <line x1="266" y1="106" x2="342" y2="106" stroke="#43cbb4" stroke-width="0.6"/>
+            <line x1="266" y1="113" x2="342" y2="113" stroke="#43cbb4" stroke-width="0.6" opacity="0.6"/>
+            <line x1="266" y1="120" x2="320" y2="120" stroke="#43cbb4" stroke-width="0.6" opacity="0.4"/>
           </g>
 
           <!-- Arrow: subgraph → completion. -->
@@ -231,26 +231,26 @@ hide:
           <svg viewBox="0 0 360 280" role="img">
             <defs>
               <linearGradient id="method-edge" x1="0" x2="1" y1="0" y2="1">
-                <stop offset="0%" stop-color="#3D5AFE"/>
-                <stop offset="100%" stop-color="#5E3DAB"/>
+                <stop offset="0%" stop-color="#43cbb4"/>
+                <stop offset="100%" stop-color="#aef0e1"/>
               </linearGradient>
             </defs>
             <!-- Query. -->
             <g>
-              <circle cx="180" cy="50" r="9" fill="#fff" stroke="#3D5AFE" stroke-width="1.4"/>
-              <circle cx="180" cy="50" r="9" fill="none" stroke="#3D5AFE" stroke-dasharray="2 2"/>
+              <circle cx="180" cy="50" r="9" fill="#fff" stroke="#43cbb4" stroke-width="1.4"/>
+              <circle cx="180" cy="50" r="9" fill="none" stroke="#43cbb4" stroke-dasharray="2 2"/>
               <text x="180" y="53" font-size="9" text-anchor="middle" font-weight="600"
-                    font-family="ui-sans-serif, system-ui, sans-serif" fill="#3D5AFE">q</text>
+                    font-family="ui-sans-serif, system-ui, sans-serif" fill="#43cbb4">q</text>
               <text x="180" y="80" font-size="9" text-anchor="middle"
                     font-family="ui-sans-serif, system-ui, sans-serif" fill="#4a4a55">query, modality gap</text>
             </g>
             <!-- Subgraph. -->
             <g stroke="url(#method-edge)" stroke-width="1.2" fill="none" stroke-linecap="round">
-              <circle cx="80"  cy="160" r="4" fill="#5E3DAB"/>
-              <circle cx="140" cy="120" r="4" fill="#5E3DAB"/>
-              <circle cx="220" cy="120" r="4" fill="#5E3DAB"/>
-              <circle cx="280" cy="160" r="4" fill="#5E3DAB"/>
-              <circle cx="180" cy="190" r="4" fill="#5E3DAB"/>
+              <circle cx="80"  cy="160" r="4" fill="#aef0e1"/>
+              <circle cx="140" cy="120" r="4" fill="#aef0e1"/>
+              <circle cx="220" cy="120" r="4" fill="#aef0e1"/>
+              <circle cx="280" cy="160" r="4" fill="#aef0e1"/>
+              <circle cx="180" cy="190" r="4" fill="#aef0e1"/>
               <line x1="80" y1="160" x2="140" y2="120"/>
               <line x1="140" y1="120" x2="220" y2="120"/>
               <line x1="220" y1="120" x2="280" y2="160"/>
@@ -270,9 +270,9 @@ hide:
             <!-- Completion. -->
             <g>
               <rect x="140" y="248" width="80" height="22" rx="5" fill="#fff"
-                    stroke="#3D5AFE" stroke-width="1.4"/>
+                    stroke="#43cbb4" stroke-width="1.4"/>
               <text x="180" y="263" font-size="9" text-anchor="middle"
-                    font-family="ui-sans-serif, system-ui, sans-serif" fill="#3D5AFE" font-weight="600">completed</text>
+                    font-family="ui-sans-serif, system-ui, sans-serif" fill="#43cbb4" font-weight="600">completed</text>
             </g>
           </svg>
         </div>

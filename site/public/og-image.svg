@@ -29,8 +29,8 @@
 
   <g font-family="Inter, system-ui, sans-serif" fill="#ffffff">
     <text x="100" y="430" font-size="96" font-weight="700" letter-spacing="-3">morel</text>
-    <text x="100" y="490" font-size="28" font-weight="500" fill="#79e3cf" letter-spacing="-0.5">Robust multimodal recommendation,</text>
-    <text x="100" y="528" font-size="28" font-weight="500" fill="#79e3cf" letter-spacing="-0.5">one graph at a time.</text>
+    <text x="100" y="490" font-size="28" font-weight="500" fill="#79e3cf" letter-spacing="-0.5">Complete missing modalities, then</text>
+    <text x="100" y="528" font-size="28" font-weight="500" fill="#79e3cf" letter-spacing="-0.5">rank with graph context.</text>
   </g>
 
   <g font-family="ui-monospace, SFMono-Regular, monospace" font-size="18" fill="#43cbb4">

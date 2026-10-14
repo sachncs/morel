@@ -43,7 +43,6 @@ site/
 ├── index.html              Entry HTML
 ├── public/                 Static assets served at site root
 │   ├── favicon.svg
-│   ├── morel-mark.svg
 │   └── og-image.svg
 └── src/
     ├── main.tsx            React entry

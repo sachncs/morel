@@ -23,7 +23,7 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative isolate overflow-hidden pb-24 pt-36 sm:pb-32 sm:pt-44"
+      className="relative isolate overflow-hidden pb-20 pt-28 sm:pb-32 sm:pt-44"
     >
       {/* Background glow */}
       <div
@@ -56,10 +56,10 @@ export function Hero() {
 
           <motion.h1
             variants={item}
-            className="text-display-2xl text-balance font-semibold text-ink-900 dark:text-white"
+            className="w-full max-w-5xl text-[clamp(2.5rem,11vw,5.5rem)] text-balance font-semibold leading-[0.98] tracking-[-0.035em] text-ink-900 dark:text-white sm:text-display-2xl"
           >
-            Robust multimodal recommendation,{" "}
-            <span className="gradient-text">one graph at a time.</span>
+            Complete missing modalities, then{" "}
+            <span className="gradient-text">rank with graph context.</span>
           </motion.h1>
 
           <motion.p
@@ -67,11 +67,10 @@ export function Hero() {
             className="mt-6 max-w-2xl text-pretty text-base leading-relaxed text-ink-600 sm:text-lg sm:leading-[1.6] dark:text-ink-300"
           >
             <strong className="font-semibold text-ink-900 dark:text-white">morel</strong>{" "}
-            is an open-source Python library for graph retrieval-enhanced
-            modality completion. Feed it a user–item graph with incomplete
-            per-item features, and it returns a trained recommender that
-            finishes missing modalities before ranking — paper-faithful,
-            deterministic, and ready to validate.
+            is an open-source Python library that completes missing item
+            modalities from graph context, then ranks with LightGCN. Build a
+            paper-faithful, deterministic pipeline you can benchmark,
+            inspect, and self-host.
           </motion.p>
 
           <motion.div

@@ -1,8 +1,8 @@
 export const SITE = {
   name: "morel",
-  tagline: "Robust multimodal recommendation, one graph at a time.",
+  tagline: "Complete missing modalities, then rank with graph context.",
   description:
-    "An open-source Python library for graph retrieval-enhanced modality completion. Build recommenders that finish missing modalities before ranking — paper-faithful, deterministic, and ready to validate.",
+    "An open-source Python library that completes missing item modalities from graph context, then ranks with LightGCN. Build a paper-faithful, deterministic pipeline you can benchmark, inspect, and self-host.",
   repo: "https://github.com/sachncs/morel",
   repoName: "sachncs/morel",
   url: "https://sachncs.github.io/morel/",
