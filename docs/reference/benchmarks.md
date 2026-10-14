@@ -3,7 +3,7 @@
 Benchmarks use `pytest-benchmark`. Run with:
 
 ```bash
-pytest benchmarks/ --benchmark-only --benchmark-min-rounds=20 --benchmark-autosave
+pytest benchmarks/ --benchmark-only --no-cov --benchmark-min-rounds=20 --benchmark-autosave
 ```
 
 ## Suites

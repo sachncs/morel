@@ -108,7 +108,7 @@ export function Performance() {
         <TestTube2 className={cn("h-4 w-4 text-accent-500")} />
         Run the suite yourself —{" "}
         <code className="rounded-md bg-ink-100 px-2 py-0.5 font-mono text-xs text-ink-700 dark:bg-white/5 dark:text-ink-200">
-          pytest benchmarks/ --benchmark-only
+          pytest benchmarks/ --benchmark-only --no-cov
         </code>
         <span className="text-xs">(last verified {VERIFICATION.lastVerified})</span>
       </motion.div>

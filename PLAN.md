@@ -387,7 +387,7 @@ online update with replay buffer and divergence guard), reader-writer lock,
 - [ ] **2.7** Fix `benchmarks/end_to_end.py`
   - File: `benchmarks/end_to_end.py`
   - Replace `np.eye(items)` adjacency with a real item cooccurrence graph: `adj = item_cooccurrence(bipartite(...))` with synthetic users.
-  - Acceptance: `pytest benchmarks/end_to_end.py --benchmark-only` runs without error.
+  - Acceptance: `pytest benchmarks/end_to_end.py --benchmark-only --no-cov` runs without error.
 
 - [ ] **2.8** Integration test driving real `Pipeline` through `Completion`
   - File: new `tests/integration/test_pipeline_with_completion.py`

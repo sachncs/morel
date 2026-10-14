@@ -47,7 +47,7 @@ demo: ## Run the demo script
 	python examples/demo.py
 
 bench: ## Run benchmarks
-	pytest benchmarks/ --benchmark-only --benchmark-min-rounds=20
+	pytest benchmarks/ --benchmark-only --no-cov --benchmark-min-rounds=20
 
 serve: ## Run the inference server
 	python -m morel serve --host 0.0.0.0 --port 8080
