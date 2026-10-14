@@ -60,6 +60,8 @@ class ResolverSecretProvider:
 
     def get(self, name: SecretName) -> str | None:
         """Resolve, normalize, and bound one external secret value."""
+        if name not in ("read", "admin", "legacy"):
+            raise Cfg(f"unknown secret name: {name!r}")
         try:
             value = self._resolver(name)
         except Exception as exc:
@@ -81,6 +83,8 @@ class EnvironmentSecretProvider:
 
     def get(self, name: Literal["read", "admin", "legacy"]) -> str | None:
         """Resolve one scope while enforcing direct/file exclusivity."""
+        if name not in ("read", "admin", "legacy"):
+            raise Cfg(f"unknown secret name: {name!r}")
         if name == "admin":
             direct_name = "MOREL_AUTH_TOKEN_ADMIN"
             file_name = "MOREL_AUTH_TOKEN_ADMIN_FILE"

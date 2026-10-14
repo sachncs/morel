@@ -49,6 +49,8 @@ Scope: repository, local Python package, local React site, and the deployed
 - Loader result validators now normalize their own ordinary exceptions to
   typed model failures, preserving the serving error taxonomy at plugin
   boundaries.
+- Secret-provider adapters now reject unknown runtime scope names instead of
+  silently mapping them to a legacy credential.
 - Graph invariant helpers now enforce sparse square inputs, finite values,
   non-negative tolerances, and valid degree controls through typed `Net`
   failures instead of leaking shape/type exceptions.

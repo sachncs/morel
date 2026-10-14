@@ -205,6 +205,8 @@ class Checker:
         assert "vendor credential" not in str(caught.value)
         with pytest.raises(Cfg, match="exceeds"):
             ResolverSecretProvider(lambda name: "x" * 4097).get("read")
+        with pytest.raises(Cfg, match="unknown secret name"):
+            ResolverSecretProvider(lambda name: None).get("unknown")
 
     def missing_secret_file(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         from morel.core.errors import Cfg
