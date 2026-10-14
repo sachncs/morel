@@ -1,6 +1,9 @@
 """Public API for the morel.route package."""
 
+from collections.abc import Callable
+
 from morel.route.router import Dense, Fixed, Gumbel, Router, Top, Weights, build
+from morel.route.router import register as _register
 
 #: Map from config name to router factory. Module-local; no global registry.
 KIND: dict[str, type[Router]] = {
@@ -9,6 +12,12 @@ KIND: dict[str, type[Router]] = {
     "gumbel": Gumbel,
     "fixed": Fixed,
 }
+
+
+def register(kind: str, factory: Callable[..., Router], *, implementation: type[Router]) -> None:
+    """Register an additive router and publish its introspection type."""
+    _register(kind, factory)
+    KIND[kind] = implementation
 
 
 __all__ = [
@@ -20,4 +29,5 @@ __all__ = [
     "Top",
     "Weights",
     "build",
+    "register",
 ]

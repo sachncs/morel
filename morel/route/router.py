@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
 
 import torch
@@ -220,6 +221,11 @@ def build(kind: str, dim: int, k: int, *, p: int, tau: float) -> Router:
     return _FACTORIES.build(kind, dim=dim, k=k, p=p, tau=tau)
 
 
+def register(kind: str, factory: Callable[..., Router]) -> None:
+    """Register an additive router factory under a new configuration name."""
+    _FACTORIES.register(kind, factory)
+
+
 def _build_top(*, dim: int, k: int, p: int, tau: float) -> Router:
     """Adapt the shared constructor shape to top-p routing."""
     return Top(dim, k, p=p, tau=tau)
@@ -250,4 +256,4 @@ _FACTORIES = FactoryRegistry[Router](
 )
 
 
-__all__ = ["Dense", "Fixed", "Gumbel", "Router", "Top", "Weights", "build"]
+__all__ = ["Dense", "Fixed", "Gumbel", "Router", "Top", "Weights", "build", "register"]

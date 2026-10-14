@@ -1,5 +1,7 @@
 """Public API for the morel.recommend package."""
 
+from collections.abc import Callable
+
 import torch.nn as nn
 
 from morel.core.factory import FactoryRegistry
@@ -53,6 +55,14 @@ KIND: dict[str, type[nn.Module]] = {
     "mf": MF,
     "pop": Pop,
 }
+
+
+def register(
+    kind: str, factory: Callable[..., nn.Module], *, implementation: type[nn.Module]
+) -> None:
+    """Register an additive recommender implementation under a new config name."""
+    _FACTORIES.register(kind, factory)
+    KIND[kind] = implementation
 
 
 def _build_light(
@@ -123,5 +133,6 @@ __all__ = [
     "build",
     "distinct",
     "negatives",
+    "register",
     "to_ranks",
 ]

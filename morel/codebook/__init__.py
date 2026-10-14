@@ -1,5 +1,7 @@
 """Public API for the morel.codebook package."""
 
+from collections.abc import Callable
+
 from morel.codebook.codebook import (
     VQ,
     Codebook,
@@ -46,6 +48,14 @@ KIND: dict[str, type[Codebook]] = {
 }
 
 
+def register(
+    kind: str, factory: Callable[..., Codebook], *, implementation: type[Codebook]
+) -> None:
+    """Register an additive codebook implementation under a new config name."""
+    _FACTORIES.register(kind, factory)
+    KIND[kind] = implementation
+
+
 def _build_soft(*, dim: int, size: int, router: Router, seed: int | None) -> Codebook:
     """Adapt the shared constructor shape to the Gumbel codebook."""
     return Soft(dim=dim, size=size, router=router, seed=seed)
@@ -78,5 +88,6 @@ __all__ = [
     "Soft",
     "balance",
     "build",
+    "register",
     "usage",
 ]

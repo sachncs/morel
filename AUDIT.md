@@ -631,10 +631,10 @@ error code, log fields, and retry/no-retry behavior.
 2. Require validators for third-party factory registrations and reject an
    incompatible plugin at registration/startup rather than first request.
    `FactoryRegistry` now enforces its factory validator while the registry is
-   constructed and exposes additive duplicate-safe registration; retrieval
-   exposes this through a typed public `register` entry point. The remaining
-   work is to apply the same registration surface consistently to every
-   extension point and external plugin package.
+   constructed and exposes additive duplicate-safe registration; all six
+   built-in extension packages expose typed public `register` entry points.
+   Remaining work is to run the same contract suite through every external
+   plugin package and real pipeline → trainer → checkpoint → serving flow.
 3. Document public, semi-private, and private naming; import boundaries;
    deprecation policy; ownership; immutability; and cache invalidation rules.
 4. Run every built-in and test plugin through the same contract suite, including

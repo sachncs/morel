@@ -1,5 +1,7 @@
 """Public API for the morel.encode package."""
 
+from collections.abc import Callable
+
 import torch.nn as nn
 
 from morel.core.factory import FactoryRegistry
@@ -53,6 +55,14 @@ KIND: dict[str, type[nn.Module]] = {
     "transformer": Transformer,
     "identity": Identity,
 }
+
+
+def register(
+    kind: str, factory: Callable[..., nn.Module], *, implementation: type[nn.Module]
+) -> None:
+    """Register an additive encoder implementation under a new config name."""
+    _FACTORIES.register(kind, factory)
+    KIND[kind] = implementation
 
 
 def _build_transformer(
@@ -111,4 +121,5 @@ __all__ = [
     "Token",
     "Transformer",
     "build",
+    "register",
 ]

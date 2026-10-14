@@ -2,9 +2,9 @@
 
 morel's stages — retrieval, encoding, routing, codebook, completion,
 and recommendation — are selected by a `kind` field in the config. Built-in
-construction and external retrieval registration are routed through typed
-adapters and runtime contracts. Registration is additive and rejects duplicate
-names so a live implementation cannot be silently replaced.
+construction and external registration are routed through typed adapters and
+runtime contracts. Registration is additive and rejects duplicate names so a
+live implementation cannot be silently replaced.
 
 ## The pattern
 
@@ -22,8 +22,9 @@ Every stage exposes a public `KIND` mapping for introspection and a
 | Masking     | ``morel.data.MASKS``            | ``masking.kind``    |
 | Extraction  | ``morel.data.EXTRACTORS``      | ``encoder.text`` / ``encoder.visual`` |
 
-To add a new implementation, add a typed adapter to the owning package and
-validate its protocol before exposing the new configuration name:
+To add a new implementation, call the owning package's ``register`` function
+with a typed adapter and implementation class. The adapter is validated before
+the new configuration name is exposed:
 
 ```python
 from morel.codebook import Codebook
@@ -93,6 +94,10 @@ codebook:
 - The adapter result must satisfy the stage protocol before it enters
   composition; incompatible values fail with the typed ``Cfg`` error.
 - Custom adapters should be covered by contract tests before deployment.
+- Registration is available from ``morel.encode``, ``morel.route``,
+  ``morel.codebook``, ``morel.complete``, ``morel.recommend``, and
+  ``morel.retrieve``. Each call requires a new name and an implementation
+  class for stable introspection.
 
 ## See also
 
