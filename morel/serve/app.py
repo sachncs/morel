@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from morel import __version__
-from morel.core.errors import Error, Model
+from morel.core.errors import Model
 from morel.serve import auth
 from morel.serve.failures import classify
 from morel.serve.loader import Loader
@@ -250,28 +250,24 @@ def create(
         """
         try:
             pipeline = app.state.loader.get("default")
-        except TimeoutError as exc:
-            request_id = getattr(request.state, "request_id", "unknown")
-            log.exception(
-                "readiness model loading timed out",
-                extra={"request_id": request_id, "failure_kind": "timeout", "retryable": True},
-            )
-            raise HTTPException(
-                status_code=503,
-                detail="model loading timed out; see server logs with the request id",
-                headers={"Retry-After": "1"},
-            ) from exc
-        except Error as exc:
-            raise HTTPException(status_code=503, detail=str(exc)) from exc
         except Exception as exc:
+            policy = classify(exc, operation="model loading")
             request_id = getattr(request.state, "request_id", "unknown")
             log.exception(
                 "readiness model loading failed",
-                extra={"request_id": request_id, "failure_kind": "programmer", "retryable": False},
+                extra={
+                    "request_id": request_id,
+                    "failure_kind": policy.kind.value,
+                    "retryable": policy.retryable,
+                },
             )
+            # Readiness must stay unavailable until loading succeeds, even
+            # when the underlying operation is classified as a 504.
+            headers = {"Retry-After": "1"} if policy.retryable else None
             raise HTTPException(
                 status_code=503,
-                detail="model loading failed; see server logs with the request id",
+                detail=policy.detail,
+                headers=headers,
             ) from exc
         if not is_serving_pipeline(pipeline):
             raise HTTPException(

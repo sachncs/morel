@@ -480,7 +480,9 @@ class Checker:
         async with make(create(loader)) as client:
             r = await get(client, "/health/ready")
         assert r.status_code == 503
-        assert r.json()["error"]["message"] == "loader factory for 'default' failed"
+        assert r.json()["error"]["message"] == (
+            "model loading is unavailable; see server logs with the request id"
+        )
         assert "secret backend password" not in r.text
 
     async def health_ready_timeout_is_retryable(self) -> None:
