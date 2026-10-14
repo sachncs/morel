@@ -223,7 +223,7 @@ def load_graph(
         coo = sp.coo_matrix((data, (row, col)), shape=shape)
     except Datum:
         raise
-    except (OSError, TypeError, ValueError, KeyError) as exc:
+    except (OSError, EOFError, TypeError, ValueError, KeyError, zipfile.BadZipFile) as exc:
         raise Datum(f"invalid graph artifact: {path}") from exc
     return coo.tocsr()
 

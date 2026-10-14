@@ -58,5 +58,11 @@ class Checker:
             try:
                 arrays = load_npz(path)
             except Datum:
+                arrays = None
+            if arrays is not None:
+                assert isinstance(arrays, dict)
+            try:
+                graph = load_graph(path)
+            except Datum:
                 return
-            assert isinstance(arrays, dict)
+            assert graph.ndim == 2
