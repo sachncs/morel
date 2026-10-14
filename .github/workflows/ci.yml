@@ -57,6 +57,7 @@ jobs:
       - name: Audit installed wheel environment
         run: |
           pip install --force-reinstall --no-deps dist/*.whl
+          pip uninstall --yes morel
           pip-audit --strict --local
 
       - name: Security audit
