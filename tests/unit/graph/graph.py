@@ -84,3 +84,18 @@ class Checker:
         source = sp.csr_matrix(np.eye(3, dtype=np.float32))
         item = Item.bip(Bipartite(source))
         assert item.edges == 0
+
+    def malformed_item_input_is_rejected(self) -> None:
+        """Dense and non-numeric item inputs fail at the value-object boundary."""
+        with pytest.raises(ValueError, match="must be sparse"):
+            Item(np.zeros((2, 2), dtype=np.float32))  # type: ignore[arg-type]
+        with pytest.raises(ValueError, match="finite numeric"):
+            Item(sp.csr_matrix(np.array([[0.0, np.nan], [np.nan, 0.0]])))
+
+    def neighbors_bounds_are_explicit(self) -> None:
+        """Neighbor lookup rejects indices outside the item graph."""
+        item = Item(sp.csr_matrix(np.zeros((2, 2), dtype=np.float32)))
+        with pytest.raises(ValueError, match="item index must be in"):
+            item.neighbors(-1)
+        with pytest.raises(ValueError, match="item index must be in"):
+            item.neighbors(2)
