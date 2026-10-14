@@ -582,6 +582,10 @@ class Checker:
         body = r.text
         assert "morel_requests_total" in body
         assert "morel_request_duration_seconds" in body
+        assert (
+            'morel_request_duration_seconds_count{endpoint="/health",method="GET",status="200"} 1.0'
+            in body
+        )
 
     async def metrics_isolation(self) -> None:
         """Separate app instances must not share request counters."""
