@@ -41,7 +41,10 @@ class ModalityMask:
 
     def __post_init__(self) -> None:
         """Validate the mask data on construction."""
-        snapshot = np.array(self.data, dtype=np.float32, copy=True)
+        try:
+            snapshot = np.array(self.data, dtype=np.float32, copy=True)
+        except (TypeError, ValueError) as exc:
+            raise Datum("mask values must be numeric") from exc
         snapshot.setflags(write=False)
         object.__setattr__(self, "data", snapshot)
         if self.data.ndim != 2:

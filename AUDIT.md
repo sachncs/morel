@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **627 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **628 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -38,6 +38,8 @@ Scope: repository, local Python package, local React site, and the deployed
 - The ASGI fallback no longer attempts a second response after downstream
   response headers have been sent; partial-response failures are logged and
   re-raised without corrupting the exchange.
+- `ModalityMask` now converts non-numeric constructor inputs into typed
+  `Datum` failures instead of leaking raw NumPy conversion exceptions.
 - Retrieval strategy resolution now validates the registered callable against
   the runtime `RetrievalStrategy` protocol before execution, closing another
   untyped plugin boundary.
@@ -327,7 +329,7 @@ history. This status map prevents historical findings from being mistaken for
 open defects:
 
 - **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
-  50–67, and the local/deployed portions of 43–48.
+  50–68, and the local/deployed portions of 43–48.
 - **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
@@ -550,6 +552,11 @@ and release operations.
     to emit a second JSON response after downstream code had already sent
     response headers. The middleware now re-raises after a started response,
     preventing protocol corruption while retaining the original operator log.
+
+68. **Closed in this worktree:** `ModalityMask` converted invalid object/string
+    inputs with NumPy before validation, leaking `TypeError` or `ValueError`
+    instead of the package's typed data error. Conversion failures now raise
+    `Datum("mask values must be numeric")` with the original exception chained.
 
 ### P3 — testing and quality gates
 

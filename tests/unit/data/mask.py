@@ -80,3 +80,8 @@ class Checker:
         assert mask.numpy()[0, 0] == 1.0
         with pytest.raises(ValueError, match="read-only"):
             mask.data[0, 0] = 0.0
+
+    def rejects_non_numeric(self) -> None:
+        """Non-numeric mask inputs use the typed data-boundary error."""
+        with pytest.raises(Datum, match="must be numeric"):
+            ModalityMask(np.asarray([["missing", "present"]], dtype=object))
