@@ -637,8 +637,9 @@ browser-content checks.
     checkpoints now have bounded input sizes and typed malformed-file errors.
     Empty, isolated, duplicate-edge, and self-loop graph cases are covered;
     arbitrary checkpoint and serving-mask bytes are now covered; oversized
-    sparse-graph metadata is rejected before allocation; invariant controls
-    and arbitrary sparse values now have a 40-example property matrix.
+    sparse-graph node metadata and caller-defined edge budgets are rejected
+    before sparse construction; invariant controls and arbitrary sparse values
+    now have a 40-example property matrix.
     Broader artifact fuzzing remains open.
     Persisted sparse graphs now enforce explicit node and edge budgets at save
     and load boundaries, including caller-selectable lower limits for services.

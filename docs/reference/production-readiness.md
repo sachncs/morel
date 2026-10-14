@@ -98,9 +98,10 @@ against a Pages-shaped `/morel/` artifact.
   present; configuration, manifest, and safe-checkpoint boundaries now have
   malformed-input tests and size caps. Empty, isolated, duplicate-edge, and
   self-loop sparse graph cases are covered; arbitrary checkpoint and serving
-  mask bytes are covered; oversized sparse-graph metadata is rejected before
-  allocation; invariant controls and arbitrary sparse values now have a
-  40-example property matrix. Broader artifact fuzz coverage remains
+  mask bytes are covered; oversized sparse-graph node metadata and caller-
+  defined edge budgets are rejected before sparse construction; invariant
+  controls and arbitrary sparse values now have a 40-example property matrix.
+  Broader artifact fuzz coverage remains
   incomplete.
 - Streaming co-occurrence construction groups records by user and enforces a
   directed-edge accumulation budget, failing with a domain error before a
