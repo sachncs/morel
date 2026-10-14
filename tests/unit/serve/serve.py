@@ -436,6 +436,24 @@ class Checker:
         assert r.json()["error"]["message"] == "loader factory for 'default' failed"
         assert "secret backend password" not in r.text
 
+    async def health_ready_timeout_is_retryable(self) -> None:
+        """Readiness reports a timed-out factory as a retryable 503."""
+        import time
+
+        loader = Loader(factory_timeout=0.01)
+
+        def slow() -> StubPipeline:
+            time.sleep(0.03)
+            return StubPipeline()
+
+        loader.register("default", slow)
+        async with make(create(loader)) as client:
+            response = await get(client, "/health/ready")
+        assert response.status_code == 503
+        assert response.headers.get("retry-after") == "1"
+        assert response.json()["error"]["code"] == "http_503"
+        assert "timed out" in response.json()["error"]["message"]
+
     async def health_version_matches_package(self) -> None:
         """Health and OpenAPI expose the generated package version."""
         from morel import __version__

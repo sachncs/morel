@@ -241,7 +241,7 @@ def create(
         return Health(status="ok", version=__version__)
 
     @app.get("/health/ready")  # type: ignore[untyped-decorator]
-    def readiness() -> dict[str, Any]:
+    def readiness(request: Request) -> dict[str, Any]:
         """Readiness probe: a real pipeline can be loaded.
 
         Returns:
@@ -250,8 +250,29 @@ def create(
         """
         try:
             pipeline = app.state.loader.get("default")
+        except TimeoutError as exc:
+            request_id = getattr(request.state, "request_id", "unknown")
+            log.exception(
+                "readiness model loading timed out",
+                extra={"request_id": request_id, "failure_kind": "timeout", "retryable": True},
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="model loading timed out; see server logs with the request id",
+                headers={"Retry-After": "1"},
+            ) from exc
         except Error as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except Exception as exc:
+            request_id = getattr(request.state, "request_id", "unknown")
+            log.exception(
+                "readiness model loading failed",
+                extra={"request_id": request_id, "failure_kind": "programmer", "retryable": False},
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="model loading failed; see server logs with the request id",
+            ) from exc
         if not is_serving_pipeline(pipeline):
             raise HTTPException(
                 status_code=503,
