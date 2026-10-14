@@ -134,3 +134,20 @@ class Checker:
             except Datum:
                 return
             raise AssertionError("oversized graph metadata was accepted")
+
+    def oversized_graph_edge_count_fails_before_sparse_build(self) -> None:
+        """Graph coordinate counts over the caller budget fail closed."""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "oversized-edges.npz"
+            np.savez(
+                path,
+                data=np.ones(5, dtype=np.float32),
+                row=np.zeros(5, dtype=np.int64),
+                col=np.zeros(5, dtype=np.int64),
+                shape=np.asarray([2, 2], dtype=np.int64),
+            )
+            try:
+                load_graph(path, max_edges=4)
+            except Datum:
+                return
+            raise AssertionError("oversized graph edge metadata was accepted")
