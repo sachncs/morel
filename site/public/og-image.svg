@@ -5,12 +5,12 @@
       <stop offset="100%" stop-color="#131318" />
     </linearGradient>
     <linearGradient id="brand" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#c58e3d" />
-      <stop offset="100%" stop-color="#e1bd7a" />
+      <stop offset="0%" stop-color="#0c8f7d" />
+      <stop offset="100%" stop-color="#79e3cf" />
     </linearGradient>
     <radialGradient id="glow" cx="50%" cy="35%" r="60%">
-      <stop offset="0%" stop-color="#c58e3d" stop-opacity="0.35" />
-      <stop offset="100%" stop-color="#c58e3d" stop-opacity="0" />
+      <stop offset="0%" stop-color="#18b89d" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#18b89d" stop-opacity="0" />
     </radialGradient>
     <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
       <path d="M 48 0 L 0 0 0 48" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5" />
@@ -21,20 +21,19 @@
   <rect width="1200" height="630" fill="url(#grid)" />
   <rect width="1200" height="630" fill="url(#glow)" />
 
-  <g transform="translate(100, 196)">
-    <path d="M10 76c12-44 44-72 90-72s78 28 90 72c-32 20-64 28-90 28S42 96 10 76Z" fill="#c58e3d" fill-opacity=".18" stroke="url(#brand)" stroke-width="7" stroke-linejoin="round" />
-    <g fill="none" stroke="#e1bd7a" stroke-width="5" stroke-linecap="round"><path d="M42 64c8 12 12 20 12 32" /><path d="M70 56c4 16 8 28 8 40" /><path d="M100 52v44" /><path d="M130 56c-4 16-8 28-8 40" /><path d="M158 64c-8 12-12 20-12 32" /></g>
-    <path d="M80 104h40l8 56H72l8-56Z" fill="#e1bd7a" />
-    <g fill="#e1bd7a" stroke="#0a0a0e" stroke-width="4"><circle cx="28" cy="44" r="10" /><circle cx="172" cy="44" r="10" /><circle cx="100" cy="4" r="10" /></g>
+  <g transform="translate(112, 202)">
+    <path d="M100 8 184 58 100 108 16 58Z" fill="#0c8f7d" fill-opacity=".18" stroke="url(#brand)" stroke-width="7" stroke-linejoin="round" />
+    <path d="M100 8v100M16 58l84 50 84-50M16 58l84-50 84 50" fill="none" stroke="#79e3cf" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+    <g fill="#43cbb4" stroke="#09131a" stroke-width="4"><circle cx="16" cy="58" r="11" /><circle cx="184" cy="58" r="11" /><circle cx="100" cy="8" r="11" /><circle cx="100" cy="108" r="11" /></g>
   </g>
 
   <g font-family="Inter, system-ui, sans-serif" fill="#ffffff">
     <text x="100" y="430" font-size="96" font-weight="700" letter-spacing="-3">morel</text>
-    <text x="100" y="490" font-size="28" font-weight="500" fill="#e1bd7a" letter-spacing="-0.5">Robust multimodal recommendation,</text>
-    <text x="100" y="528" font-size="28" font-weight="500" fill="#e1bd7a" letter-spacing="-0.5">one graph at a time.</text>
+    <text x="100" y="490" font-size="28" font-weight="500" fill="#79e3cf" letter-spacing="-0.5">Robust multimodal recommendation,</text>
+    <text x="100" y="528" font-size="28" font-weight="500" fill="#79e3cf" letter-spacing="-0.5">one graph at a time.</text>
   </g>
 
-  <g font-family="ui-monospace, SFMono-Regular, monospace" font-size="18" fill="#c58e3d">
+  <g font-family="ui-monospace, SFMono-Regular, monospace" font-size="18" fill="#43cbb4">
     <text x="100" y="585">graph retrieval · modality completion · serving foundation</text>
   </g>
 </svg>
