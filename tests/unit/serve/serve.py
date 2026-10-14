@@ -384,6 +384,39 @@ class Checker:
             "request_id": "internal-123",
         }
 
+    async def partial_response_failure_does_not_send_twice(self) -> None:
+        """A failure after headers are sent is re-raised, not double-written."""
+
+        class Partial:
+            async def __call__(self, scope, receive, send) -> None:
+                await send({"type": "http.response.start", "status": 200, "headers": []})
+                raise RuntimeError("stream failed")
+
+        app = create()
+        from morel.serve.observe import ObserveMiddleware
+
+        messages: list[dict[str, object]] = []
+
+        async def receive() -> dict[str, object]:
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        async def send(message: dict[str, object]) -> None:
+            messages.append(message)
+
+        middleware = ObserveMiddleware(
+            Partial(),
+            metrics_enabled=False,
+            metrics_path="/metrics",
+            request_id_factory=lambda supplied: supplied or "request-id",
+        )
+        with pytest.raises(RuntimeError, match="stream failed"):
+            await middleware(
+                {"type": "http", "path": "/partial", "method": "GET", "headers": [], "app": app},
+                receive,
+                send,
+            )
+        assert [message["type"] for message in messages] == ["http.response.start"]
+
     async def cancellation_is_not_converted(self) -> None:
         """Request cancellation propagates instead of becoming a false 500."""
         app = create()

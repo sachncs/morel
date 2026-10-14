@@ -46,10 +46,12 @@ class ObserveMiddleware:
         registry: Registry = scope["app"].state.metrics_registry
         started = time.perf_counter()
         status = 500
+        response_started = False
 
         async def observed_send(message: Message) -> None:
-            nonlocal status
+            nonlocal response_started, status
             if message["type"] == "http.response.start":
+                response_started = True
                 status = int(message["status"])
                 raw_headers = list(message.get("headers", []))
                 raw_headers = [
@@ -73,6 +75,8 @@ class ObserveMiddleware:
                 "unexpected serving failure",
                 extra={"request_id": request_id, "path": scope.get("path", "")},
             )
+            if response_started:
+                raise
             response = JSONResponse(
                 status_code=500,
                 content={
