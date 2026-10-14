@@ -173,6 +173,8 @@ class Checker:
             strict.register("default", lambda: StubPipeline())
         strict.register("default", lambda: StubPipeline(), validator=is_serving_pipeline)
         assert strict.get("default").items == 8
+        with pytest.raises(Model, match="no required result validator"):
+            strict.get("ad-hoc", lambda: StubPipeline())
 
     def caches(self) -> None:
         loader = Loader(capacity=2)

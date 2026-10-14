@@ -142,6 +142,8 @@ class Loader:
             if build_factory is None:
                 raise Model(f"no factory registered for loader key {key!r}")
             validator = self.validators.get(key)
+            if self.require_validators and validator is None:
+                raise Model(f"loader key {key!r} has no required result validator")
             cond = self.building.get(key)
             if cond is None:
                 if len(self.building) >= self.building_capacity:
