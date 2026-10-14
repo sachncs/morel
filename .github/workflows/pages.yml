@@ -81,3 +81,6 @@ jobs:
             --retry 10 --retry-delay 3 --retry-all-errors "$base/docs/")"
           grep -q '<title>morel</title>' <<<"$docs"
           grep -q 'Documentation' <<<"$docs"
+          alerts="$(curl --fail --silent --show-error --location \
+            --retry 10 --retry-delay 3 --retry-all-errors "$base/docs/operations/alerts/")"
+          grep -q '<title>Alerts and rollback runbook' <<<"$alerts"

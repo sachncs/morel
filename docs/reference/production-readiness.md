@@ -129,5 +129,5 @@ against a Pages-shaped `/morel/` artifact.
   per-worker scrape behavior is documented. `ResolverSecretProvider` provides
   a bounded, sanitized adapter seam for vendor secret managers; the repository
   now includes alert starters and a rollback runbook at
-  `operations/alerts.md`. A concrete provider integration and external
+  `docs/operations/alerts.md` (published at `/docs/operations/alerts/`). A concrete provider integration and external
   rollback/alert drills remain open.

@@ -18,7 +18,7 @@ groups:
           severity: page
         annotations:
           summary: morel is failing readiness checks
-          runbook: https://sachncs.github.io/morel/operations/alerts/
+          runbook: https://sachncs.github.io/morel/docs/operations/alerts/
 
       - alert: MorelServerErrorRate
         expr: |
@@ -31,7 +31,7 @@ groups:
           severity: page
         annotations:
           summary: morel 5xx rate is above 2 percent
-          runbook: https://sachncs.github.io/morel/operations/alerts/
+          runbook: https://sachncs.github.io/morel/docs/operations/alerts/
 
       - alert: MorelRequestLatencyHigh
         expr: |
@@ -45,7 +45,7 @@ groups:
           severity: ticket
         annotations:
           summary: morel request p95 exceeds the default smoke budget
-          runbook: https://sachncs.github.io/morel/operations/alerts/
+          runbook: https://sachncs.github.io/morel/docs/operations/alerts/
 ```
 
 The readiness expression is intentionally a starting point: a counter-only
