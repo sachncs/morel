@@ -68,7 +68,7 @@ against a Pages-shaped `/morel/` artifact.
   `/morel/` base-path browser gate are verified in CI.
 - The Pages artifact now includes the strict MkDocs documentation site at
   `/docs/`; the deployment job checks both the generated artifact and live
-  route. The first post-change deployment remains pending.
+  route, and the live `/docs/` and production-readiness routes are verified.
 - The production Docker image now builds locally and in CI with CPU-only
   PyTorch, explicit serving dependencies, a non-root writable log directory,
   and a health/readiness smoke contract.

@@ -353,9 +353,9 @@ The numbered inventory below is intentionally retained as the complete issue
 history. This status map prevents historical findings from being mistaken for
 open defects:
 
-- **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
+- **Closed in this worktree:** 1–6, 7–15, 17–20, 23, 26–32, 34–42, 49,
   50–70, and the local/deployed portions of 43–48.
-- **Partially addressed:** 6, 16, 19, 22, 24, 25, and 33.
+- **Partially addressed:** 16, 19, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
   check.
@@ -400,10 +400,9 @@ browser-content checks.
 5. **Closed in this worktree:** The public product page now uses the audited
    verification snapshot, qualifies production limitations, and renders its
    truthful counters directly without an observer/RAF zero state.
-6. **Partially addressed:** The Pages artifact now builds and publishes the
+6. **Closed in this worktree:** The Pages artifact builds and publishes the
    strict MkDocs documentation site under `/docs/`, and the workflow verifies
-   the generated artifact plus the live docs route after deployment. The new
-   hosted route still needs one successful post-change Pages deployment; the
+   both the generated artifact and the live docs route after deployment. The
    PyPI release workflow enforces tag/version consistency before publication.
 
 ### P1 — correctness and security
