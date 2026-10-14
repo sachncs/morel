@@ -101,6 +101,20 @@ class Checker:
                 return
             assert graph.ndim == 2
 
+    @given(st.binary(max_size=4096))
+    @settings(max_examples=30, deadline=None)
+    def malformed_manifest_sidecar_never_leaks_internal_errors(self, payload: bytes) -> None:
+        """Corrupt sidecars reject as ``Datum`` or preserve a valid artifact load."""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "sidecar-graph.npz"
+            np.savez(path, values=np.asarray([1], dtype=np.int64))
+            path.with_suffix(path.suffix + ".manifest.json").write_bytes(payload)
+            try:
+                arrays = load_npz(path)
+            except Datum:
+                return
+            assert isinstance(arrays, dict)
+
     @given(st.binary(max_size=512))
     @settings(max_examples=30, deadline=None)
     def malformed_mask_never_leaks_internal_errors(self, payload: bytes) -> None:

@@ -636,7 +636,8 @@ browser-content checks.
     arbitrary manifest JSON. Configuration, manifest sidecars, and safe
     checkpoints now have bounded input sizes and typed malformed-file errors.
     Empty, isolated, duplicate-edge, and self-loop graph cases are covered;
-    arbitrary checkpoint and serving-mask bytes are now covered; oversized
+    arbitrary checkpoint, serving-mask, and persisted manifest-sidecar bytes
+    are now covered; oversized
     sparse-graph node metadata and caller-defined edge budgets are rejected
     before sparse construction; invariant controls and arbitrary sparse values
     now have a 40-example property matrix.
