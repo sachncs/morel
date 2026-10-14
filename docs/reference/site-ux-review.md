@@ -30,7 +30,7 @@ and move secondary detail behind deliberate paths.
 - The primary action is visually dominant and the GitHub action is easy to
   find.
 - The page has a strong information architecture: overview, capabilities,
-  quickstart, architecture, use cases, adoption, FAQ.
+  quickstart, architecture, use cases, and FAQ.
 - Mobile navigation, focus behavior, Escape handling, clipboard feedback, and
   reduced-motion behavior are already covered by the browser suite.
 
@@ -67,7 +67,7 @@ fallback for reduced-motion users.
 
 ### 3. Reduce repeated card grids
 
-The feature, use-case, adoption, and architecture sections all use similar
+The feature, use-case, and architecture sections all use similar
 card rhythms. This makes the page long and flattens hierarchy. Keep three
 signature proof points, then convert the rest to compact comparison rows or
 documentation links.

@@ -9,7 +9,6 @@ import { Architecture } from "./sections/architecture";
 import { CodeSample } from "./sections/code-sample";
 import { Performance } from "./sections/performance";
 import { UseCases } from "./sections/use-cases";
-import { Adoption } from "./sections/adoption";
 import { Faq } from "./sections/faq";
 import { GetStarted } from "./sections/get-started";
 
@@ -28,7 +27,6 @@ export default function App() {
           <GetStarted />
           <Architecture />
           <UseCases />
-          <Adoption />
           <Faq />
         </main>
         <Footer />

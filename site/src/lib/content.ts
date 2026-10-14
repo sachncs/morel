@@ -153,42 +153,12 @@ export const FAQ = [
   },
 ] as const;
 
-export const ADOPTION = [
-  {
-    title: "Open source",
-    price: "Free",
-    description: "The full library, the demo, and the test suite. MIT licensed.",
-    cta: "Get started",
-    href: `${SITE.repo}#installation`,
-    highlight: false,
-    features: ["Full library", "All retrieval strategies", "All codebook variants", "Paper-fidelity report"],
-  },
-  {
-    title: "Self-hosted",
-    price: "Run it",
-    description: "Docker Compose brings up the inference server with token auth and Prometheus metrics.",
-    cta: "View Docker setup",
-    href: `${SITE.repo}#option-3-docker-no-python-install-needed`,
-    highlight: true,
-    features: ["FastAPI inference", "Prometheus metrics", "Health-checked", "Token auth"],
-  },
-  {
-    title: "Adopt & extend",
-    price: "Your shape",
-    description: "Plug morel's pipeline into your existing training stack. Public API, frozen config, strict typing.",
-    cta: "Read the docs",
-    href: `${SITE.repo}#where-to-go-next`,
-    highlight: false,
-    features: ["Public API surface", "Frozen config tree", "Strict typing", "Rendered API reference"],
-  },
-] as const;
-
 export const TRUSTED_LOGOS = [
   "sentence-transformers",
   "PyTorch",
   "FastAPI",
   "Prometheus",
-  "MkDocs",
+  "Astro",
   "Ruff",
   "mypy",
   "Docker",

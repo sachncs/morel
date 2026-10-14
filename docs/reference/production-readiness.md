@@ -67,7 +67,7 @@ against a Pages-shaped `/morel/` artifact.
 
 - The redesigned site is deployed from `master`; the live Pages route and its
   `/morel/` base-path browser gate are verified in CI.
-- The Pages artifact now includes the strict MkDocs documentation site at
+- The Pages artifact now includes the task-oriented Astro documentation site at
   `/docs/`; the deployment job checks both the generated artifact and live
   route, and the live `/docs/` and production-readiness routes are verified.
 - The production Docker image now builds locally and in CI with CPU-only

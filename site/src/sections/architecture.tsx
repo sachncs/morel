@@ -13,7 +13,7 @@ function StageVisual({ stage }: { stage: number }) {
     case 0:
       return (
         <motion.svg
-          viewBox="0 0 600 320"
+          viewBox="0 0 420 240"
           className="h-auto w-full"
           role="img"
           aria-labelledby="architecture-stage-1-title"
@@ -31,18 +31,28 @@ function StageVisual({ stage }: { stage: number }) {
             </linearGradient>
           </defs>
           <g>
+            <rect x="12" y="12" width="396" height="216" rx="18" fill="#0d171b" stroke="#1a3a3b" />
+            <text x="56" y="34" textAnchor="middle" fontSize="9" letterSpacing="1.4" fontFamily="ui-sans-serif, system-ui" fill="#78908f">
+              USERS
+            </text>
+            <text x="198" y="34" textAnchor="middle" fontSize="9" letterSpacing="1.4" fontFamily="ui-sans-serif, system-ui" fill="#78908f">
+              ITEMS
+            </text>
+            <text x="328" y="34" textAnchor="middle" fontSize="9" letterSpacing="1.4" fontFamily="ui-sans-serif, system-ui" fill="#78908f">
+              MISSING MODALITIES
+            </text>
             {/* Users column */}
             {[0, 1, 2, 3, 4, 5].map((i) => (
               <motion.circle
                 key={`u${i}`}
-                cx="80"
-                cy={60 + i * 40}
-                r="10"
+                cx="56"
+                cy={56 + i * 28}
+                r="7"
                 fill="url(#ar-stage1)"
                 opacity={0.85}
                 initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
                 animate={{ opacity: 0.85, scale: 1 }}
-                style={{ transformOrigin: `80px ${60 + i * 40}px` }}
+                style={{ transformOrigin: `56px ${56 + i * 28}px` }}
                 transition={{ delay: i * 0.04, duration: 0.35, ease }}
               />
             ))}
@@ -50,14 +60,14 @@ function StageVisual({ stage }: { stage: number }) {
             {[0, 1, 2, 3, 4, 5, 6].map((i) => (
               <motion.circle
                 key={`i${i}`}
-                cx="280"
-                cy={40 + i * 36}
-                r="9"
+                cx="198"
+                cy={48 + i * 26}
+                r="7"
                 fill="#aef0e1"
                 opacity={i === 2 || i === 5 ? 0.45 : 0.9}
                 initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
                 animate={{ opacity: i === 2 || i === 5 ? 0.45 : 0.9, scale: 1 }}
-                style={{ transformOrigin: `280px ${40 + i * 36}px` }}
+                style={{ transformOrigin: `198px ${48 + i * 26}px` }}
                 transition={{ delay: 0.18 + i * 0.04, duration: 0.35, ease }}
               />
             ))}
@@ -70,10 +80,10 @@ function StageVisual({ stage }: { stage: number }) {
               ].map(([u, i], k) => (
                 <motion.line
                   key={k}
-                  x1="92"
-                  y1={60 + u * 40}
-                  x2="269"
-                  y2={40 + i * 36}
+                  x1="64"
+                  y1={56 + u * 28}
+                  x2="191"
+                  y2={48 + i * 26}
                   initial={reduceMotion ? false : { pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 0.55 }}
                   transition={{ delay: 0.45 + k * 0.035, duration: 0.3, ease }}
@@ -87,22 +97,31 @@ function StageVisual({ stage }: { stage: number }) {
                   key={i}
                   initial={reduceMotion ? false : { opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  style={{ transformOrigin: `280px ${40 + i * 36}px` }}
+                  style={{ transformOrigin: `198px ${48 + i * 26}px` }}
                   transition={{ delay: 1.05 + i * 0.08, duration: 0.4, ease }}
                 >
-                  <rect x="269" y={31 + i * 36} width="22" height="18" rx="4" fill="none" stroke="#43cbb4" strokeDasharray="2 2" opacity="0.7" />
-                  <text x="280" y={44 + i * 36} textAnchor="middle" fontSize="9" fontFamily="ui-monospace, monospace" fill="#0c8f7d">M=0</text>
+                  <rect x="190" y={39 + i * 26} width="16" height="18" rx="4" fill="none" stroke="#43cbb4" strokeDasharray="2 2" opacity="0.7" />
+                  <text x="198" y={52 + i * 26} textAnchor="middle" fontSize="8" fontFamily="ui-monospace, monospace" fill="#0c8f7d">M=0</text>
                 </motion.g>
               ))}
             </g>
-            <text x="80" y="295" textAnchor="middle" fontSize="11" fontFamily="ui-sans-serif, system-ui" fill="#8a8a98">
-              Users (n=6)
+            <g transform="translate(260 64)">
+              <rect width="128" height="88" rx="14" fill="#112523" stroke="#286b62" />
+              <text x="64" y="28" textAnchor="middle" fontSize="10" fontFamily="ui-monospace, monospace" fill="#aef0e1">
+                mask = bernoulli
+              </text>
+              <text x="64" y="47" textAnchor="middle" fontSize="18" fontWeight="600" fontFamily="ui-monospace, monospace" fill="#43cbb4">
+                0.4
+              </text>
+              <text x="64" y="68" textAnchor="middle" fontSize="9" letterSpacing="1.2" fontFamily="ui-sans-serif, system-ui" fill="#78908f">
+                HELD OUT FOR COMPLETION
+              </text>
+            </g>
+            <text x="56" y="213" textAnchor="middle" fontSize="10" fontFamily="ui-sans-serif, system-ui" fill="#8a8a98">
+              Users · 6
             </text>
-            <text x="280" y="295" textAnchor="middle" fontSize="11" fontFamily="ui-sans-serif, system-ui" fill="#8a8a98">
-              Items (n=7)
-            </text>
-            <text x="500" y="50" textAnchor="end" fontSize="11" fontFamily="ui-monospace, monospace" fill="#0c8f7d">
-              mask = bernoulli(0.4)
+            <text x="198" y="213" textAnchor="middle" fontSize="10" fontFamily="ui-sans-serif, system-ui" fill="#8a8a98">
+              Items · 7
             </text>
           </g>
         </motion.svg>
