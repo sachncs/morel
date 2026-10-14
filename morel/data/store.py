@@ -19,6 +19,19 @@ from morel.data import manifest
 # metadata from requesting an unbounded sparse-matrix shape or edge list.
 MAX_GRAPH_NODES = 10_000_000
 MAX_GRAPH_EDGES = 50_000_000
+MAX_ARTIFACT_BYTES = 1 << 30
+
+
+def _check_artifact_size(path: Path, max_bytes: int) -> None:
+    """Reject an artifact before opening or decompressing its arrays."""
+    if max_bytes <= 0:
+        raise ValueError("artifact byte bound must be positive")
+    try:
+        size = path.stat().st_size
+    except OSError as exc:
+        raise Datum(f"unable to stat artifact: {path}") from exc
+    if size > max_bytes:
+        raise Datum(f"artifact exceeds the {max_bytes}-byte limit: {path}")
 
 
 def _check_graph_bounds(
@@ -88,12 +101,18 @@ def store(
     return final
 
 
-def load_npz(target: Path | str, *, expected_config_hash: str | None = None) -> dict[str, Array]:
+def load_npz(
+    target: Path | str,
+    *,
+    expected_config_hash: str | None = None,
+    max_bytes: int = MAX_ARTIFACT_BYTES,
+) -> dict[str, Array]:
     """Load a ``.npz`` artifact and verify the manifest if present.
 
     Args:
         target: Path to the ``.npz`` file.
         expected_config_hash: If set, raise on manifest mismatch.
+        max_bytes: Maximum compressed artifact size accepted before loading.
 
     Returns:
         Dict mapping array names to numpy arrays.
@@ -101,6 +120,7 @@ def load_npz(target: Path | str, *, expected_config_hash: str | None = None) -> 
     path = Path(target)
     if not path.exists():
         raise Datum(f"npz artifact not found: {path}")
+    _check_artifact_size(path, max_bytes)
     if manifest.locate(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
     try:
@@ -152,6 +172,7 @@ def load_graph(
     expected_config_hash: str | None = None,
     max_nodes: int = MAX_GRAPH_NODES,
     max_edges: int = MAX_GRAPH_EDGES,
+    max_bytes: int = MAX_ARTIFACT_BYTES,
 ) -> sp.spmatrix:
     """Load a sparse graph, verify its manifest, and enforce size bounds.
 
@@ -160,10 +181,12 @@ def load_graph(
         expected_config_hash: Optional manifest hash to require.
         max_nodes: Maximum number of rows or columns accepted.
         max_edges: Maximum number of stored coordinate entries accepted.
+        max_bytes: Maximum compressed artifact size accepted before loading.
     """
     path = Path(target)
     if not path.exists():
         raise Datum(f"graph artifact not found: {path}")
+    _check_artifact_size(path, max_bytes)
     if manifest.locate(path).exists():
         manifest.load(path, expected_config_hash=expected_config_hash)
     try:
@@ -205,6 +228,7 @@ def load_graph(
 
 
 __all__ = [
+    "MAX_ARTIFACT_BYTES",
     "MAX_GRAPH_EDGES",
     "MAX_GRAPH_NODES",
     "load_graph",

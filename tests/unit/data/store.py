@@ -10,7 +10,14 @@ import scipy.sparse as sp
 
 from morel.core.errors import Datum
 from morel.data.manifest import Manifest
-from morel.data.store import MAX_GRAPH_NODES, load_graph, load_npz, save_graph, store
+from morel.data.store import (
+    MAX_ARTIFACT_BYTES,
+    MAX_GRAPH_NODES,
+    load_graph,
+    load_npz,
+    save_graph,
+    store,
+)
 
 
 class Checker:
@@ -56,6 +63,16 @@ class Checker:
         broken.write_bytes(b"not an npz archive")
         with pytest.raises(Datum, match="invalid npz"):
             load_npz(broken)
+
+    def byte_bound(self, tmp_path: Path) -> None:
+        """NPZ loaders reject oversized archives before decompression."""
+        oversized = tmp_path / "oversized.npz"
+        with oversized.open("wb") as handle:
+            handle.truncate(MAX_ARTIFACT_BYTES + 1)
+        with pytest.raises(Datum, match="exceeds"):
+            load_npz(oversized)
+        with pytest.raises(Datum, match="exceeds"):
+            load_graph(oversized)
 
     def invalid_graph(self, tmp_path: Path) -> None:
         target = tmp_path / "bad-graph.npz"
