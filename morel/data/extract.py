@@ -17,6 +17,7 @@ from torchvision import models as tv_models
 
 from morel.core.errors import Datum
 from morel.core.log import get as logger
+from morel.core.types import Array
 
 log = logger("data.extract")
 
@@ -32,7 +33,7 @@ class FeatureEncoder(Protocol):
     name: str
     dim: int
 
-    def encode(self, inputs: list[str], *, device: str | torch.device | None = None) -> np.ndarray:
+    def encode(self, inputs: list[str], *, device: str | torch.device | None = None) -> Array:
         """Encode a batch of inputs to ``(len(inputs), self.dim)`` float32."""
         ...
 
@@ -43,7 +44,7 @@ class FeatureEncoder(Protocol):
 Feature = FeatureEncoder
 
 
-def l2_normalize(array: np.ndarray) -> np.ndarray:
+def l2_normalize(array: Array) -> Array:
     """L2-normalize each row; replace zero-norm rows with the zero vector."""
     norms = np.linalg.norm(array, axis=1, keepdims=True)
     safe = np.where(norms == 0.0, 1.0, norms)
@@ -56,7 +57,7 @@ def text(
     *,
     batch: int = 64,
     device: str | torch.device | None = None,
-) -> np.ndarray:
+) -> Array:
     """Encode text inputs through any Feature implementation.
 
     Args:
@@ -79,7 +80,7 @@ def visual(
     *,
     batch: int = 32,
     device: str | torch.device | None = None,
-) -> tuple[np.ndarray, list[int]]:
+) -> tuple[Array, list[int]]:
     """Encode image paths through any Feature implementation.
 
     Falls back to per-path encoding whenever the batched ``encoder.encode``
@@ -110,7 +111,7 @@ def visual(
             extra={"error": str(primary_exc), "n_paths": len(paths)},
         )
         kept: list[int] = []
-        rows: list[np.ndarray] = []
+        rows: list[Array] = []
         for idx, path in enumerate(paths):
             try:
                 row = encoder.encode([path], device=device)
@@ -130,7 +131,7 @@ def visual(
         return np.vstack(rows), kept
 
 
-def random(items: int, dim: int, *, seed: int, name: str = "random") -> np.ndarray:
+def random(items: int, dim: int, *, seed: int, name: str = "random") -> Array:
     """Deterministic random L2-normalized features.
 
     Used in tests, demos, and as a fallback when real encoders are unavailable.
@@ -164,7 +165,7 @@ class Random:
         self.dim = dim
         self.seed = seed
 
-    def encode(self, inputs: list[str], *, device: str | torch.device | None = None) -> np.ndarray:
+    def encode(self, inputs: list[str], *, device: str | torch.device | None = None) -> Array:
         """Encode each input to a row derived from its text, not its position.
 
         Deriving the row from a hash of the input keeps the output stable when
@@ -202,7 +203,7 @@ class Sentence:
 
     def encode(  # pragma: no cover - requires a model download
         self, inputs: list[str], *, device: str | torch.device | None = None
-    ) -> np.ndarray:
+    ) -> Array:
         """Encode text through the loaded sentence-transformer."""
         vectors = self.model.encode(
             inputs,
@@ -243,7 +244,7 @@ class Vision:
 
     def encode(  # pragma: no cover - requires a model download
         self, inputs: list[str], *, device: str | torch.device | None = None
-    ) -> np.ndarray:
+    ) -> Array:
         """Encode image paths through the loaded backbone."""
         from PIL import Image
         from torchvision import transforms
@@ -262,7 +263,7 @@ class Vision:
         return l2_normalize(out.cpu().numpy().astype(np.float32))
 
 
-def fingerprint(payload: np.ndarray) -> str:
+def fingerprint(payload: Array) -> str:
     """Stable SHA256 of an array's bytes (used for manifest binding)."""
     return hashlib.sha256(np.ascontiguousarray(payload).tobytes()).hexdigest()
 

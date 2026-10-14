@@ -14,12 +14,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import scipy.sparse as sp
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
+from morel.core.types import Array
 from morel.recommend.bpr import bpr as bpr_loss
 from morel.recommend.bpr import negatives as sample_negatives
 from morel.train.monitor import Monitor
@@ -110,7 +110,7 @@ class Recommendation(Trainer):
         # Pre-sample ``neg`` strict negatives per user. This eliminates
         # the per-step in-loop sampler and removes the dead None state
         # the trainer used to carry.
-        self.negmat: np.ndarray = sample_negatives(ui_graph, count=self.neg, seed=seed)
+        self.negmat: Array = sample_negatives(ui_graph, count=self.neg, seed=seed)
 
     def _score(self, users: torch.Tensor, item_ids: torch.Tensor) -> torch.Tensor:
         """Score ``users`` against ``item_ids`` via the item embedding.

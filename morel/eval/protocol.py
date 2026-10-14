@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
-import numpy as np
+from morel.core.types import Array
 
 
 @dataclass
@@ -22,10 +22,10 @@ class Robust:
 
 
 def sweep(
-    scores_by_ratio: dict[float, np.ndarray],
-    labels: np.ndarray,
+    scores_by_ratio: dict[float, Array],
+    labels: Array,
     *,
-    metrics: dict[str, Callable[[np.ndarray, np.ndarray], float]],
+    metrics: dict[str, Callable[[Array, Array], float]],
 ) -> Robust:
     """Evaluate a metric across a range of mask ratios.
 
@@ -49,10 +49,10 @@ def sweep(
 
 
 def results(
-    scores_by_condition: dict[str, np.ndarray],
-    labels: np.ndarray,
+    scores_by_condition: dict[str, Array],
+    labels: Array,
     *,
-    metric: Callable[[np.ndarray, np.ndarray], float],
+    metric: Callable[[Array, Array], float],
 ) -> dict[str, float]:
     """Evaluate a single metric across ablation conditions.
 

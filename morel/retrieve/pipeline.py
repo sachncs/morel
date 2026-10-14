@@ -17,6 +17,7 @@ import torch
 
 from morel.core.errors import Cfg, Net
 from morel.core.factory import FactoryRegistry
+from morel.core.types import Array
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.anchor import AnchorIndex
 from morel.retrieve.anchor import prepare as prepare_anchor
@@ -33,8 +34,8 @@ class RetrievalStrategy(Protocol):
     def __call__(
         self,
         query: int,
-        features: dict[str, np.ndarray],
-        mask: np.ndarray,
+        features: dict[str, Array],
+        mask: Array,
         adj: sp.csr_matrix,
         *,
         anchors: int,
@@ -57,9 +58,9 @@ class Result:
         mask: Boolean mask for valid nodes.
     """
 
-    nodes: np.ndarray  # (B, max_S) int64
-    sizes: np.ndarray  # (B,) int64
-    mask: np.ndarray  # (B, max_S) bool, True = real node
+    nodes: Array  # (B, max_S) int64
+    sizes: Array  # (B,) int64
+    mask: Array  # (B, max_S) bool, True = real node
 
     @property
     def batch(self) -> int:
@@ -74,8 +75,8 @@ class Result:
 
 def for_q(
     query: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     *,
     anchors: int,
     anchor_index: AnchorIndex | None = None,
@@ -93,8 +94,8 @@ def for_q(
 
 def mage(
     query: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adj: sp.csr_matrix,
     *,
     anchors: int,
@@ -123,8 +124,8 @@ def mage(
 
 def acs(
     query: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adj: sp.csr_matrix,
     *,
     anchors: int,
@@ -143,8 +144,8 @@ def acs(
 
 def anchor(
     query: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adj: sp.csr_matrix,
     *,
     anchors: int,
@@ -160,8 +161,8 @@ def anchor(
 
 def bfs(
     query: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adj: sp.csr_matrix,
     *,
     anchors: int,
@@ -182,8 +183,8 @@ def bfs(
 
 def none(
     query: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adj: sp.csr_matrix,
     *,
     anchors: int,
@@ -219,8 +220,8 @@ _STRATEGIES = FactoryRegistry[set[int]](
 
 def retrieve(
     query: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adj: sp.csr_matrix,
     *,
     anchors: int = 10,
@@ -279,8 +280,8 @@ def retrieve(
 
 def batch(
     queries: list[int],
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adj: sp.csr_matrix,
     *,
     anchors: int = 10,

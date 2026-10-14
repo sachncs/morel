@@ -9,6 +9,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from morel.core.errors import Net
+from morel.core.types import Array
 
 
 def bfs(adj: sp.csr_matrix, sources: list[int]) -> dict[int, int]:
@@ -84,10 +85,10 @@ def walk(adj: sp.csr_matrix, node: int) -> Iterator[int]:
     return iter(int(n) for n in adj.indices[row_start:row_end])
 
 
-def neighbors_map(adj: sp.csr_matrix) -> dict[int, np.ndarray]:
+def neighbors_map(adj: sp.csr_matrix) -> dict[int, Array]:
     """Precompute neighbor arrays for every node."""
     nodes = adj.shape[0]
-    out: dict[int, np.ndarray] = {}
+    out: dict[int, Array] = {}
     for node in range(nodes):
         row_start = adj.indptr[node]
         row_end = adj.indptr[node + 1]

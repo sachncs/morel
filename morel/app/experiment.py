@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from functools import partial
 from pathlib import Path
 from typing import Any
@@ -23,6 +23,7 @@ from morel.core.config import Config, Masking
 from morel.core.fidelity import render
 from morel.core.log import get as logger
 from morel.core.seed import seed as seed_everything
+from morel.core.types import Array
 from morel.data import build_mask
 from morel.data.build import bipartite as build_bipartite
 from morel.data.build import cooccurrence
@@ -198,7 +199,7 @@ class Experiment:
             handle.write(
                 json.dumps(
                     {
-                        "time": datetime.now(tz=UTC).isoformat(),
+                        "time": datetime.now(tz=timezone.utc).isoformat(),
                         "event": "experiment.end",
                         "duration_s": time.time() - start,
                         "best_loss": history.get("best", None),
@@ -325,7 +326,7 @@ class Rank:
             handle.write(
                 json.dumps(
                     {
-                        "time": datetime.now(tz=UTC).isoformat(),
+                        "time": datetime.now(tz=timezone.utc).isoformat(),
                         "event": "recommendation.end",
                         "duration_s": time.time() - start,
                         "best_loss": history.get("best", None),
@@ -411,7 +412,7 @@ class Ablate:
     td: int = 4
     seed: int | None = None
 
-    def score(self, config: Config, dataset: dict[str, Any]) -> np.ndarray:
+    def score(self, config: Config, dataset: dict[str, Any]) -> Array:
         """Build a pipeline under ``config`` and return its ``(users, items)`` scores.
 
         The completion output is fed into the ranker. Without that the ranker
@@ -453,7 +454,7 @@ class Ablate:
         dataset = synthetic(self.items, self.dv, self.td, self.users, self.config.masking)
         labels = dataset["ui"].sign().toarray()
 
-        scores_by_condition: dict[str, np.ndarray] = {}
+        scores_by_condition: dict[str, Array] = {}
         for name in conditions(self.config):
             # Reseed per condition so each is scored from the same starting
             # state; otherwise a condition's numbers would depend on how many
@@ -571,8 +572,8 @@ class Robust:
         self.config.save(self.dir / "config.yaml")
 
         ratios = list(self.config.eval.robustness)
-        labels_per_ratio: dict[float, np.ndarray] = {}
-        scores_per_ratio: dict[float, np.ndarray] = {}
+        labels_per_ratio: dict[float, Array] = {}
+        scores_per_ratio: dict[float, Array] = {}
 
         for ratio in ratios:
             seed_everything(seed_value)

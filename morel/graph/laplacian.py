@@ -18,6 +18,7 @@ import torch.nn as nn
 
 from morel.core.errors import Net
 from morel.core.log import get as logger
+from morel.core.types import Array
 from morel.graph import invariants
 
 log = logger("graph.laplacian")
@@ -27,7 +28,7 @@ log = logger("graph.laplacian")
 SEED = 0
 
 
-def start(nodes: int) -> np.ndarray:
+def start(nodes: int) -> Array:
     """Return a fixed ARPACK start vector for a graph with ``nodes`` nodes.
 
     ``scipy.sparse.linalg.eigsh`` draws ``v0`` from numpy's global RNG when the
@@ -60,7 +61,7 @@ def laplacian(adj: sp.spmatrix) -> sp.csr_matrix:
     return cast(sp.csr_matrix, laplacian_csr.tocsr())
 
 
-def signs(eigvecs: np.ndarray) -> np.ndarray:
+def signs(eigvecs: Array) -> Array:
     """Fix the arbitrary sign of each eigenvector to a reproducible choice.
 
     An eigenvector is only defined up to sign, so two mathematically correct
@@ -81,7 +82,8 @@ def signs(eigvecs: np.ndarray) -> np.ndarray:
     pivot = np.abs(eigvecs).argmax(axis=0)
     signs = np.sign(eigvecs[pivot, np.arange(eigvecs.shape[1])])
     signs[signs == 0] = 1.0
-    return cast(np.ndarray, eigvecs * signs)
+    oriented: Array = eigvecs * signs
+    return oriented
 
 
 #: Eigenvalue gap below which two modes are treated as one degenerate cluster.
@@ -94,7 +96,7 @@ def signs(eigvecs: np.ndarray) -> np.ndarray:
 TOL = 1e-6
 
 
-def basis(eigvals: np.ndarray, eigvecs: np.ndarray, *, tol: float = TOL) -> np.ndarray:
+def basis(eigvals: Array, eigvecs: Array, *, tol: float = TOL) -> Array:
     """Pick a reproducible basis inside each degenerate eigenspace.
 
     Sign-fixing is not enough when an eigenvalue is repeated: any orthogonal
@@ -157,7 +159,7 @@ LIMIT = 2048
 SHIFT = -1e-7
 
 
-def straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bool:
+def straddles(eigvals: Array, want: int, *, tol: float = TOL) -> bool:
     """Return whether a degenerate cluster is cut in half by the ``want`` cutoff.
 
     If the last kept eigenvalue equals the first discarded one, the solver has
@@ -169,7 +171,7 @@ def straddles(eigvals: np.ndarray, want: int, *, tol: float = TOL) -> bool:
     return bool(abs(float(eigvals[want]) - float(eigvals[want - 1])) <= tol)
 
 
-def bottom(lap: sp.csr_matrix, count: int, nodes: int, *, k: int) -> tuple[np.ndarray, np.ndarray]:
+def bottom(lap: sp.csr_matrix, count: int, nodes: int, *, k: int) -> tuple[Array, Array]:
     """Return the ``count`` smallest eigenpairs, sparsely when that is possible.
 
     Small graphs go through the dense solver because it is deterministic.
@@ -201,7 +203,7 @@ def bottom(lap: sp.csr_matrix, count: int, nodes: int, *, k: int) -> tuple[np.nd
     return sparse_vals, sparse_vecs
 
 
-def pe(adj: sp.spmatrix, k: int = 20) -> np.ndarray:
+def pe(adj: sp.spmatrix, k: int = 20) -> Array:
     """Compute the bottom-k nontrivial Laplacian PE.
 
     Uses shift-invert Lanczos/ARPACK for large sparse matrices and dense
@@ -308,7 +310,7 @@ class Laplace(nn.Module):
             self.cache.popitem(last=False)
         return tensor
 
-    def prime(self, adjacency: sp.spmatrix, encoding: torch.Tensor | np.ndarray) -> None:
+    def prime(self, adjacency: sp.spmatrix, encoding: torch.Tensor | Array) -> None:
         """Prime the cache with a validated persisted encoding.
 
         Args:

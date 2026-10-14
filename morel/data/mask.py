@@ -13,6 +13,7 @@ from typing import Protocol, runtime_checkable
 import numpy as np
 
 from morel.core.errors import Datum
+from morel.core.types import Array
 
 
 @runtime_checkable
@@ -23,7 +24,7 @@ class Spec(Protocol):
         sample: Returns a sampled binary mask.
     """
 
-    def sample(self, items: int, modalities: int, *, seed: int) -> np.ndarray:
+    def sample(self, items: int, modalities: int, *, seed: int) -> Array:
         """Sample a binary mask of shape ``(items, modalities)``."""
         ...
 
@@ -36,7 +37,7 @@ class ModalityMask:
         data: Binary mask array of shape ``(items, modalities)``.
     """
 
-    data: np.ndarray
+    data: Array
 
     def __post_init__(self) -> None:
         """Validate the mask data on construction."""
@@ -59,17 +60,17 @@ class ModalityMask:
         """Return the number of modalities."""
         return int(self.data.shape[1])
 
-    def kept(self, item: int) -> np.ndarray:
+    def kept(self, item: int) -> Array:
         """Return which modalities are kept for a given item."""
-        kept: np.ndarray = self.data[item] > 0
+        kept: Array = self.data[item] > 0
         return kept
 
-    def missing(self, item: int) -> np.ndarray:
+    def missing(self, item: int) -> Array:
         """Return which modalities are missing for a given item."""
-        absent: np.ndarray = self.data[item] == 0
+        absent: Array = self.data[item] == 0
         return absent
 
-    def numpy(self) -> np.ndarray:
+    def numpy(self) -> Array:
         """Return the underlying array."""
         return self.data
 
@@ -127,7 +128,7 @@ def block(items: int, modalities: int, block_size: int, *, seed: int) -> Modalit
     return ModalityMask(data=base)
 
 
-def structured(pattern: np.ndarray) -> ModalityMask:
+def structured(pattern: Array) -> ModalityMask:
     """Use a fixed pattern (e.g. ground-truth modality availability) as the mask.
 
     Args:
@@ -140,7 +141,7 @@ def structured(pattern: np.ndarray) -> ModalityMask:
     return ModalityMask(data=pattern)
 
 
-def stack(masks: list[ModalityMask]) -> np.ndarray:
+def stack(masks: list[ModalityMask]) -> Array:
     """Stack a list of masks into a 3-D array ``(len(masks), items, modalities)``."""
     if not masks:
         raise Datum("stack requires at least one mask")

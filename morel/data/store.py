@@ -11,6 +11,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from morel.core.errors import Datum
+from morel.core.types import Array
 from morel.data import manifest
 
 # Defensive defaults for persisted sparse graphs. These are intentionally
@@ -64,7 +65,7 @@ def store(
     target: Path | str,
     *,
     manifest_obj: manifest.Manifest | None = None,
-    **arrays: np.ndarray,
+    **arrays: Array,
 ) -> Path:
     """Atomically save one or more numpy arrays plus an optional manifest.
 
@@ -87,9 +88,7 @@ def store(
     return final
 
 
-def load_npz(
-    target: Path | str, *, expected_config_hash: str | None = None
-) -> dict[str, np.ndarray]:
+def load_npz(target: Path | str, *, expected_config_hash: str | None = None) -> dict[str, Array]:
     """Load a ``.npz`` artifact and verify the manifest if present.
 
     Args:

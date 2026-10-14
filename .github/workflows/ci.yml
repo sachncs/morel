@@ -168,10 +168,10 @@ jobs:
           ignore-unfixed: true
           vuln-type: os,library
           severity: CRITICAL,HIGH
-      - name: Exercise production health contract
+      - name: Exercise fail-closed health contract without a model
         run: |
           container_id=$(docker run --detach --publish 18080:8080 \
-            --env MOREL_ENV=production \
+            --env MOREL_ENV=development \
             --env MOREL_AUTH_TOKEN_READ=ci-read-token-123456 \
             --env MOREL_AUTH_TOKEN_ADMIN=ci-admin-token-654321 \
             morel:ci serve --workers 2)

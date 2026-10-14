@@ -8,6 +8,7 @@ import numpy as np
 
 from morel.core.errors import Net, Shape
 from morel.core.log import get as logger
+from morel.core.types import Array
 
 log = logger("retrieve.anchor")
 
@@ -16,12 +17,12 @@ log = logger("retrieve.anchor")
 class AnchorIndex:
     """Immutable, row-normalized catalog state for repeated anchor queries."""
 
-    normalized: dict[str, np.ndarray]
-    valid: dict[str, np.ndarray]
-    mask: np.ndarray
+    normalized: dict[str, Array]
+    valid: dict[str, Array]
+    mask: Array
     modalities: tuple[str, ...]
 
-    def query(self, query_item: int, modality: str, *, top: int) -> np.ndarray:
+    def query(self, query_item: int, modality: str, *, top: int) -> Array:
         """Return top cosine neighbors using the pre-normalized catalog."""
         if modality not in self.normalized:
             return np.empty(0, dtype=np.int64)
@@ -39,11 +40,11 @@ class AnchorIndex:
         k_eff = min(top, similarities.size)
         selected = np.argpartition(-similarities, k_eff - 1)[:k_eff]
         selected = selected[np.argsort(-similarities[selected], kind="stable")]
-        result: np.ndarray = candidates[selected].astype(np.int64, copy=False)
+        result: Array = candidates[selected].astype(np.int64, copy=False)
         return result
 
 
-def check(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
+def check(features: dict[str, Array], mask: Array) -> int:
     """Validate feature-array shapes and return the number of items."""
     if not features:
         raise Net("features dict is empty")
@@ -62,7 +63,7 @@ def check(features: dict[str, np.ndarray], mask: np.ndarray) -> int:
     return items
 
 
-def cosine(query_vec: np.ndarray, candidates: np.ndarray, k: int) -> np.ndarray:
+def cosine(query_vec: Array, candidates: Array, k: int) -> Array:
     """Return top-k indices into ``candidates`` by cosine similarity to ``query_vec``.
 
     Assumes candidates are L2-normalizable. Zero-norm rows are skipped.
@@ -84,11 +85,11 @@ def cosine(query_vec: np.ndarray, candidates: np.ndarray, k: int) -> np.ndarray:
     return top[np.argsort(-sims[top])]
 
 
-def prepare(features: dict[str, np.ndarray], mask: np.ndarray) -> AnchorIndex:
+def prepare(features: dict[str, Array], mask: Array) -> AnchorIndex:
     """Build a reusable normalized index for repeated anchor queries."""
     check(features, mask)
-    normalized: dict[str, np.ndarray] = {}
-    valid: dict[str, np.ndarray] = {}
+    normalized: dict[str, Array] = {}
+    valid: dict[str, Array] = {}
     for name, values in features.items():
         norms = np.linalg.norm(values, axis=1, keepdims=True)
         valid_rows = norms[:, 0] > 0
@@ -106,12 +107,12 @@ def prepare(features: dict[str, np.ndarray], mask: np.ndarray) -> AnchorIndex:
 def query(
     query_item: int,
     query_modality: str,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     *,
     top: int = 10,
     index: AnchorIndex | None = None,
-) -> np.ndarray:
+) -> Array:
     """Top-k cosine neighbors of ``query_item`` in the given modality.
 
     Args:
@@ -145,19 +146,19 @@ def query(
     query_vec = features[query_modality][query_item]
     candidate_features = features[query_modality][candidates]
     top_local = cosine(query_vec, candidate_features, top)
-    selected: np.ndarray = candidates[top_local]
+    selected: Array = candidates[top_local]
     return selected
 
 
 def batch(
     queries: list[int],
     query_modality: str,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     *,
     top: int = 10,
     index: AnchorIndex | None = None,
-) -> list[np.ndarray]:
+) -> list[Array]:
     """Anchor retrieval for a batch of query items.
 
     Returns:

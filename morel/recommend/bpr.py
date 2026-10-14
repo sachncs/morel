@@ -7,6 +7,7 @@ import scipy.sparse as sp
 import torch
 
 from morel.core.errors import Datum
+from morel.core.types import Array
 
 
 def bpr(pos_scores: torch.Tensor, neg_scores: torch.Tensor, *, eps: float = 1e-10) -> torch.Tensor:
@@ -24,7 +25,7 @@ def bpr(pos_scores: torch.Tensor, neg_scores: torch.Tensor, *, eps: float = 1e-1
     return -torch.log(torch.sigmoid(pos_scores - neg_scores) + eps).mean()
 
 
-def distinct(rng: np.random.Generator, high: int, size: int) -> np.ndarray:
+def distinct(rng: np.random.Generator, high: int, size: int) -> Array:
     """Draw ``size`` distinct integers from ``[0, high)``.
 
     Uses rejection sampling when the draw is sparse relative to the range, so
@@ -50,7 +51,7 @@ def distinct(rng: np.random.Generator, high: int, size: int) -> np.ndarray:
     return np.asarray(picked, dtype=np.int64)
 
 
-def to_ranks(ranks: np.ndarray, positives: np.ndarray) -> np.ndarray:
+def to_ranks(ranks: Array, positives: Array) -> Array:
     """Map ranks over the *negative* items back to actual item ids.
 
     ``ranks`` index the sorted sequence of items that are **not** in
@@ -75,7 +76,7 @@ def negatives(
     *,
     count: int,
     seed: int,
-) -> np.ndarray:
+) -> Array:
     """Sample ``count`` distinct negatives per user.
 
     Works directly off the CSR structure: memory is ``O(nnz + users * count)``
@@ -96,7 +97,7 @@ def negatives(
         RNG seed.
 
     Returns:
-    np.ndarray
+    Array
         Array of shape ``(users, count)`` of int64 item ids.
 
     Raises:

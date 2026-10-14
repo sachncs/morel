@@ -12,7 +12,7 @@ import json
 import logging
 import sys
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -27,7 +27,7 @@ class Json(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         """Format *record* as a single-line JSON string."""
         payload: dict[str, Any] = {
-            "time": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
+            "time": datetime.fromtimestamp(record.created, tz=timezone.utc).isoformat(),
             "level": record.levelname,
             "name": record.name,
             "message": record.getMessage(),
@@ -142,7 +142,7 @@ def log(directory: Path | str, **metrics: Any) -> None:
     path = Path(directory)
     path.mkdir(parents=True, exist_ok=True)
     line = {
-        "time": datetime.now(tz=UTC).isoformat(),
+        "time": datetime.now(tz=timezone.utc).isoformat(),
         **metrics,
     }
     with (path / "metrics.jsonl").open("a", encoding="utf-8") as handle:

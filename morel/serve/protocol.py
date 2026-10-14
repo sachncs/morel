@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Any, Protocol, runtime_checkable
 
-import numpy as np
 import scipy.sparse as sp
 import torch
+
+from morel.core.types import Array
 
 
 class CompletionOutput(Protocol):
@@ -19,8 +20,8 @@ class CompletionOutput(Protocol):
 class ServingPipeline(Protocol):
     """Minimum structural contract required by the HTTP serving layer."""
 
-    cfeat: dict[str, np.ndarray] | None
-    cmask: np.ndarray | None
+    cfeat: dict[str, Array] | None
+    cmask: Array | None
     cadj: sp.csr_matrix | None
     ui_graph: sp.csr_matrix | None
     recommender: object | None

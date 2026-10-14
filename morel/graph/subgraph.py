@@ -13,6 +13,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from morel.core.errors import Net
+from morel.core.types import Array
 
 
 @dataclass(frozen=True)
@@ -23,7 +24,7 @@ class Subgraph:
         nodes: Array of node ids in the subgraph.
     """
 
-    nodes: np.ndarray = field(default_factory=lambda: np.empty(0, dtype=np.int64))
+    nodes: Array = field(default_factory=lambda: np.empty(0, dtype=np.int64))
 
     def __post_init__(self) -> None:
         """Validate that nodes are a 1-D array of non-negative indices."""
@@ -54,12 +55,12 @@ class Subgraph:
         return set(self.nodes.tolist())
 
     @classmethod
-    def indices(cls, indices: list[int] | np.ndarray) -> Subgraph:
+    def indices(cls, indices: list[int] | Array) -> Subgraph:
         """Construct from a list of indices, deduplicating and sorting."""
         return cls(nodes=np.unique(np.asarray(indices, dtype=np.int64)))
 
 
-def connected(subgraph_nodes: np.ndarray, parent_neighbors: dict[int, np.ndarray]) -> bool:
+def connected(subgraph_nodes: Array, parent_neighbors: dict[int, Array]) -> bool:
     """Return True if the subgraph nodes form a connected subgraph.
 
     Args:

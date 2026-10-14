@@ -14,6 +14,7 @@ import torch
 from torch.utils.data import DataLoader, Dataset, Subset
 
 from morel.core.errors import Datum
+from morel.core.types import Array
 from morel.recommend.bpr import to_ranks
 
 
@@ -32,8 +33,8 @@ class Corpus(Dataset[dict[str, Any]]):
 
     def __init__(
         self,
-        features: dict[str, np.ndarray],
-        mask: np.ndarray,
+        features: dict[str, Array],
+        mask: Array,
         adjacency: sp.csr_matrix,
     ) -> None:
         """Initialize the completion dataset.
@@ -62,7 +63,7 @@ class Corpus(Dataset[dict[str, Any]]):
         }
 
 
-def cast(array: np.ndarray) -> torch.Tensor:
+def cast(array: Array) -> torch.Tensor:
     """Wrap :func:`torch.from_numpy` for type convenience."""
     return torch.from_numpy(array)
 
@@ -114,8 +115,8 @@ def split(
 
 
 def assemble(
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adjacency: sp.csr_matrix,
     *,
     batch_size: int = 8,
@@ -131,8 +132,8 @@ def assemble(
 
 
 def build(
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     adjacency: sp.csr_matrix,
     batch_size: int = 8,
 ) -> DataLoader[dict[str, Any]]:
@@ -251,7 +252,7 @@ def recommends(
     return train_loader, DataLoader(val, batch_size=batch_size)
 
 
-def synth(rng: np.random.Generator, items: int, users: int) -> tuple[np.ndarray, np.ndarray]:
+def synth(rng: np.random.Generator, items: int, users: int) -> tuple[Array, Array]:
     """Generate one random (user_ids, item_ids) sample.
 
     Used by the experiment's synthetic dataset builder.

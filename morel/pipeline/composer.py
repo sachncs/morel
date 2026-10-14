@@ -21,6 +21,7 @@ from morel.complete import build as build_complete
 from morel.core.config import Config
 from morel.core.errors import Cfg, Model, Net
 from morel.core.seed import deterministic
+from morel.core.types import Array
 from morel.encode import build as build_encode
 from morel.graph import Laplace
 from morel.recommend import KIND as RECOMMEND_KIND
@@ -43,8 +44,8 @@ class Output:
 
     completed: dict[str, torch.Tensor]
     routing: torch.Tensor
-    subgraph_indices: np.ndarray | None = None
-    subgraph_mask: np.ndarray | None = None
+    subgraph_indices: Array | None = None
+    subgraph_mask: Array | None = None
 
 
 @contextmanager
@@ -156,8 +157,8 @@ class Pipeline(nn.Module):
         self.ui_graph: sp.csr_matrix | None = None
         self._user_count = 0
         self._item_count = 0
-        self.cfeat: dict[str, np.ndarray] | None = None
-        self.cmask: np.ndarray | None = None
+        self.cfeat: dict[str, Array] | None = None
+        self.cmask: Array | None = None
         self.cadj: sp.csr_matrix | None = None
         self._score_cache: tuple[torch.device, torch.Tensor] | None = None
         self._retrieval_max_nodes: int | None = None
@@ -253,8 +254,8 @@ class Pipeline(nn.Module):
 
     def attach(
         self,
-        features: dict[str, np.ndarray],
-        mask: np.ndarray,
+        features: dict[str, Array],
+        mask: Array,
         adjacency: sp.csr_matrix | None = None,
     ) -> None:
         """Bind full-graph data for on-the-fly retrieval.
@@ -276,7 +277,7 @@ class Pipeline(nn.Module):
             extra = ", ".join(sorted(actual - expected)) or "-"
             raise ValueError(f"feature modalities mismatch: missing={missing}, extra={extra}")
         count: int | None = None
-        snapshot: dict[str, np.ndarray] = {}
+        snapshot: dict[str, Array] = {}
         for name, width in self.dims.items():
             value = np.asarray(features[name])
             if value.ndim != 2 or value.shape[1] != width:
@@ -406,8 +407,8 @@ class Pipeline(nn.Module):
                     dtype=pe_full.dtype,
                 )
                 pe_full = torch.cat([pe_full, pad], dim=-1)
-            subgraph_indices: np.ndarray | None = None
-            subgraph_mask: np.ndarray | None = None
+            subgraph_indices: Array | None = None
+            subgraph_mask: Array | None = None
 
             if self.cfeat is not None and self.cmask is not None and index is not None:
                 queries = [int(i) for i in index.detach().cpu().tolist()]

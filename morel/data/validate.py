@@ -6,9 +6,10 @@ import numpy as np
 import scipy.sparse as sp
 
 from morel.core.errors import Datum, Shape
+from morel.core.types import Array
 
 
-def interactions(user: np.ndarray, item: np.ndarray, users: int, items: int) -> None:
+def interactions(user: Array, item: Array, users: int, items: int) -> None:
     """Validate a user-item interaction pair array.
 
     Args:
@@ -34,7 +35,7 @@ def interactions(user: np.ndarray, item: np.ndarray, users: int, items: int) -> 
         raise Datum(f"item index {int(item.max())} >= items ({items})")
 
 
-def features(payload: dict[str, np.ndarray], *, items: int) -> None:
+def features(payload: dict[str, Array], *, items: int) -> None:
     """Validate per-modality feature arrays.
 
     Args:
@@ -79,7 +80,7 @@ def graph(adj: sp.spmatrix) -> None:
         raise Datum("graph has negative edge weights")
 
 
-def mask(mask: np.ndarray) -> None:
+def mask(mask: Array) -> None:
     """Validate a modality availability mask.
 
     Args:

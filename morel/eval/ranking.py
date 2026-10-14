@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import numpy as np
 
+from morel.core.types import Array
 
-def _top_k(scores: np.ndarray, k: int) -> tuple[np.ndarray, int]:
+
+def _top_k(scores: Array, k: int) -> tuple[Array, int]:
     """Return top-k indices and the effective cutoff for a score matrix."""
     if scores.ndim != 2:
         raise ValueError(f"scores must be 2-D, got {scores.ndim}-D")
@@ -17,7 +19,7 @@ def _top_k(scores: np.ndarray, k: int) -> tuple[np.ndarray, int]:
     return indices, effective
 
 
-def recall(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
+def recall(scores: Array, labels: Array, *, k: int = 10) -> float:
     """Mean Recall@K across users with at least one relevant item.
 
     Args:
@@ -43,7 +45,7 @@ def recall(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     return float((hits[mask] / relevant[mask]).mean())
 
 
-def ndcg(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
+def ndcg(scores: Array, labels: Array, *, k: int = 10) -> float:
     """Mean NDCG@K.
 
     Args:
@@ -73,7 +75,7 @@ def ndcg(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     return float((dcg[valid] / idcg[valid]).mean())
 
 
-def precision(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
+def precision(scores: Array, labels: Array, *, k: int = 10) -> float:
     """Mean Precision@K."""
     if k <= 0:
         raise ValueError(f"k must be positive, got {k}")
@@ -84,7 +86,7 @@ def precision(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
     return float((hits / effective).mean())
 
 
-def mrr(scores: np.ndarray, labels: np.ndarray) -> float:
+def mrr(scores: Array, labels: Array) -> float:
     """Mean reciprocal rank of the first relevant item.
 
     Uses ``argpartition`` to find the position of the highest-scoring
@@ -104,7 +106,7 @@ def mrr(scores: np.ndarray, labels: np.ndarray) -> float:
     return float(rr.mean())
 
 
-def map(scores: np.ndarray, labels: np.ndarray, *, k: int = 10) -> float:
+def map(scores: Array, labels: Array, *, k: int = 10) -> float:
     """Mean Average Precision@K."""
     if k <= 0:
         raise ValueError(f"k must be positive, got {k}")

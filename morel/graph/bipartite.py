@@ -5,8 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-import numpy as np
 import scipy.sparse as sp
+
+from morel.core.types import Array
 
 
 @dataclass(frozen=True)
@@ -45,9 +46,9 @@ class Bipartite:
         """Return the underlying sparse adjacency."""
         return self.matrix
 
-    def dense(self) -> np.ndarray:
+    def dense(self) -> Array:
         """Return a dense copy as a numpy array."""
-        dense: np.ndarray = self.matrix.toarray()
+        dense: Array = self.matrix.toarray()
         return dense
 
     def __getstate__(self) -> dict[str, Any]:

@@ -19,15 +19,16 @@ import scipy.sparse as sp
 
 from morel.core.errors import Net
 from morel.core.log import get as logger
+from morel.core.types import Array
 from morel.retrieve.acs import compute as acs_compute
 from morel.retrieve.relevance import RelevanceIndex, prepare
 
 log = logger("retrieve.mage")
 
 
-def _neighbor_rows(adj: sp.csr_matrix, nodes: set[int]) -> dict[int, np.ndarray]:
+def _neighbor_rows(adj: sp.csr_matrix, nodes: set[int]) -> dict[int, Array]:
     """Materialize sorted adjacency rows only for the supplied nodes."""
-    result: dict[int, np.ndarray] = {}
+    result: dict[int, Array] = {}
     for node in nodes:
         start = adj.indptr[node]
         end = adj.indptr[node + 1]
@@ -35,7 +36,7 @@ def _neighbor_rows(adj: sp.csr_matrix, nodes: set[int]) -> dict[int, np.ndarray]
     return result
 
 
-def boundary(subgraph: set[int], neighbors: dict[int, np.ndarray]) -> list[int]:
+def boundary(subgraph: set[int], neighbors: dict[int, Array]) -> list[int]:
     """Return the sorted list of nodes adjacent to ``subgraph`` but not in it."""
     boundary: set[int] = set()
     for node in subgraph:
@@ -45,9 +46,7 @@ def boundary(subgraph: set[int], neighbors: dict[int, np.ndarray]) -> list[int]:
     return sorted(boundary)
 
 
-def neighbors(
-    subgraph_nodes: np.ndarray, neighbors: dict[int, np.ndarray]
-) -> dict[int, np.ndarray]:
+def neighbors(subgraph_nodes: Array, neighbors: dict[int, Array]) -> dict[int, Array]:
     """Build a neighbor lookup restricted to ``subgraph_nodes``."""
     set_nodes = set(subgraph_nodes.tolist())
     return {
@@ -59,9 +58,7 @@ def neighbors(
     }
 
 
-def _articulation_points(
-    subgraph_nodes: set[int], parent_neighbors: dict[int, np.ndarray]
-) -> set[int]:
+def _articulation_points(subgraph_nodes: set[int], parent_neighbors: dict[int, Array]) -> set[int]:
     """Return cut vertices of a connected induced subgraph.
 
     This is an iterative Tarjan traversal. MAGE may evaluate thousands of
@@ -122,8 +119,8 @@ def expand(
     adj: sp.csr_matrix,
     anchors: list[int],
     query_item: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     *,
     iters: int = 10,
     fallback: str = "anchors",
@@ -216,8 +213,8 @@ def batch(
     adj: sp.csr_matrix,
     anchor_sets: list[list[int]],
     queries: list[int],
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
     *,
     iters: int = 10,
     fallback: str = "anchors",

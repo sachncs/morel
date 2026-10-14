@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Literal
 
@@ -73,7 +73,7 @@ def render(target: Path | str) -> None:
     lines = [
         "# Paper Fidelity Report",
         "",
-        f"Generated: {datetime.now(tz=UTC).isoformat()}",
+        f"Generated: {datetime.now(tz=timezone.utc).isoformat()}",
         "",
         "| Component | Status | Paper | Equation | Implementation | Test | Deviation |",
         "|-----------|--------|-------|----------|----------------|------|-----------|",
@@ -97,7 +97,7 @@ def show(target: Path | str) -> None:
     path = Path(target)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
-        "generated": datetime.now(tz=UTC).isoformat(),
+        "generated": datetime.now(tz=timezone.utc).isoformat(),
         "entries": [asdict(entry) for entry in sorted(registry.values(), key=lambda e: e.name)],
     }
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")

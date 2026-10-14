@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 import scipy.sparse as sp
 
+from morel.core.types import Array
 from morel.graph import invariants
 from morel.graph.bipartite import Bipartite
 
@@ -56,7 +57,7 @@ class Item:
         """Return the underlying sparse adjacency."""
         return self.matrix
 
-    def neighbors(self, item: int) -> np.ndarray:
+    def neighbors(self, item: int) -> Array:
         """Return the sorted list of item indices connected to ``item``."""
         row_start = self.matrix.indptr[item]
         row_end = self.matrix.indptr[item + 1]

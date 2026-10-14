@@ -33,6 +33,9 @@ ARG TORCH_VERSION=2.14.1
 ARG TORCHVISION_VERSION=0.29.1
 COPY --from=builder /build/dist/*.whl /tmp/
 RUN pip install --no-cache-dir \
+        --upgrade \
+        "pip>=26.2.1" "setuptools>=84.0.0" "wheel>=0.48.0" && \
+    pip install --no-cache-dir \
         --index-url https://download.pytorch.org/whl/cpu \
         --extra-index-url https://pypi.org/simple \
         "torch==${TORCH_VERSION}" "torchvision==${TORCHVISION_VERSION}" && \

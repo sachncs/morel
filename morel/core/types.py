@@ -13,8 +13,12 @@ that did try to use them hit a structural-typecheck failure.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
+import numpy as np
 import torch
+
+Array = np.ndarray[Any, Any]
 
 
 @dataclass(frozen=True)
@@ -57,4 +61,4 @@ class Embedding:
         return Embedding(name=self.name, tensor=self.tensor.to(device))
 
 
-__all__ = ["Embedding"]
+__all__ = ["Array", "Embedding"]

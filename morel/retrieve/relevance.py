@@ -11,9 +11,10 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from morel.core.errors import Shape
+from morel.core.types import Array
 
 
-def scale(matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def scale(matrix: Array) -> tuple[Array, Array]:
     """Row-normalize ``matrix`` and return ``(normalized, valid_mask)``.
 
     Rows with zero norm are kept as zero vectors; the returned mask marks
@@ -33,13 +34,13 @@ class RelevanceIndex:
     and normalizing the entire catalog for every candidate.
     """
 
-    normalized: dict[str, np.ndarray]
-    valid: dict[str, np.ndarray]
-    mask: np.ndarray
-    _query_scores: dict[int, np.ndarray] = field(default_factory=dict, repr=False, compare=False)
-    _query_usable: dict[int, np.ndarray] = field(default_factory=dict, repr=False, compare=False)
+    normalized: dict[str, Array]
+    valid: dict[str, Array]
+    mask: Array
+    _query_scores: dict[int, Array] = field(default_factory=dict, repr=False, compare=False)
+    _query_usable: dict[int, Array] = field(default_factory=dict, repr=False, compare=False)
 
-    def _scores_for_query(self, i: int) -> np.ndarray:
+    def _scores_for_query(self, i: int) -> Array:
         """Return cached relevance from query ``i`` to every catalog item."""
         cached = self._query_scores.get(int(i))
         if cached is not None:
@@ -66,7 +67,7 @@ class RelevanceIndex:
         self._query_usable[int(i)] = denominators > 0
         return result
 
-    def score(self, i: int, nodes: np.ndarray) -> float:
+    def score(self, i: int, nodes: Array) -> float:
         """Return mean relevance for ``i`` over ``nodes``."""
         if nodes.size == 0:
             return 0.0
@@ -79,14 +80,14 @@ class RelevanceIndex:
         return float(values[usable].mean()) if usable.any() else 0.0
 
 
-def prepare(features: dict[str, np.ndarray], mask: np.ndarray) -> RelevanceIndex:
+def prepare(features: dict[str, Array], mask: Array) -> RelevanceIndex:
     """Build reusable normalized state for repeated relevance calculations."""
     if not features:
         raise Shape("features dict is empty")
     if mask.ndim != 2 or mask.shape[1] != len(features):
         raise Shape(f"mask shape {mask.shape} incompatible with {len(features)} modalities")
-    normalized: dict[str, np.ndarray] = {}
-    valid: dict[str, np.ndarray] = {}
+    normalized: dict[str, Array] = {}
+    valid: dict[str, Array] = {}
     for name, values in features.items():
         values_normalized, values_valid = scale(values.astype(np.float64, copy=False))
         normalized[name] = values_normalized
@@ -97,8 +98,8 @@ def prepare(features: dict[str, np.ndarray], mask: np.ndarray) -> RelevanceIndex
 def relevance(
     i: int,
     v: int,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    features: dict[str, Array],
+    mask: Array,
 ) -> float:
     """Cosine relevance r(i, v) over jointly observed modalities.
 
@@ -107,9 +108,9 @@ def relevance(
         Query node id.
     v : int
         Candidate node id.
-    features : dict[str, np.ndarray]
+    features : dict[str, Array]
         Dict mapping modality name to ``(items, dim)`` float32 arrays.
-    mask : np.ndarray
+    mask : Array
         Binary availability mask of shape ``(items, modalities)``.
 
     Returns:
@@ -142,9 +143,9 @@ def relevance(
 
 def rel(
     i: int,
-    nodes: np.ndarray,
-    features: dict[str, np.ndarray],
-    mask: np.ndarray,
+    nodes: Array,
+    features: dict[str, Array],
+    mask: Array,
 ) -> float:
     """Mean of r(i, v) over ``nodes``, excluding the query.
 
@@ -155,11 +156,11 @@ def rel(
     Args:
     i : int
         Query node id.
-    nodes : np.ndarray
+    nodes : Array
         Candidate node ids (1-D).
-    features : dict[str, np.ndarray]
+    features : dict[str, Array]
         Dict of feature arrays.
-    mask : np.ndarray
+    mask : Array
         Modality availability mask.
 
     Returns:

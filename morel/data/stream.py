@@ -17,6 +17,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from morel.core.errors import Datum
+from morel.core.types import Array
 
 # A COO accumulator stores three Python lists before SciPy compacts it. Keep
 # the default conservative so a single high-degree user cannot turn a stream
@@ -85,7 +86,7 @@ def stream(
     *,
     min_edges: int = 5,
     chunk_size: int = 100_000,
-) -> Iterator[tuple[np.ndarray, np.ndarray]]:
+) -> Iterator[tuple[Array, Array]]:
     """Yield ``(user_ids_chunk, item_ids_chunk)`` for an Amazon review file.
 
     Args:
@@ -98,7 +99,7 @@ def stream(
         Records per streaming chunk.
 
     Yields:
-    tuple[np.ndarray, np.ndarray]
+    tuple[Array, Array]
         ``(user_ids, item_ids)`` for each chunk after filtering.
     """
     _positive_int(min_edges, "min_edges")
@@ -212,7 +213,7 @@ def confirmed(
 
 
 def cooc(
-    ui_chunks: Iterator[tuple[np.ndarray, np.ndarray]],
+    ui_chunks: Iterator[tuple[Array, Array]],
     *,
     items: int,
     max_edges: int = MAX_COO_EDGES,

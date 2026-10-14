@@ -10,12 +10,13 @@ import scipy.sparse as sp
 
 from morel.core.errors import Datum
 from morel.core.log import get as logger
+from morel.core.types import Array
 from morel.data.stream import MAX_COO_EDGES, confirmed
 
 log = logger("data.build")
 
 
-def bipartite(user: np.ndarray, item: np.ndarray, users: int, items: int) -> sp.csr_matrix:
+def bipartite(user: Array, item: Array, users: int, items: int) -> sp.csr_matrix:
     """Build a user-item bipartite adjacency matrix.
 
     Args:
