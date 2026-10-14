@@ -48,10 +48,16 @@ def check(features: dict[str, Array], mask: Array) -> int:
     """Validate feature-array shapes and return the number of items."""
     if not features:
         raise Net("features dict is empty")
+    if mask.ndim != 2:
+        raise Shape(f"mask must be 2-D, got {mask.ndim}-D")
+    if not np.issubdtype(mask.dtype, np.number) or not np.isfinite(mask).all():
+        raise Shape("mask must contain only finite numeric values")
     items_seen = set()
     for arr in features.values():
         if arr.ndim != 2:
             raise Shape(f"feature array must be 2-D, got {arr.ndim}-D")
+        if not np.issubdtype(arr.dtype, np.number) or not np.isfinite(arr).all():
+            raise Shape("feature arrays must contain only finite numeric values")
         items_seen.add(arr.shape[0])
     if len(items_seen) != 1:
         raise Shape("feature arrays have inconsistent row counts")
@@ -68,6 +74,12 @@ def cosine(query_vec: Array, candidates: Array, k: int) -> Array:
 
     Assumes candidates are L2-normalizable. Zero-norm rows are skipped.
     """
+    if isinstance(k, bool) or k <= 0:
+        raise Net(f"k must be positive, got {k}")
+    if query_vec.ndim != 1 or candidates.ndim != 2:
+        raise Shape("query_vec must be 1-D and candidates must be 2-D")
+    if candidates.shape[1] != query_vec.shape[0]:
+        raise Shape("query and candidate feature widths must match")
     norms = np.linalg.norm(candidates, axis=1)
     valid = norms > 0
     if not valid.any():

@@ -20,9 +20,17 @@ def scale(matrix: Array) -> tuple[Array, Array]:
     Rows with zero norm are kept as zero vectors; the returned mask marks
     them as invalid.
     """
-    norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+    try:
+        values = np.asarray(matrix, dtype=np.float64)
+    except (TypeError, ValueError) as exc:
+        raise Shape("feature arrays must be numeric") from exc
+    if values.ndim != 2:
+        raise Shape(f"feature array must be 2-D, got {values.ndim}-D")
+    if not np.isfinite(values).all():
+        raise Shape("feature arrays must contain only finite values")
+    norms = np.linalg.norm(values, axis=1, keepdims=True)
     safe = np.where(norms == 0.0, 1.0, norms)
-    return matrix / safe, (norms.flatten() > 0)
+    return values / safe, (norms.flatten() > 0)
 
 
 @dataclass(frozen=True)
@@ -69,9 +77,19 @@ class RelevanceIndex:
 
     def score(self, i: int, nodes: Array) -> float:
         """Return mean relevance for ``i`` over ``nodes``."""
+        items = self.mask.shape[0]
+        if i < 0 or i >= items:
+            raise Shape(f"query node {i} out of range [0, {items})")
         if nodes.size == 0:
             return 0.0
-        candidates = np.asarray(nodes, dtype=np.int64)
+        try:
+            candidates = np.asarray(nodes, dtype=np.int64)
+        except (TypeError, ValueError) as exc:
+            raise Shape("nodes must be an integer array") from exc
+        if candidates.ndim != 1:
+            raise Shape(f"nodes must be 1-D, got {candidates.ndim}-D")
+        if (candidates < 0).any() or (candidates >= items).any():
+            raise Shape(f"nodes must be in range [0, {items})")
         candidates = candidates[candidates != i]
         if candidates.size == 0:
             return 0.0
@@ -86,12 +104,23 @@ def prepare(features: dict[str, Array], mask: Array) -> RelevanceIndex:
         raise Shape("features dict is empty")
     if mask.ndim != 2 or mask.shape[1] != len(features):
         raise Shape(f"mask shape {mask.shape} incompatible with {len(features)} modalities")
+    if not np.issubdtype(mask.dtype, np.number) or not np.isfinite(mask).all():
+        raise Shape("mask must contain only finite numeric values")
+    items: int | None = None
     normalized: dict[str, Array] = {}
     valid: dict[str, Array] = {}
     for name, values in features.items():
-        values_normalized, values_valid = scale(values.astype(np.float64, copy=False))
+        if values.ndim != 2:
+            raise Shape(f"feature {name!r} must be 2-D, got {values.ndim}-D")
+        if items is None:
+            items = values.shape[0]
+        elif values.shape[0] != items:
+            raise Shape("feature arrays have inconsistent row counts")
+        values_normalized, values_valid = scale(values)
         normalized[name] = values_normalized
         valid[name] = values_valid
+    if items != mask.shape[0]:
+        raise Shape(f"mask rows {mask.shape[0]} != feature rows {items}")
     return RelevanceIndex(normalized=normalized, valid=valid, mask=mask)
 
 
@@ -120,8 +149,11 @@ def relevance(
     """
     if not features:
         raise Shape("features dict is empty")
-    if mask.ndim != 2:
-        raise Shape(f"mask must be 2-D, got {mask.ndim}-D")
+    prepare(features, mask)
+    if i < 0 or i >= mask.shape[0] or v < 0 or v >= mask.shape[0]:
+        raise Shape(f"node ids must be in range [0, {mask.shape[0]})")
+    if i == v:
+        return 0.0 if not np.any(mask[i] > 0) else 1.0
     modalities = list(features.keys())
     numerator = 0.0
     denominator = 0.0

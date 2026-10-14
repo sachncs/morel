@@ -68,3 +68,10 @@ class Checker:
         mask = np.ones((4, 1), dtype=np.float32)
         with pytest.raises(Shape):
             query(0, "a", features, mask, top=2)
+
+    def malformed_boundaries(self) -> None:
+        features = {"a": np.ones((3, 2), dtype=np.float32)}
+        with pytest.raises(Shape):
+            query(0, "a", features, np.ones(3), top=2)
+        with pytest.raises(Shape):
+            query(0, "a", {"a": np.ones((3, 2), dtype=object)}, np.ones((3, 1)), top=2)

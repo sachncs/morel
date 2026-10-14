@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from morel.core.errors import Shape
 from morel.retrieve.relevance import prepare, rel, relevance
 
 
@@ -81,3 +82,14 @@ class Checker:
         nodes = np.array([0, 1, 3, 6], dtype=np.int64)
         assert index.score(2, nodes) == pytest.approx(index.score(2, nodes[::-1]))
         assert list(index._query_scores) == [2]
+
+    def malformed_boundaries(self) -> None:
+        features = {"v": np.ones((3, 2), dtype=np.float32)}
+        with pytest.raises(Shape):
+            prepare(features, np.ones((2, 1), dtype=np.float32))
+        with pytest.raises(Shape):
+            prepare({"v": np.full((3, 2), "bad", dtype=object)}, np.ones((3, 1)))
+        with pytest.raises(Shape):
+            rel(0, np.array([[1]]), features, np.ones((3, 1)))
+        with pytest.raises(Shape):
+            relevance(4, 0, features, np.ones((3, 1)))
