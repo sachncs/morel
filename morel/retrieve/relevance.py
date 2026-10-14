@@ -152,8 +152,6 @@ def relevance(
     prepare(features, mask)
     if i < 0 or i >= mask.shape[0] or v < 0 or v >= mask.shape[0]:
         raise Shape(f"node ids must be in range [0, {mask.shape[0]})")
-    if i == v:
-        return 0.0 if not np.any(mask[i] > 0) else 1.0
     modalities = list(features.keys())
     numerator = 0.0
     denominator = 0.0
