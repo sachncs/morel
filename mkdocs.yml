@@ -29,23 +29,21 @@ theme:
     - search.suggest
     - toc.follow
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: teal
-      accent: teal
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
+    - scheme: slate
       primary: teal
       accent: teal
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
+    - scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
   font:
-    text: Inter
-    code: JetBrains Mono
+    text: false
+    code: false
 extra_css:
   - assets/theme.css
 
@@ -113,6 +111,7 @@ nav:
       - reference/capacity-baseline.md
       - reference/production-readiness.md
       - reference/site-ux-review.md
+      - reference/citation.md
       - reference/limitations.md
   - Operations:
       - operations/index.md
@@ -124,8 +123,10 @@ nav:
       - operations/pages.md
   - Project:
       - project/index.md
+      - project/plan.md
       - Engineering guide: engineering.md
       - project/changelog.md
       - project/security.md
       - project/contributing.md
+      - project/code-of-conduct.md
       - project/license.md

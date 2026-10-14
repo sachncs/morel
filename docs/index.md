@@ -48,7 +48,7 @@ hide:
               <stop offset="100%" stop-color="#aef0e1"/>
             </linearGradient>
             <pattern id="hero-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(61,90,254,0.08)" stroke-width="0.5"/>
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(24,184,157,0.08)" stroke-width="0.5"/>
             </pattern>
           </defs>
 
@@ -56,7 +56,7 @@ hide:
           <rect width="360" height="220" fill="url(#hero-grid)"/>
 
           <!-- Input user-item graph. -->
-          <g font-size="9" font-family="ui-sans-serif, system-ui, sans-serif" fill="#4a4a55">
+          <g font-size="9" font-family="ui-sans-serif, system-ui, sans-serif" fill="#b6b6c0">
             <text x="8" y="14">Input: user–item interaction graph</text>
           </g>
           <g stroke="url(#hero-edge)" stroke-width="1" fill="none" stroke-linecap="round">
@@ -80,7 +80,7 @@ hide:
             <circle cx="135" cy="105" r="11" fill="none" stroke="#43cbb4" stroke-dasharray="2 1.6"/>
             <text x="135" y="108" font-size="8" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif"
                   fill="#43cbb4" font-weight="600">q</text>
-            <text x="135" y="130" font-size="9" text-anchor="middle" fill="#4a4a55"
+            <text x="135" y="130" font-size="9" text-anchor="middle" fill="#b6b6c0"
                   font-family="ui-sans-serif, system-ui, sans-serif">query, modality gap</text>
           </g>
 
@@ -101,9 +101,9 @@ hide:
           </g>
 
           <!-- Encoder block. -->
-          <rect x="148" y="148" width="84" height="22" rx="5" fill="#fff" stroke="#c9c9d3"/>
+            <rect x="148" y="148" width="84" height="22" rx="5" fill="#1f1f27" stroke="#5f5f6e"/>
           <text x="190" y="162" font-size="9" text-anchor="middle"
-                font-family="ui-sans-serif, system-ui, sans-serif" fill="#4a4a55">Joint encoder</text>
+                font-family="ui-sans-serif, system-ui, sans-serif" fill="#b6b6c0">Joint encoder</text>
 
           <!-- Completion block (output). -->
           <g>
@@ -121,7 +121,7 @@ hide:
 
           <!-- Caption strip. -->
           <text x="180" y="200" font-size="9" text-anchor="middle"
-                font-family="ui-sans-serif, system-ui, sans-serif" fill="#75757f">
+                font-family="ui-sans-serif, system-ui, sans-serif" fill="#8a8a98">
             retrieve → encode → complete → recommend
           </text>
         </svg>
@@ -240,7 +240,7 @@ hide:
               <text x="180" y="53" font-size="9" text-anchor="middle" font-weight="600"
                     font-family="ui-sans-serif, system-ui, sans-serif" fill="#43cbb4">q</text>
               <text x="180" y="80" font-size="9" text-anchor="middle"
-                    font-family="ui-sans-serif, system-ui, sans-serif" fill="#4a4a55">query, modality gap</text>
+                    font-family="ui-sans-serif, system-ui, sans-serif" fill="#b6b6c0">query, modality gap</text>
             </g>
             <!-- Subgraph. -->
             <g stroke="url(#method-edge)" stroke-width="1.2" fill="none" stroke-linecap="round">
@@ -264,7 +264,7 @@ hide:
               <path d="M 180 60 Q 180 110 180 185"/>
             </g>
             <text x="180" y="232" font-size="9" text-anchor="middle"
-                  font-family="ui-sans-serif, system-ui, sans-serif" fill="#4a4a55">retrieved subgraph</text>
+                  font-family="ui-sans-serif, system-ui, sans-serif" fill="#b6b6c0">retrieved subgraph</text>
             <!-- Completion. -->
             <g>
               <rect x="140" y="248" width="80" height="22" rx="5" fill="#fff"

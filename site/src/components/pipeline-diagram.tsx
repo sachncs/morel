@@ -48,9 +48,8 @@ export function PipelineDiagram() {
       {/* === Stage 1: User-item graph === */}
       <motion.g
         transform="translate(40, 60)"
-        initial={reduceMotion ? false : { opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.35, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        initial={false}
+        animate={{ opacity: 1 }}
       >
         {/* Users on left */}
         <g fill="#43cbb4">
@@ -91,10 +90,8 @@ export function PipelineDiagram() {
       {/* === Stage 2: Retrieval === */}
       <motion.g
         transform="translate(190, 80)"
-        initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        style={{ transformOrigin: "250px 180px" }}
-        transition={{ delay: 0.55, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        initial={false}
+        animate={{ opacity: 1 }}
       >
         {/* Anchor ring */}
         <circle cx="60" cy="100" r="60" fill="none" stroke="url(#pd-edge)" strokeWidth="1" strokeDasharray="2 4" opacity="0.55" />
@@ -131,9 +128,8 @@ export function PipelineDiagram() {
       {/* === Stage 3: Completion (codebook) === */}
       <motion.g
         transform="translate(400, 80)"
-        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.75, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        initial={false}
+        animate={{ opacity: 1 }}
       >
         {/* Codebook grid */}
         <g>
@@ -170,9 +166,8 @@ export function PipelineDiagram() {
       {/* === Stage 4: Ranking === */}
       <motion.g
         transform="translate(580, 80)"
-        initial={reduceMotion ? false : { opacity: 0, x: 10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 1, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+        initial={false}
+        animate={{ opacity: 1 }}
       >
         <g stroke="url(#pd-edge)" strokeWidth="1" fill="none">
           <line x1="0" y1="20" x2="100" y2="20" opacity="0.85" />

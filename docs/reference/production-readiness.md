@@ -2,7 +2,7 @@
 
 This page is the current verification index and production-scope statement.
 The historical refactor plan is retained in
-[`PLAN.md`](https://github.com/sachncs/morel/blob/master/PLAN.md); this page is
+the [project plan](../project/plan.md); this page is
 the source of truth for what is and is not verified today.
 
 ## Verified locally

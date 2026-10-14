@@ -16,9 +16,9 @@ const COLUMNS = [
     title: "Resources",
     links: [
       { label: "Documentation", href: SITE.docs },
-      { label: "Getting started", href: `${SITE.repo}#installation` },
-      { label: "Demo notebook", href: `${SITE.repo}/blob/master/examples/demo.py` },
-      { label: "Changelog", href: `${SITE.repo}/blob/master/CHANGELOG.md` },
+      { label: "Getting started", href: `${SITE.docs}getting-started/` },
+      { label: "Demo notebook", href: `${SITE.docs}tutorials/synthetic/` },
+      { label: "Changelog", href: `${SITE.docs}project/changelog/` },
     ],
   },
   {
@@ -27,16 +27,16 @@ const COLUMNS = [
       { label: "GitHub", href: SITE.repo },
       { label: "Issues", href: `${SITE.repo}/issues` },
       { label: "Pull requests", href: `${SITE.repo}/pulls` },
-      { label: "Citation", href: `${SITE.repo}/blob/master/CITATION.cff` },
+      { label: "Citation", href: `${SITE.docs}reference/citation/` },
     ],
   },
   {
     title: "Trust",
     links: [
-      { label: "License", href: `${SITE.repo}/blob/master/LICENSE` },
-      { label: "Security", href: `${SITE.repo}/blob/master/SECURITY.md` },
-      { label: "Contributing", href: `${SITE.repo}/blob/master/CONTRIBUTING.md` },
-      { label: "Code of conduct", href: `${SITE.repo}/blob/master/CODE_OF_CONDUCT.md` },
+      { label: "License", href: `${SITE.docs}project/license/` },
+      { label: "Security", href: `${SITE.docs}project/security/` },
+      { label: "Contributing", href: `${SITE.docs}project/contributing/` },
+      { label: "Code of conduct", href: `${SITE.docs}project/code-of-conduct/` },
     ],
   },
 ] as const;
@@ -117,9 +117,7 @@ export function Footer() {
               GitHub
             </a>
             <a
-              href={`${SITE.repo}/blob/master/CITATION.cff`}
-              target="_blank"
-              rel="noreferrer noopener"
+              href={`${SITE.docs}reference/citation/`}
               className="transition hover:text-ink-900 dark:hover:text-white"
             >
               Cite
