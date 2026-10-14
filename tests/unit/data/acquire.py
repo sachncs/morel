@@ -29,3 +29,23 @@ class Checker:
             pytest.raises(Datum),
         ):
             fetch("https://example.invalid/x.bin", target, timeout=1, retries=2, backoff=1.0)
+
+    def bounded_atomic(self, tmp_path: Path) -> None:
+        """Reject oversized transfers without replacing an existing artifact."""
+        target = tmp_path / "x.bin"
+        target.write_bytes(b"old")
+        with patch("morel.data.acquire.urllib.request.urlopen") as mocked:
+            response = mocked.return_value.__enter__.return_value
+            response.length = 5
+            response.read.side_effect = [b"hello", b""]
+            with pytest.raises(Datum, match="exceeds"):
+                fetch("https://example.invalid/x.bin", target, retries=0, max_bytes=4)
+        assert target.read_bytes() == b"old"
+
+        with patch("morel.data.acquire.urllib.request.urlopen") as mocked:
+            response = mocked.return_value.__enter__.return_value
+            response.length = None
+            response.read.side_effect = [b"new", OSError("connection dropped")]
+            with pytest.raises(Datum, match="failed to fetch"):
+                fetch("https://example.invalid/x.bin", target, retries=0)
+        assert target.read_bytes() == b"old"

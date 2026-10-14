@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **616 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **617 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -117,6 +117,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Completion failures now use the same typed timeout/domain/dependency policy
   as recommendation scoring, returning sanitized retryable 503 responses while
   preserving programmer-error and cancellation semantics.
+- Dataset acquisition now bounds response bodies and writes through a unique
+  temporary file before atomically replacing the destination, preserving a
+  previous artifact when a transfer is interrupted or oversized.
 - Fixed `make audit-artifact` to select the newest wheel instead of installing
   every stale wheel left in `dist/`, which previously made a valid build fail
   with a misleading dependency-resolution conflict.
@@ -302,7 +305,7 @@ history. This status map prevents historical findings from being mistaken for
 open defects:
 
 - **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
-  50–60, and the local/deployed portions of 43–48.
+  50–62, and the local/deployed portions of 43–48.
 - **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
@@ -359,6 +362,12 @@ and release operations.
    is isolated in `morel.train.legacy.load_trusted`, requires explicit risk
    acknowledgement, emits a warning, and is documented as outside the safe
    production loader. The old name remains only as a migration shim.
+
+62. **Closed in this worktree:** Dataset acquisition wrote directly to its final
+    path and accepted unbounded response bodies. Interrupted or oversized
+    transfers could leave corrupted artifacts or exhaust local storage. Fetches
+    now enforce a byte cap, clean up temporary files, and atomically replace the
+    destination only after a successful transfer and optional checksum.
 
 56. **Closed in this worktree:** The `/v1/complete` schema bounded item ids but
     allowed an unbounded list of modality selectors and arbitrarily long names,
