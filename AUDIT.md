@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **617 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **618 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -117,9 +117,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Completion failures now use the same typed timeout/domain/dependency policy
   as recommendation scoring, returning sanitized retryable 503 responses while
   preserving programmer-error and cancellation semantics.
-- Dataset acquisition now bounds response bodies and writes through a unique
-  temporary file before atomically replacing the destination, preserving a
-  previous artifact when a transfer is interrupted or oversized.
+- Dataset acquisition bounds compressed and decompressed bodies and writes
+  through unique temporary files before atomically replacing destinations,
+  preserving previous artifacts when transfers are interrupted or oversized.
 - Fixed `make audit-artifact` to select the newest wheel instead of installing
   every stale wheel left in `dist/`, which previously made a valid build fail
   with a misleading dependency-resolution conflict.
@@ -366,8 +366,9 @@ and release operations.
 62. **Closed in this worktree:** Dataset acquisition wrote directly to its final
     path and accepted unbounded response bodies. Interrupted or oversized
     transfers could leave corrupted artifacts or exhaust local storage. Fetches
-    now enforce a byte cap, clean up temporary files, and atomically replace the
-    destination only after a successful transfer and optional checksum.
+    now enforce compressed and decompressed byte caps, clean up temporary files,
+    and atomically replace the destination only after successful transfer and
+    optional checksum.
 
 56. **Closed in this worktree:** The `/v1/complete` schema bounded item ids but
     allowed an unbounded list of modality selectors and arbitrarily long names,

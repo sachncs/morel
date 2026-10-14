@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import gzip
 import os
-import shutil
 import tempfile
 import time
 import urllib.error
@@ -19,6 +18,7 @@ RETRIES = 3
 BACKOFF = 1.5
 AGENT = "morel/0.1"
 MAX_DOWNLOAD_BYTES = 1 << 30
+MAX_DECOMPRESSED_BYTES = 1 << 31
 
 BASE = "https://datarepo.eng.ucsd.edu/mcauley_group/data/amazon_v2/categoryFilesSmall/"
 
@@ -108,7 +108,14 @@ def fetch(
     raise Datum(f"failed to fetch {url} after {retries + 1} attempts: {last_error}")
 
 
-def pull(base: str, category: str, dest: Path | str, *, timeout: float) -> list[Path]:
+def pull(
+    base: str,
+    category: str,
+    dest: Path | str,
+    *,
+    timeout: float,
+    max_decompressed_bytes: int = MAX_DECOMPRESSED_BYTES,
+) -> list[Path]:
     """Download and decompress the dataset files.
 
     Args:
@@ -116,6 +123,7 @@ def pull(base: str, category: str, dest: Path | str, *, timeout: float) -> list[
         category: Dataset category name.
         dest: Local destination directory.
         timeout: Download timeout in seconds.
+        max_decompressed_bytes: Maximum decompressed file size accepted.
 
     Returns:
         list[Path]: Paths to the decompressed files.
@@ -123,6 +131,12 @@ def pull(base: str, category: str, dest: Path | str, *, timeout: float) -> list[
     files = [f"{category}_5.json.gz", f"{category}_metadata.json.gz"]
     root = Path(dest).resolve()
     root.mkdir(parents=True, exist_ok=True)
+    if (
+        isinstance(max_decompressed_bytes, bool)
+        or not isinstance(max_decompressed_bytes, int)
+        or max_decompressed_bytes <= 0
+    ):
+        raise Datum(f"max_decompressed_bytes must be positive, got {max_decompressed_bytes!r}")
     decompressed: list[Path] = []
     for fname in files:
         archive = root / fname
@@ -131,9 +145,30 @@ def pull(base: str, category: str, dest: Path | str, *, timeout: float) -> list[
             decompressed.append(final)
             continue
         fetch(base + fname, archive, timeout=timeout)
-        with gzip.open(archive, "rb") as src, final.open("wb") as out:
-            shutil.copyfileobj(src, out)
-        os.remove(archive)
+        fd, temporary = tempfile.mkstemp(prefix=f".{final.name}.", dir=root)
+        try:
+            done = 0
+            with gzip.open(archive, "rb") as src, os.fdopen(fd, "wb") as out:
+                while True:
+                    chunk = src.read(1 << 20)
+                    if not chunk:
+                        break
+                    if done + len(chunk) > max_decompressed_bytes:
+                        raise Datum(
+                            f"decompressed {archive} exceeds the "
+                            f"{max_decompressed_bytes}-byte limit"
+                        )
+                    out.write(chunk)
+                    done += len(chunk)
+            os.replace(temporary, final)
+            os.remove(archive)
+        except Datum:
+            raise
+        except (OSError, EOFError, gzip.BadGzipFile) as exc:
+            raise Datum(f"unable to decompress dataset archive: {archive}") from exc
+        finally:
+            if os.path.exists(temporary):
+                os.remove(temporary)
         decompressed.append(final)
     return decompressed
 
@@ -158,6 +193,7 @@ def download(category: str, dest: Path | str, *, timeout: float = TIMEOUT) -> li
 __all__ = [
     "BACKOFF",
     "BASE",
+    "MAX_DECOMPRESSED_BYTES",
     "MAX_DOWNLOAD_BYTES",
     "RETRIES",
     "TIMEOUT",

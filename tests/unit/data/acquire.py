@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import gzip
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from morel.core.errors import Datum
-from morel.data.acquire import fetch
+from morel.data.acquire import fetch, pull
 
 
 class Checker:
@@ -49,3 +50,33 @@ class Checker:
             with pytest.raises(Datum, match="failed to fetch"):
                 fetch("https://example.invalid/x.bin", target, retries=0)
         assert target.read_bytes() == b"old"
+
+    def decompressed_bound(self, tmp_path: Path) -> None:
+        """Bound decompression and replace final files only after success."""
+
+        def write_archive(_url: str, destination: Path, **_kwargs: object) -> Path:
+            with gzip.open(destination, "wb") as handle:
+                handle.write(b"abc")
+            return destination
+
+        with patch("morel.data.acquire.fetch", side_effect=write_archive):
+            paths = pull(
+                "https://example.invalid/", "Beauty", tmp_path, timeout=1, max_decompressed_bytes=3
+            )
+        assert len(paths) == 2
+        assert all(path.read_bytes() == b"abc" for path in paths)
+
+        limited = tmp_path / "limited"
+        limited.mkdir()
+        with (
+            patch("morel.data.acquire.fetch", side_effect=write_archive),
+            pytest.raises(Datum, match="decompressed"),
+        ):
+            pull(
+                "https://example.invalid/",
+                "Beauty",
+                limited,
+                timeout=1,
+                max_decompressed_bytes=2,
+            )
+        assert not (limited / "Beauty_5.json").exists()
