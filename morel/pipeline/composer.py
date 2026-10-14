@@ -284,6 +284,8 @@ class Pipeline(nn.Module):
                 raise ValueError(
                     f"feature {name!r} must have shape (items, {width}), got {value.shape}"
                 )
+            if not np.issubdtype(value.dtype, np.number) or not np.isfinite(value).all():
+                raise ValueError(f"feature {name!r} must contain finite numeric values")
             if count is None:
                 count = int(value.shape[0])
             elif value.shape[0] != count:
@@ -294,12 +296,22 @@ class Pipeline(nn.Module):
             raise ValueError(
                 f"mask must have shape ({count}, {len(self.dims)}), got {mask_snapshot.shape}"
             )
+        if (
+            not np.issubdtype(np.asarray(mask).dtype, np.number)
+            or not np.isfinite(mask_snapshot).all()
+        ):
+            raise ValueError("mask must contain finite numeric values")
         if adjacency is not None:
             adjacency_snapshot = adjacency.tocsr(copy=True)
             if adjacency_snapshot.shape != (count, count):
                 raise ValueError(
                     f"adjacency must have shape ({count}, {count}), got {adjacency_snapshot.shape}"
                 )
+            if (
+                not np.issubdtype(adjacency_snapshot.data.dtype, np.number)
+                or not np.isfinite(adjacency_snapshot.data).all()
+            ):
+                raise ValueError("adjacency must contain finite numeric values")
         else:
             adjacency_snapshot = None
         self.cfeat = snapshot

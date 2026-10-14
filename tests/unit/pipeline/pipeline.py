@@ -204,6 +204,29 @@ class Checker:
         with pytest.raises(ValueError, match="adjacency must have shape"):
             pipeline.attach(features, mask, sp.eye(3, format="csr"))
 
+    def attach_numeric_boundary(self) -> None:
+        """Attached corpus arrays reject non-finite values before inference."""
+        config = Config()
+        pipeline = Pipeline(config, dims={"visual": 3, "text": 2})
+        features = {
+            "visual": np.ones((2, 3), dtype=np.float32),
+            "text": np.ones((2, 2), dtype=np.float32),
+        }
+        mask = np.ones((2, 2), dtype=np.float32)
+        adjacency = sp.eye(2, format="csr", dtype=np.float32)
+
+        features["visual"][0, 0] = np.nan
+        with pytest.raises(ValueError, match="feature 'visual'"):
+            pipeline.attach(features, mask, adjacency)
+        features["visual"][0, 0] = 1
+        mask[0, 0] = np.inf
+        with pytest.raises(ValueError, match="mask"):
+            pipeline.attach(features, mask, adjacency)
+        mask[0, 0] = 1
+        adjacency.data[0] = np.nan
+        with pytest.raises(ValueError, match="adjacency"):
+            pipeline.attach(features, mask, adjacency)
+
     def config(self) -> None:
         config = Config()
         ui = sp.csr_matrix(np.array([[1, 0, 1], [0, 1, 1]], dtype=np.float32))
