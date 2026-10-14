@@ -35,7 +35,7 @@ hide:
           <span class="morel-pill morel-pill-strong">Python 3.10+</span>
           <span class="morel-pill">MIT license</span>
           <span class="morel-pill">arxiv 2605.00670</span>
-          <span class="morel-pill">580 tests · 84.60% coverage</span>
+          <span class="morel-pill">580 tests · at least 84.57% coverage</span>
           <span class="morel-pill">FastAPI inference</span>
           <span class="morel-pill">Prometheus metrics</span>
         </div>

@@ -9,6 +9,10 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+# Coverage can differ by a few hundredths across supported Python/Coverage
+# versions. Keep a conservative, repository-wide floor instead of requiring
+# every runner to reproduce one interpreter's exact numerator.
+MIN_COVERAGE = 84.57
 
 
 def collected_tests() -> int:
@@ -43,15 +47,20 @@ def main() -> int:
     """Check every tracked verification surface."""
     tests = collected_tests()
     coverage = coverage_percent()
-    coverage_text = f"{coverage:.2f}"
+    minimum_coverage_text = f"{MIN_COVERAGE:.2f}"
     checks = {
-        ROOT / "AUDIT.md": f"**{tests} passed**, {coverage_text}% coverage",
+        ROOT / "AUDIT.md": f"**{tests} passed**, at least {minimum_coverage_text}% coverage",
         ROOT
-        / "docs/reference/production-readiness.md": f"{tests} passed, {coverage_text}% coverage",
-        ROOT / "docs/getting-started.md": f"{tests} tests with {coverage_text} % coverage",
+        / "docs/reference/production-readiness.md": (
+            f"{tests} passed, at least {minimum_coverage_text}% coverage"
+        ),
+        ROOT / "docs/getting-started.md": (
+            f"{tests} tests with at least {minimum_coverage_text} % coverage"
+        ),
         ROOT / "site/src/lib/content.ts": f"tests: {tests},",
-        ROOT / "docs/index.md": f"{tests} tests · {coverage_text}% coverage",
+        ROOT / "docs/index.md": f"{tests} tests · at least {minimum_coverage_text}% coverage",
     }
+    checks[ROOT / "site/src/lib/content.ts"] += f"\n  coverage: {minimum_coverage_text},"
     missing = [
         str(path.relative_to(ROOT))
         for path, text in checks.items()
@@ -60,9 +69,14 @@ def main() -> int:
     if missing:
         raise SystemExit(
             f"verification metrics are stale: expected {tests} tests / "
-            f"{coverage_text}% coverage in {', '.join(missing)}"
+            f"at least {minimum_coverage_text}% coverage in {', '.join(missing)}"
         )
-    print(f"verification metrics match: {tests} tests / {coverage_text}% coverage")
+    if coverage < MIN_COVERAGE:
+        raise SystemExit(
+            f"verification coverage regressed: {coverage:.2f}% is below "
+            f"the {minimum_coverage_text}% floor"
+        )
+    print(f"verification metrics match: {tests} tests / {coverage:.2f}% coverage")
     return 0
 
 
