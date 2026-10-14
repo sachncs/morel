@@ -65,6 +65,19 @@ class Checker:
             Manifest.parse_json("not-json")
         with pytest.raises(Datum, match="missing fields"):
             Manifest.parse_json("{}")
+        with pytest.raises(Datum, match="valid JSON"):
+            Manifest.parse_json("[" * 2_000 + "]" * 2_000)
+
+    def bounded(self, tmp_path: Path) -> None:
+        """Manifest sidecars are bounded before parsing."""
+        from morel.data.manifest import MAX_MANIFEST_BYTES
+
+        artifact = tmp_path / "x.npz"
+        artifact.write_text("data")
+        sidecar = locate(artifact)
+        sidecar.write_text("x" * (MAX_MANIFEST_BYTES + 1), encoding="utf-8")
+        with pytest.raises(Datum, match="exceeds"):
+            load(artifact)
 
     def invalid_types(self) -> None:
         payload = {

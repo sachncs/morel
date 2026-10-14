@@ -20,6 +20,7 @@ from typing import Any
 from morel.core.errors import Datum
 
 VERSION = 1
+MAX_MANIFEST_BYTES = 1 << 20
 
 
 @dataclass
@@ -64,7 +65,7 @@ class Manifest:
         """
         try:
             payload = json.loads(text)
-        except (TypeError, json.JSONDecodeError) as exc:
+        except (TypeError, json.JSONDecodeError, RecursionError) as exc:
             raise Datum("manifest is not valid JSON") from exc
         if not isinstance(payload, Mapping):
             raise Datum("manifest must contain a JSON object")
@@ -161,8 +162,14 @@ def load(artifact: Path | str, *, expected_config_hash: str | None = None) -> Ma
     if not sidecar.exists():
         raise Datum(f"manifest not found for {artifact}: {sidecar}")
     try:
-        manifest = Manifest.parse_json(sidecar.read_text(encoding="utf-8"))
-    except OSError as exc:
+        size = sidecar.stat().st_size
+        if size > MAX_MANIFEST_BYTES:
+            raise Datum(f"manifest exceeds the {MAX_MANIFEST_BYTES}-byte limit: {sidecar}")
+        text = sidecar.read_text(encoding="utf-8")
+        manifest = Manifest.parse_json(text)
+    except Datum:
+        raise
+    except (OSError, UnicodeError) as exc:
         raise Datum(f"unable to read manifest for {artifact}: {sidecar}") from exc
     if expected_config_hash is not None and manifest.cfg_hash != expected_config_hash:
         raise Datum(
@@ -182,6 +189,7 @@ def checksum(path: Path | str) -> str:
 
 
 __all__ = [
+    "MAX_MANIFEST_BYTES",
     "VERSION",
     "Manifest",
     "checksum",
