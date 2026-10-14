@@ -1,5 +1,5 @@
 site_name: morel
-site_description: Robust multimodal recommendation via graph retrieval-enhanced modality completion.
+site_description: Complete missing item modalities from graph context, then rank with LightGCN.
 site_author: Sachin
 site_url: https://sachncs.github.io/morel/
 site_dir: .mkdocs-site
