@@ -70,6 +70,20 @@ class Checker:
         with pytest.raises(Cfg, match="data section must be a mapping"):
             Config.parse({"data": "not-a-mapping"})
 
+    def bounded_yaml(self, tmp_path) -> None:
+        """YAML loading bounds resource use and normalizes parser failures."""
+        from morel.core.config import MAX_CONFIG_BYTES
+
+        oversized = tmp_path / "oversized.yaml"
+        oversized.write_text("x" * (MAX_CONFIG_BYTES + 1), encoding="utf-8")
+        with pytest.raises(Cfg, match="exceeds"):
+            Config.load(oversized)
+
+        malformed = tmp_path / "malformed.yaml"
+        malformed.write_text("[unterminated", encoding="utf-8")
+        with pytest.raises(Cfg, match="unable to load configuration"):
+            Config.load(malformed)
+
     def env(self, monkeypatch) -> None:
         monkeypatch.setenv("MOREL_SEED", "123")
         c = Config.env()

@@ -17,6 +17,8 @@ import yaml
 
 from morel.core.errors import Cfg
 
+MAX_CONFIG_BYTES = 1 << 20
+
 
 @dataclass(frozen=True)
 class Data:
@@ -571,9 +573,24 @@ class Config:
 
     @classmethod
     def load(cls, path: Path | str) -> Config:
-        """Load configuration from a YAML file."""
-        text = Path(path).read_text(encoding="utf-8")
-        return cls.parse(yaml.load(text, Loader=yaml.SafeLoader))
+        """Load a bounded configuration from a YAML file.
+
+        Raises:
+            Cfg: If the file cannot be read, exceeds the input budget, or is
+                not valid YAML.
+        """
+        target = Path(path)
+        try:
+            size = target.stat().st_size
+            if size > MAX_CONFIG_BYTES:
+                raise Cfg(f"configuration file exceeds the {MAX_CONFIG_BYTES}-byte limit: {target}")
+            text = target.read_text(encoding="utf-8")
+            payload = yaml.load(text, Loader=yaml.SafeLoader)
+        except Cfg:
+            raise
+        except (OSError, UnicodeError, yaml.YAMLError) as exc:
+            raise Cfg(f"unable to load configuration file: {target}") from exc
+        return cls.parse(payload)
 
     @classmethod
     def from_yaml(cls, path: Path | str) -> Config:
