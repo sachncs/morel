@@ -91,9 +91,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - `make audit-critical`: passes with current per-subsystem coverage of serving
   (85%), pipeline (85%), CLI (73%), and checkpoint loading (86%), all above
   their configured floors.
-- The refreshed forward benchmark at commit `0386e12` uses a bounded 32-query
-  batch and measures 1k items at **216.70 ms mean** and 10k items at
-  **7.464 s mean** on the recorded local environment. A separate compiled-ACS
+- The refreshed forward benchmark at commit `0718e4d` uses a bounded 32-query
+  batch and measures 1k items at **387.23 ms mean** and 10k items at
+  **7.087 s mean** on the recorded local environment. A separate compiled-ACS
   10k-item end-to-end smoke remains approximately **7.9 s** locally, with
   retrieval and CPU transformer costs profiled separately. These are capacity
   signals, not production SLOs; representative hardware and production-shaped
@@ -509,7 +509,7 @@ browser-content checks.
     1.73x lower anchor-selection time with the shared index. Serving also
     enforces a validated retrieval-node budget and fails with a typed domain
     error when it is exceeded. A bounded 1k run is
-    approximately 216.70 ms mean. The 10k Laplacian positional encoding now uses
+    approximately 387.23 ms mean. The 10k Laplacian positional encoding now uses
     shift-invert ARPACK and measures approximately 30 ms locally, down from
     17.1 s with the previous smallest-magnitude solver; large-graph failures
     now raise instead of attempting dense allocation. Compiled ACS traversal

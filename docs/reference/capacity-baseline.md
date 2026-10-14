@@ -6,7 +6,7 @@ versions, graph shape, model configuration, and query mix.
 
 ## Environment
 
-The baseline was captured on 2026-10-14 at commit `0386e12` using the local
+The baseline was captured on 2026-10-15 at commit `0718e4d` using the local
 `.venv-audit` environment:
 
 | Field | Value |
@@ -31,8 +31,8 @@ The forward benchmark uses a 32-query batch and `visual=16`, `text=8`:
 
 | Scale | Min | Mean | Median | Max |
 | --- | ---: | ---: | ---: | ---: |
-| 1k items | 216.05 ms | 216.70 ms | 216.13 ms | 217.92 ms |
-| 10k items | 7.218 s | 7.464 s | 7.515 s | 7.658 s |
+| 1k items | 340.51 ms | 387.23 ms | 347.08 ms | 474.11 ms |
+| 10k items | 6.966 s | 7.087 s | 7.082 s | 7.213 s |
 
 The model-backed serving smoke also passed locally:
 
