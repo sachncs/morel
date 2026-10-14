@@ -47,6 +47,10 @@ RUN pip install --no-cache-dir \
     pip install --no-cache-dir --force-reinstall --no-deps \
         "msgpack>=1.2.1" "setuptools>=84.0.0" "urllib3>=2.8.0" && \
     python -c "import msgpack, setuptools, urllib3; assert tuple(map(int, msgpack.__version__.split('.')[:2])) >= (1, 2); assert tuple(map(int, setuptools.__version__.split('.')[:2])) >= (84, 0); assert tuple(map(int, urllib3.__version__.split('.')[:2])) >= (2, 8)" && \
+    rm -rf /usr/local/lib/python3.11/ensurepip \
+        /usr/local/lib/python3.11/site-packages/pip \
+        /usr/local/lib/python3.11/site-packages/pip-*.dist-info \
+        /usr/local/bin/pip /usr/local/bin/pip3 /usr/local/bin/pip3.11 && \
     rm -rf /tmp/*.whl
 
 USER morel
