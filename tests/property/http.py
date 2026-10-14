@@ -11,13 +11,13 @@ from hypothesis import strategies as st
 from morel.serve import create
 
 
-async def _post(payload: dict[str, object]) -> httpx.Response:
+async def _post(path: str, payload: dict[str, object]) -> httpx.Response:
     """Send one payload through the ASGI boundary without TestClient shims."""
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=create()),
         base_url="http://test",
     ) as client:
-        return await client.post("/v1/complete", json=payload)
+        return await client.post(path, json=payload)
 
 
 class Checker:
@@ -38,7 +38,8 @@ class Checker:
     @settings(max_examples=20, deadline=None)
     def malformed_complete_payload_never_500(self, payload: dict[str, object]) -> None:
         """Arbitrary JSON objects produce validation or fail-closed responses."""
-        response = asyncio.run(_post(payload))
-        assert response.status_code in {422, 503}
-        assert response.headers.get("x-request-id")
-        assert response.json().get("error", {}).get("request_id")
+        for path in ("/v1/complete", "/v1/recommend"):
+            response = asyncio.run(_post(path, payload))
+            assert response.status_code in {422, 503}
+            assert response.headers.get("x-request-id")
+            assert response.json().get("error", {}).get("request_id")
