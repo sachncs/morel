@@ -147,6 +147,7 @@ class Checker:
         monkeypatch.setattr(runtime, "from_run", lambda _: StubPipeline())
         loaded = runtime.create_app()
         assert loaded.state.loader.registered() == ["default"]
+        assert loaded.state.loader.require_validators is True
         assert loaded.state.loader.get("default").items == 8
 
     def capacity(self) -> None:
