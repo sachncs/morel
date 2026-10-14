@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import os
+
 import numpy as np
+import pytest
 import scipy.sparse as sp
 import torch
 
@@ -77,9 +80,12 @@ def bench_10k(benchmark) -> None:
 def bench_100k(benchmark) -> None:
     """Measure forward latency at one hundred thousand items.
 
-    This is a smoke benchmark — its primary purpose is to prove the path
-    scales, not to enforce tight SLOs.
+    This is an opt-in smoke benchmark because its setup and forward pass are
+    intentionally much more expensive than the bounded default suite. Set
+    ``MOREL_ENABLE_LARGE_BENCHMARKS=1`` when deliberately measuring it.
     """
+    if os.environ.get("MOREL_ENABLE_LARGE_BENCHMARKS") != "1":
+        pytest.skip("100k benchmark disabled; set MOREL_ENABLE_LARGE_BENCHMARKS=1")
     pipeline = make_pipeline(100000, {"visual": 16, "text": 8})
     index = query_batch(100000)
     features = {k: torch.from_numpy(v[index.numpy()]) for k, v in pipeline.cfeat.items()}
