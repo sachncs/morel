@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import torch.nn as nn
 
-from morel.core.factory import FactoryRegistry, _accepts_keywords
+from morel.core.factory import FactoryRegistry, _accepts_keywords, _validate_implementation
 from morel.encode.baseline import Baseline, Enc, GraphEncoder, Identity, Sum
 from morel.encode.input import Input
 from morel.encode.layer import Layer
@@ -61,6 +61,7 @@ def register(
     kind: str, factory: Callable[..., nn.Module], *, implementation: type[nn.Module]
 ) -> None:
     """Register an additive encoder implementation under a new config name."""
+    _validate_implementation(implementation, GraphEncoder, "encoder")
     _FACTORIES.register(kind, factory)
     KIND[kind] = implementation
 

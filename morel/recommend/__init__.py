@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 import torch.nn as nn
 
-from morel.core.factory import FactoryRegistry, _accepts_keywords
+from morel.core.factory import FactoryRegistry, _accepts_keywords, _validate_implementation
 from morel.recommend.baseline import MF, Pop
 from morel.recommend.bpr import bpr, distinct, negatives, to_ranks
 from morel.recommend.light import Light
@@ -61,6 +61,7 @@ def register(
     kind: str, factory: Callable[..., nn.Module], *, implementation: type[nn.Module]
 ) -> None:
     """Register an additive recommender implementation under a new config name."""
+    _validate_implementation(implementation, Recommender, "recommender")
     _FACTORIES.register(kind, factory)
     KIND[kind] = implementation
 

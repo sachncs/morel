@@ -6,7 +6,7 @@ import torch.nn as nn
 
 from morel.complete.decoders import Decoders
 from morel.complete.protocol import Completer
-from morel.core.factory import FactoryRegistry, _accepts_keywords
+from morel.core.factory import FactoryRegistry, _accepts_keywords, _validate_implementation
 
 
 def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> nn.Module:
@@ -41,6 +41,7 @@ def register(
     kind: str, factory: Callable[..., nn.Module], *, implementation: type[nn.Module]
 ) -> None:
     """Register an additive completer implementation under a new config name."""
+    _validate_implementation(implementation, Completer, "completer")
     _FACTORIES.register(kind, factory)
     KIND[kind] = implementation
 

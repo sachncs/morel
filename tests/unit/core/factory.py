@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from morel.core.errors import Cfg
-from morel.core.factory import FactoryRegistry, _accepts_keywords
+from morel.core.factory import FactoryRegistry, _accepts_keywords, _validate_implementation
 
 
 class Checker:
@@ -127,3 +127,12 @@ class Checker:
         assert _accepts_keywords(variadic, ("dims", "hidden"))
         assert not _accepts_keywords(missing, ("dims", "hidden"))
         assert not _accepts_keywords(positional_only, ("dims", "hidden"))
+
+    def implementation_contract(self) -> None:
+        """Registration metadata must satisfy the declared polymorphic contract."""
+        from morel.core.errors import Cfg
+        from morel.recommend import Light, Recommender
+
+        _validate_implementation(Light, Recommender, "recommender")
+        with pytest.raises(Cfg, match="declared contract"):
+            _validate_implementation(object, Recommender, "recommender")

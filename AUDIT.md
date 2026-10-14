@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **618 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **619 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -19,6 +19,9 @@ Scope: repository, local Python package, local React site, and the deployed
   constructor adapters for encoders, routers, codebooks, completers, and
   recommenders; public `KIND` maps remain available for configuration
   introspection without being the construction mechanism.
+- Public extension registration now validates the advertised implementation
+  class against its runtime polymorphic contract before publishing registry
+  metadata, preventing inconsistent third-party introspection state.
 - Retrieval strategy resolution now validates the registered callable against
   the runtime `RetrievalStrategy` protocol before execution, closing another
   untyped plugin boundary.

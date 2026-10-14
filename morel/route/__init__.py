@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 
+from morel.core.factory import _validate_implementation
 from morel.route.router import Dense, Fixed, Gumbel, Router, Top, Weights, build
 from morel.route.router import register as _register
 
@@ -16,6 +17,7 @@ KIND: dict[str, type[Router]] = {
 
 def register(kind: str, factory: Callable[..., Router], *, implementation: type[Router]) -> None:
     """Register an additive router and publish its introspection type."""
+    _validate_implementation(implementation, Router, "router")
     _register(kind, factory)
     KIND[kind] = implementation
 

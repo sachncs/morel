@@ -11,6 +11,16 @@ from morel.core.errors import Cfg, Error
 T = TypeVar("T")
 
 
+def _validate_implementation(value: object, contract: type | tuple[type, ...], name: str) -> None:
+    """Reject registration metadata that cannot satisfy an extension contract."""
+    try:
+        valid = isinstance(value, type) and issubclass(value, contract)
+    except TypeError:
+        valid = False
+    if not valid:
+        raise Cfg(f"{name} implementation must satisfy its declared contract")
+
+
 def _accepts_keywords(factory: object, names: tuple[str, ...]) -> bool:
     """Return whether a factory can receive every required keyword.
 

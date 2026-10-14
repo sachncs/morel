@@ -10,7 +10,7 @@ from morel.codebook.codebook import (
     balance,
     usage,
 )
-from morel.core.factory import FactoryRegistry, _accepts_keywords
+from morel.core.factory import FactoryRegistry, _accepts_keywords, _validate_implementation
 from morel.route import Router
 
 
@@ -52,6 +52,7 @@ def register(
     kind: str, factory: Callable[..., Codebook], *, implementation: type[Codebook]
 ) -> None:
     """Register an additive codebook implementation under a new config name."""
+    _validate_implementation(implementation, Codebook, "codebook")
     _FACTORIES.register(kind, factory)
     KIND[kind] = implementation
 
