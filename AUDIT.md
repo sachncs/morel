@@ -363,8 +363,10 @@ open defects:
 The local pipeline boundary now validates modality names and shapes and stores
 defensive snapshots of feature, mask, and adjacency inputs; this closes the
 mutable-attachment portion of issue 20. The redesigned site is deployed and
-rechecked; remaining open work is technical scale, observability integration,
-and release operations.
+rechecked; remaining open work is technical scale, broader artifact fuzzing,
+external observability integration, and release operations. The original P0
+serving defects (1–5) are closed by the current source, contract tests, and
+browser-content checks.
 
 ## Issue inventory
 
@@ -381,24 +383,23 @@ and release operations.
    default log directory; and a clean runtime process accessed `uvicorn`
    through `sys.modules` without importing it first.
 
-1. `/v1/recommend` can return a fabricated descending uniform ranking when the
-   loaded pipeline has no recommender. A serving system must fail closed with a
-   503 and an operator-visible error, not return plausible-looking nonsense.
-2. `/v1/recommend` calls the recommender without the user-item graph and
-   completed item features. The endpoint therefore does not exercise the
-   advertised retrieval/completion pipeline and can silently serve an
-   ID-embedding-only ranking.
-3. `/v1/complete` fabricates zero-valued item features and an empty adjacency
-   graph from item IDs. It is not completing real catalog modalities; the API
-   contract needs either real feature inputs or an explicit demo-only status.
-4. Request latency metrics are always recorded as `0.0` because the ASGI
-   middleware contains a permanently false expression instead of timing the
-   request. The advertised Prometheus observability is therefore incomplete.
-5. The public product page claims “production-ready”, “482 tests · 80%
-   coverage”, and benchmark improvements while the deployed UI renders the
-   animated stat counters as zero until/while they run and the claims are not
-   tied to a generated artifact or release. This is a trust and correctness
-   issue, not only a copy issue.
+1. **Closed in this worktree:** `/v1/recommend` previously returned a fabricated
+   descending uniform ranking when the loaded pipeline had no recommender. The
+   endpoint now fails closed with a typed 503, and tests prove that no plausible
+   ranking is emitted without a ranker.
+2. **Closed in this worktree:** `/v1/recommend` now requires the attached
+   user-item graph and completed item features. The serving score path exercises
+   the advertised retrieval/completion pipeline rather than silently falling
+   back to ID-only ranking.
+3. **Closed in this worktree:** `/v1/complete` now requires a validated attached
+   feature corpus, modality mask, and adjacency graph. Missing or malformed
+   catalog state fails with a typed 503 instead of fabricated zero inputs.
+4. **Closed in this worktree:** The pure ASGI observation boundary now records
+   `perf_counter()` elapsed time in every request histogram. Regression coverage
+   proves that successful requests produce positive latency observations.
+5. **Closed in this worktree:** The public product page now uses the audited
+   verification snapshot, qualifies production limitations, and renders its
+   truthful counters directly without an observer/RAF zero state.
 6. **Partially addressed:** The built and deployed site includes a static
    `/docs/` redirect to the canonical documentation tree, so Pages retains a
    working compatibility route. External documentation hosting remains a
