@@ -108,6 +108,27 @@ test("Astro docs render as task-oriented pages inside the site build", async ({ 
   expect(hrefs.some((href) => href.endsWith(".md"))).toBe(false);
 });
 
+test("every generated docs route renders in the shared shell", async ({ page }) => {
+  await page.goto("/morel/docs/");
+  const routes = await page.locator('a[href^="/morel/docs/"]').evaluateAll((links) =>
+    [...new Set(links.map((link) => link.getAttribute("href")).filter((href): href is string => Boolean(href)))],
+  );
+  expect(routes.length).toBeGreaterThan(30);
+  for (const route of routes) {
+    const response = await page.goto(route);
+    expect(response?.status(), route).toBe(200);
+    await expect(page.locator(".docs-header")).toBeVisible();
+    await expect(page.locator("article h1")).toBeVisible();
+  }
+  await page.goto("/morel/docs/concepts/architecture/");
+  await expect(page.locator(".docs-architecture-diagram")).toBeVisible();
+  await expect(page.locator("article pre")).toHaveCount(0);
+  await page.goto("/morel/docs/concepts/method/");
+  await expect(page.getByText("plain English", { exact: false }).first()).toBeVisible();
+  const removedReview = await page.goto("/morel/docs/reference/site-ux-review/");
+  expect(removedReview?.status()).toBe(404);
+});
+
 test("hero pipeline stages support pointer and keyboard interaction", async ({ page }) => {
   await page.goto("./");
   const completion = page.getByRole("button", { name: "Highlight completion stage" });

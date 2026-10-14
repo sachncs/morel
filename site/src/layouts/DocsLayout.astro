@@ -1,8 +1,10 @@
 ---
 import type { DocPage } from "../lib/docs";
+import { DocsArchitectureDiagram } from "../components/docs-architecture-diagram";
 import "../styles/docs.css";
 
 const { page, pages } = Astro.props as { page: DocPage; pages: DocPage[] };
+const architectureParts = page.slug === "concepts/architecture" ? page.html.split("<!-- architecture-diagram -->") : null;
 const groups = new Map<string, DocPage[]>();
 for (const item of pages) {
   const group = item.section === "home" ? "Start here" : item.section.replace(/-/g, " ");
@@ -33,7 +35,16 @@ const pageHref = (slug: string) => `/morel/docs/${slug ? `${slug}/` : ""}`;
           <section><h2>{group}</h2><ul>{items.map((item) => <li><a class:list={{ active: item.slug === page.slug }} href={pageHref(item.slug)}>{item.title}</a></li>)}</ul></section>
         ))}
       </aside>
-      <main class="docs-main"><div class="breadcrumbs"><a href="/morel/docs/">Docs</a><span>/</span><span>{page.title}</span></div><article class="prose" set:html={page.html} /></main>
+      <main class="docs-main">
+        <div class="breadcrumbs"><a href="/morel/docs/">Docs</a><span>/</span><span>{page.title}</span></div>
+        {architectureParts ? (
+          <article class="prose">
+            <div set:html={architectureParts[0]} />
+            <DocsArchitectureDiagram client:load />
+            <div set:html={architectureParts[1] ?? ""} />
+          </article>
+        ) : <article class="prose" set:html={page.html} />}
+      </main>
     </div>
     <footer class="docs-footer">morel · MIT licensed · <a href="/morel/">Back to product site</a></footer>
   </body>

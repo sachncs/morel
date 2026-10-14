@@ -1,151 +1,72 @@
-# morel — Architecture
+# Architecture
 
-This document describes the package architecture and module layering.
+morel is organised as a small set of replaceable pipeline stages. The public
+surface stays simple: build a graph, attach features, run the pipeline, and
+rank. The modules underneath it keep data preparation, algorithms, training,
+and serving separate.
 
-## Layering
+The interactive map below is rendered by Astro, not stored as a Markdown
+flowchart. Hover or focus a stage to see its responsibility.
 
-The package follows a one-way dependency layout (documented in the
-dependency-graph diagram below). These rules are machine-checked on every test
-run by `tests/unit/test_architecture.py`, which parses the import graph with
-`ast` and asserts that each package imports only from strictly lower layers,
-that the package graph is acyclic, and that `core/` imports nothing else from
-the project. (An earlier `import-linter` configuration enforced the same rules
-before that dependency was dropped; the stdlib test replaces it and needs no
-extra tooling.)
+<!-- architecture-diagram -->
 
-Adding a new subpackage requires listing it in the `LAYERS` table in that test
-— an unlisted package fails the suite, so the layering cannot drift silently.
+## How the modules fit together
 
-```
-cli/        (argparse dispatch; thin shim to app/)
-  ↓
-app/        (orchestration services: experiment, benchmark, reproduce)
-  ↓
-train/  eval/    (training & evaluation)
-  ↓
-model/  pipeline/  (algorithms; pipeline composes the 5 stages)
-  ↓
-data/    graph/  retrieve/  encode/  route/  codebook/  complete/  recommend/
-  ↓
-core/    (config, seed, device, logging, errors, types, paths, fidelity)
-```
+The dependency direction is intentionally one-way:
 
-`core/` imports nothing from the project. `data/` imports only `core/`. The model subpackages import only `data/` and `core/`. `train/` and `eval/` import `model/`, `data/`, and `core/`. `app/` orchestrates `train/` and `eval/`. `cli/` is pure dispatch.
+- `core` owns configuration, seeds, devices, errors, types, and logging.
+- `data`, `graph`, `encode`, `retrieve`, `route`, `codebook`, `complete`, and
+  `recommend` implement the reusable building blocks.
+- `pipeline` composes those blocks into the end-to-end pass.
+- `train` and `eval` add experiments and measurement around the model.
+- `app` provides experiment, benchmark, and reproduce services.
+- `cli` is a thin command dispatcher; `serve` exposes inference over HTTP.
 
-## Module map
+Higher layers may call lower layers. Lower layers never import the application
+or command-line layers. The architecture test checks the import graph on every
+run so a convenient shortcut cannot quietly create a cycle.
+
+## Package map
 
 | Package | Responsibility |
-|---------|---------------|
-| `morel.core` | Configuration, seeding, device, logging, errors, types, paths, fidelity registry |
-| `morel.data` | Lifecycle: acquire → validate → extract → build → mask → store |
-| `morel.graph` | `Graph` Protocol, `Bipartite`, `Item`, `Subgraph`, `Laplace` PE |
-| `morel.retrieve` | `Retriever` Protocol, `Anchor`, `ACS`, `MAGE`, `Pipeline` |
-| `morel.encode` | `Encoder` Protocol, `Transformer`, attention/mean/token pools, baselines |
-| `morel.route` | `Router` Protocol, `Dense`, `Top` (top-k), `Gumbel`, `Fixed` |
-| `morel.codebook` | `Codebook` Protocol, `VQ`, `GumbelVQ`, `usage`, `balance` losses |
-| `morel.complete` | `Decoder` Protocol, `Decoders` with learned [MASK] token, per-modality heads |
-| `morel.recommend` | `Recommender` Protocol, `Light` (LightGCN), `MF`, `Pop`, `BPR` |
-| `morel.pipeline` | End-to-end `Pipeline` composing the 5 stages |
-| `morel.train` | `Trainer` ABC, `Completion`, `Recommendation`, `Checkpoint`, `Monitor`, losses |
-| `morel.eval` | `Metric` Protocol, ranking metrics, completion metrics, robustness/ablation protocols |
-| `morel.app` | `Experiment`, `Benchmark`, `Reproduce` services |
-| `morel.cli` | Top-level `morel` entry point dispatching to subcommands |
-| `morel.serve` | FastAPI inference server with bearer-token auth |
-
-## Data flow
-
-```
-raw text + images
-  → morel.data.acquire.fetch   (HTTPS, retries, SHA256)
-  → morel.data.extract         (Sentence-Transformers, ResNet-50)
-  → morel.data.build           (bipartite + item-item cooccurrence; iterative k-core)
-  → morel.data.mask            (Bernoulli, Block, Structured)
-  → morel.data.store           (npz + manifest sidecar)
-  → morel.retrieve             (Anchor + ACS + MAGE)
-  → morel.graph.Laplace        (bottom-k eigenvectors)
-  → morel.encode.Transformer   (joint graph transformer)
-  → morel.route.Top            (top-k sparse routing)
-  → morel.codebook.GumbelVQ    (Gumbel-Softmax + lookup)
-  → morel.complete.Decoders    (per-modality MLP)
-  → morel.recommend.Light      (LightGCN ranking)
-  → morel.eval.*               (Recall@K, NDCG@K, robustness sweep)
-```
-
-## Configuration
-
-A single `Config` dataclass tree at `morel.core.config.Config` is the source of truth. Precedence is `CLI > env > YAML > default`. Every experiment produces a `Manifest` sidecar carrying dataset, version, code hash, seed, extractor, and config hash. Resuming a run requires the config hash to match.
+| --- | --- |
+| `morel.core` | Config, seeds, devices, logging, errors, types, paths, fidelity |
+| `morel.data` | Acquire, validate, extract, build, mask, and store data |
+| `morel.graph` | Bipartite graphs, item graphs, subgraphs, Laplacian features |
+| `morel.retrieve` | Anchor, ACS, MAGE, and BFS retrieval strategies |
+| `morel.encode` | Feature encoders, pooling, and graph-transformer context encoding |
+| `morel.route` | Dense, top-k, Gumbel, and fixed routing |
+| `morel.codebook` | Vector quantisation and usage/balance losses |
+| `morel.complete` | Per-modality decoders for missing features |
+| `morel.recommend` | LightGCN, matrix-factorisation, popularity, and BPR heads |
+| `morel.pipeline` | The end-to-end composition boundary |
+| `morel.train` / `morel.eval` | Training loops, checkpoints, metrics, and ablations |
+| `morel.app` / `morel.cli` | User-facing services and command dispatch |
+| `morel.serve` | FastAPI inference with bearer-token auth |
 
 ## Extension points
 
-Each pipeline stage is selected by a `kind` in the config. The public `KIND`
-maps remain stable, configuration-facing introspection views. Construction
-goes through typed adapters backed by `morel.core.FactoryRegistry`, which
-validates the runtime contract at the composition boundary. Retrieval keeps
-the same contract through `RetrievalStrategy`; data extractors and masks use
-their existing typed protocols.
+The config selects a stage with a `kind`. Each implementation must register a
+typed adapter and satisfy the stage protocol before it can enter the pipeline.
+Unknown names fail with a typed configuration error listing the valid options.
+Production registries are not mutable at runtime.
 
-| Config field | Public map | Shipped kinds |
-|---|---|---|
-| `masking.kind` | `MASKS` | `bernoulli`, `block` |
-| `encoder.text` / `encoder.visual` | `EXTRACTORS` | `random`, `sentence-transformers/all-MiniLM-L6-v2`, `resnet50` |
-| `retrieve.kind` | `morel.retrieve.KIND` | `mage`, `acs`, `anchor`, `bfs`, `none` |
-| `encode.kind` | `morel.encode.KIND` | `transformer`, `identity` |
-| `route.kind` | `morel.route.KIND` | `top`, `dense`, `gumbel`, `fixed` |
-| `codebook.kind` | `morel.codebook.KIND` | `gumbel`, `vq`, `identity` |
-| `complete.kind` | `morel.complete.KIND` | `mlp` |
-| `recommend.kind` | `morel.recommend.KIND` | `light`, `mf`, `pop` |
+| Config field | Example kinds |
+| --- | --- |
+| `masking.kind` | `bernoulli`, `block` |
+| `retrieve.kind` | `mage`, `acs`, `anchor`, `bfs`, `none` |
+| `encode.kind` | `transformer`, `identity` |
+| `route.kind` | `top`, `dense`, `gumbel`, `fixed` |
+| `codebook.kind` | `gumbel`, `vq`, `identity` |
+| `recommend.kind` | `light`, `mf`, `pop` |
 
-Adding an implementation requires an explicit adapter and contract check in
-the owning package; dynamic mutation of production registries is deliberately
-not supported. A built-in adapter follows this shape:
+For a complete list of fields, see the [configuration reference](../reference/config.md).
+For a worked extension, see [add a custom component](../howto/custom-component.md).
 
-```python
-from morel.codebook import Codebook
+## Determinism and boundaries
 
-
-def build_mine(*, dim: int, size: int, router, seed=None) -> Codebook:
-    return MyCodebook(dim, size)
-```
-
-```yaml
-codebook:
-  kind: my-codebook
-```
-
-A factory takes keyword arguments only and accepts the full set its stage
-supplies, even if it ignores some of them, so implementations of a stage are
-interchangeable. An unregistered `kind` raises the typed `Cfg` configuration
-error listing the available names, and a result that does not satisfy the
-stage protocol is rejected before it enters the pipeline.
-
-`tests/unit/pipeline/component.py`, `tests/unit/core/factory.py`, and the
-architecture checks cover shipped combinations, registry validation, and
-import-layer contracts.
-
-### Ablations
-
-`eval.ablations` names the conditions an ablation sweep compares. Each is
-registered in `morel.eval.ablation.KIND` as a function from a `Config` to
-an ablated `Config`, so a condition runs through the same pipeline as the
-baseline with only the named component changed.
-
-| Condition | Effect |
-|---|---|
-| `no_retrieval` | `retrieve.kind = "none"` — each item is completed alone, with no graph context |
-| `no_pe` | `encode.pe = 0` — no Laplacian positional encoding |
-| `no_codebook` | `codebook.kind = "identity"` — completion without quantization |
-
-`morel.app.AblationExperiment` runs the baseline plus every configured
-condition and reports recall and NDCG at each cutoff in `eval.ks`. Adding a
-condition means registering a transform and naming it in `eval.ablations`; no
-pipeline change is required.
-
-## Determinism
-
-`morel.core.seed.seed(value)` sets `torch`, `torch.cuda`, `numpy`, `random`, `PYTHONHASHSEED`, `cudnn.deterministic`, and `cudnn.benchmark` process-wide. `morel.core.seed.deterministic(value)` is the scoped form: it seeds for the duration of a block and restores the caller's RNG state on exit, which is how model constructors are made reproducible without perturbing the surrounding program. `state()` and `restore()` snapshot RNG state for resume.
-
-Component construction is seeded from `config.seed`, so two pipelines built from one config hold identical weights regardless of ambient RNG state. `Pipeline.forward(training=False)` switches the module into eval mode for the call, so an inference pass applies no dropout. `morel.graph.laplacian.pe` pins ARPACK's start vector, sorts eigenvalues, and canonicalises eigenvector signs and the basis of degenerate eigenspaces; graphs up to `DENSE_MAX_NODES` use the direct dense solver, which is bitwise reproducible.
-
-## Observability
-
-`morel.core.log.configure(...)` initializes structured JSON logging. `Monitor` writes JSONL metric lines to `runs/<run_id>/metrics.jsonl`. The `Fidelity` registry renders `FIDELITY.md` and `FIDELITY.json` from component-level entries.
+The resolved config, dataset version, seed, extractor, and code hash are
+recorded in a manifest. Inference switches the pipeline to evaluation mode;
+the ranker and routing decisions are therefore repeatable for the same inputs.
+Serving refuses to continue when the real pipeline, graph, corpus, or
+recommender is unavailable.

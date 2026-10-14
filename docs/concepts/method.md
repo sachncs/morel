@@ -1,109 +1,64 @@
-# morel — Method
+# How morel works
 
-Mathematical pipeline of the GRE-MC paper as implemented.
+morel fills in missing item information before it ranks items. Think of it as
+an assembly line:
 
-## Notation
+**user activity → useful neighbours → completed features → ranked items**
 
-- `U`: bipartite user-item matrix `(n_users, n_items)`, CSR.
-- `I = sign(U^T U)`: item-item co-occurrence (symmetric, no self-loops).
-- `M`: modality availability mask `(n_items, M)`, `1 = kept`, `0 = missing`.
-- `f^{(m)}_i`: feature of item `i` in modality `m`, L2-normalized.
-- `e_i`: feature matrix in modality `m`.
-- `L = I - D^{-1/2} A D^{-1/2}`: symmetric normalized Laplacian.
+You do not need to understand the paper to run the library. Start with
+[Getting started](../getting-started.md). This page is for readers who want
+to understand what happens inside the pipeline and which part to change.
 
-## Stage 1: Anchor retrieval
+## The pipeline in plain English
 
-For each query item `q` and observed modality `m`, retrieve the top-K
-cosine-NN over items with `M[·, m] = 1` (excluding `q` itself):
+| Step | What goes in | What morel does | What comes out |
+| --- | --- | --- | --- |
+| 1. Build the graph | User–item interactions | Connects users to the items they touched and items that appear together | A sparse interaction graph |
+| 2. Find anchors | An item with at least one known modality | Finds nearby items with comparable information | A small, relevant neighbourhood |
+| 3. Connect the neighbourhood | The anchor items and the graph | Keeps the paths that connect those anchors | A connected context graph |
+| 4. Encode context | Features, graph links, and missing-value markers | Reads the neighbourhood together instead of item by item | One compact context vector |
+| 5. Route to a codebook | The context vector | Selects a small set of learned prototype vectors | A completed latent representation |
+| 6. Complete features | The representation and the missing-value markers | Predicts the missing text, image, or other modality | A full item representation |
+| 7. Rank items | Users, items, and their graph | Runs the LightGCN-style recommender | Top-K recommendations |
 
-```
-sim(q, v) = <f^(m)_q, f^(m)_v> / (||f^(m)_q|| * ||f^(m)_v||)
-```
+The important product behaviour is step 6: missing features are not silently
+treated as zeros. The mask tells the model which values are unavailable, and
+the graph supplies context for reconstructing them.
 
-Union of per-modality top-K sets is the anchor set `A_q`.
+## What is configurable?
 
-## Stage 2: Anchor Connecting Subgraph (ACS)
+Every stage has a stable interface. You can swap the implementation without
+rewriting the stages around it:
 
-Algorithm 1: multi-source BFS with reachability bitmask. Each visited
-node carries an OR-bitmask of which anchors have reached it. The first node
-whose bitmask equals `(1 << |A|) - 1` is the collision root. The ACS is the
-union of shortest paths from the collision root back to each anchor.
+- **Retrieval:** BFS, anchor, ACS, MAGE, or no retrieval.
+- **Encoding:** the graph transformer or an identity pass-through.
+- **Routing:** dense, top-k, Gumbel, or fixed routing.
+- **Codebook:** vector quantisation, Gumbel-VQ, or identity.
+- **Ranking:** LightGCN, matrix factorisation, or popularity baseline.
 
-Iterative backtrack (no recursion-limit crash on long paths). Duplicate and
-out-of-range anchor rejection. Self-loop guard on the adjacency.
+These choices live in one frozen `Config` tree. The precedence is
+`CLI → environment → YAML → defaults`, and each run records the resolved
+configuration in its manifest.
 
-## Stage 3: Modality-Aware Graph Expansion (MAGE)
+## The technical version
 
-Algorithm 2: greedy boundary add/remove. At each iteration:
+The following terms are useful when you are reading the source or the paper:
 
-1. **Add**: pick the boundary node whose inclusion maximizes mean relevance
-   while preserving connectivity. Best-improvement (canonical Alg 2).
-2. **Remove**: if no add improves, try removing a non-anchor node whose
-   removal improves mean relevance.
+- `U` is the sparse user–item interaction matrix.
+- `M` records whether each item modality is present (`1`) or missing (`0`).
+- `I = sign(UᵀU)` is the item co-occurrence graph.
+- The encoder turns a connected context graph into a vector `z`.
+- The router chooses codebook entries; the decoder turns the selected vector
+  back into one feature vector per modality.
+- The ranker propagates user and item embeddings through the interaction graph
+  and scores a user–item pair with a dot product.
 
-Relevance:
+Training compares predictions only where a modality was deliberately masked.
+At evaluation time, routing is deterministic and dropout is disabled.
 
-```
-r(i, v) = (1/|S(i) ∩ S(v)|) * Σ_{m in S(i) ∩ S(v)} cos(f^(m)_i, f^(m)_v)
-```
+## Where to go next
 
-Sorted boundary iteration → deterministic across runs (set-iteration order
-removed).
-
-## Stage 4: Joint encoding
-
-Per query item, gather the subgraph's features, mask, and Laplacian PE.
-Encode with an L-layer Pre-LN Transformer with attention pooling:
-
-```
-z = Pool(TransformerStack(features, mask, pe))
-```
-
-Pre-LN (norm-before-residual) for stable training. Scaled dot-product
-attention pooling with `1/sqrt(d)` scale.
-
-## Stage 5: Sparse routing
-
-Top-k sparsification over codebook logits:
-
-```
-g = softmax((W z + gumbel) / τ)
-g_top = topk(g, p) / sum(topk(g, p))
-q = g_top @ codebook
-```
-
-Gumbel noise only during training; deterministic at eval. Load-balancing
-loss `L_load = C * sum_e bar_g_e^2` (with `C` multiplier per paper).
-
-## Stage 6: Modality completion
-
-Per-modality MLP decoders from latent `q`:
-
-```
-f̂^(m)_i = MLP^(m)(q_i)
-```
-
-A learned `[MASK]` token replaces zero-multiplication when a modality is
-missing, following BERT-style masked reconstruction.
-
-Loss: masked MSE normalized per modality by **missing elements**:
-
-```
-L_recon = Σ_m sum_{i: M[i,m]=0} ||f̂^(m)_i - f^(m)_i||^2 / (sum_miss * D_m)
-```
-
-## Stage 7: Downstream recommendation
-
-LightGCN propagation on `U`:
-
-```
-H^0 = [user_emb; item_emb]
-H^{l+1} = Â H^l
-H_final = (1/(L+1)) Σ_l H^l
-score(u, i) = <H_final[u], H_final[i]>
-```
-
-with `Â = D^{-1/2} A D^{-1/2}` cached at construction.
-
-BPR loss for training with **strict** negative sampling (never returns a
-positive item; raises if no negatives exist for any user).
+- Change a component: [Custom component how-to](../howto/custom-component.md)
+- Change settings: [Configuration reference](../reference/config.md)
+- Reproduce a run: [Reproduce an experiment](../operations/reproduce.md)
+- Check paper-to-code mapping: [Fidelity report](../reference/fidelity.md)
