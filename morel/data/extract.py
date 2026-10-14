@@ -8,7 +8,7 @@ arrays of shape ``(items, dim)``.
 from __future__ import annotations
 
 import hashlib
-from typing import Protocol, runtime_checkable
+from typing import Protocol, cast, runtime_checkable
 
 import numpy as np
 import torch
@@ -48,7 +48,7 @@ def l2_normalize(array: Array) -> Array:
     """L2-normalize each row; replace zero-norm rows with the zero vector."""
     norms = np.linalg.norm(array, axis=1, keepdims=True)
     safe = np.where(norms == 0.0, 1.0, norms)
-    return (array / safe).astype(np.float32, copy=False)
+    return cast(Array, (array / safe).astype(np.float32, copy=False))
 
 
 def text(

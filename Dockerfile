@@ -43,8 +43,9 @@ RUN pip install --no-cache-dir \
         "fastapi>=0.110" "uvicorn[standard]>=0.27" \
         "prometheus-client>=0.20" "httpx>=0.27" && \
     pip install --no-cache-dir /tmp/*.whl && \
-    pip install --no-cache-dir --upgrade \
-        "msgpack>=1.2.1" "setuptools>=78.1.1" "urllib3>=2.8.0" && \
+    pip install --no-cache-dir --force-reinstall --no-deps \
+        "msgpack>=1.2.1" "setuptools>=84.0.0" "urllib3>=2.8.0" && \
+    python -c "import msgpack, setuptools, urllib3; assert tuple(map(int, msgpack.__version__.split('.')[:2])) >= (1, 2); assert tuple(map(int, setuptools.__version__.split('.')[:2])) >= (84, 0); assert tuple(map(int, urllib3.__version__.split('.')[:2])) >= (2, 8)" && \
     rm -rf /tmp/*.whl
 
 USER morel
