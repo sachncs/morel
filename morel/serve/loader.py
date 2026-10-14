@@ -26,7 +26,8 @@ class Loader:
        notified. They wake up, find no cache entry, and re-wait. To
        keep the system progressing, every factory call has a
        configurable timeout (default 60 seconds). A timeout raises
-       :class:`morel.core.errors.Model` to every waiter.
+       :class:`TimeoutError` so the HTTP boundary can expose retryable
+       timeout semantics without confusing it with an invalid model.
     2. **Unbounded building map**: the per-key ``Condition`` map is
        bound by ``building_capacity`` (defaults to ``capacity``).
 
@@ -55,7 +56,7 @@ class Loader:
             building_capacity: Maximum number of concurrent in-flight
                 factory builds. Defaults to ``capacity`` when ``None``.
             factory_timeout: Seconds to wait for the first caller's
-                factory to complete before bailing out with :class:`Model`.
+                factory to complete before bailing out with ``TimeoutError``.
         """
         if capacity <= 0:
             raise ValueError("capacity must be positive")
@@ -153,7 +154,7 @@ class Loader:
                         raise Model(f"loader factory for {key!r} failed")
                     remaining = deadline.remaining()
                     if remaining <= 0:
-                        raise Model(
+                        raise TimeoutError(
                             f"loader factory for {key!r} did not complete within "
                             f"{self.factory_timeout:.1f}s"
                         )
@@ -169,6 +170,8 @@ class Loader:
         try:
             try:
                 model = build_factory()
+            except TimeoutError:
+                raise
             except Error:
                 raise
             except Exception as exc:
@@ -183,7 +186,7 @@ class Loader:
                 # the wait budget, and notify any waiters that the build is
                 # over (they will see no cache entry and time out on their
                 # next wait).
-                raise Model(
+                raise TimeoutError(
                     f"loader factory for {key!r} took longer than "
                     f"{self.factory_timeout:.1f}s to complete"
                 )

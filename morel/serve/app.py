@@ -288,10 +288,10 @@ def create(
                 status_code=413,
                 detail=f"items exceeds {MAX_ITEMS_PER_REQUEST}-item cap",
             )
-        try:
-            pipeline = app.state.loader.get("default")
-        except Error as exc:
-            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        pipeline = _load_for_request(
+            app.state.loader,
+            request_id=getattr(request.state, "request_id", "unknown"),
+        )
         if not is_serving_pipeline(pipeline):
             raise HTTPException(
                 status_code=503,
@@ -318,10 +318,10 @@ def create(
         no ``"default"`` factory has been registered, instead of
         returning a uniformly-fake ranking.
         """
-        try:
-            pipeline = app.state.loader.get("default")
-        except Error as exc:
-            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        pipeline = _load_for_request(
+            app.state.loader,
+            request_id=getattr(request.state, "request_id", "unknown"),
+        )
         items = suggest(
             pipeline,
             payload,
@@ -458,6 +458,28 @@ def run(
         }
     completed: dict[str, Any] = output.completed
     return completed
+
+
+def _load_for_request(loader: Loader, *, request_id: str) -> Any:
+    """Load the default pipeline and classify failures at the HTTP boundary."""
+    try:
+        return loader.get("default")
+    except Exception as exc:
+        policy = classify(exc, operation="model loading")
+        log.exception(
+            "model loading failed",
+            extra={
+                "request_id": request_id,
+                "failure_kind": policy.kind.value,
+                "retryable": policy.retryable,
+            },
+        )
+        headers = {"Retry-After": "1"} if policy.retryable else None
+        raise HTTPException(
+            status_code=policy.status_code,
+            detail=policy.detail,
+            headers=headers,
+        ) from exc
 
 
 def suggest(

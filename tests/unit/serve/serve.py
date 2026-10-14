@@ -696,6 +696,23 @@ class Checker:
             r = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
         assert r.status_code == 503
 
+    async def model_loading_timeout_is_retryable(self) -> None:
+        """A hung model factory becomes a retryable HTTP timeout."""
+        import time
+
+        loader = Loader(factory_timeout=0.01)
+
+        def slow() -> StubPipeline:
+            time.sleep(0.03)
+            return StubPipeline()
+
+        loader.register("default", slow)
+        async with make(create(loader)) as client:
+            response = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
+        assert response.status_code == 504
+        assert response.headers.get("retry-after") == "1"
+        assert response.json()["error"]["code"] == "http_504"
+
     async def recommend_invalid_user(self) -> None:
         """User ids outside the loaded model are rejected before scoring."""
         app, _, _ = make_app_with_factory()

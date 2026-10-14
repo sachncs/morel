@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **621 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **622 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -22,6 +22,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Public extension registration now validates the advertised implementation
   class against its runtime polymorphic contract before publishing registry
   metadata, preventing inconsistent third-party introspection state.
+- Model loading now preserves factory timeouts as retryable failures and maps
+  them to HTTP 504 responses with correlation-aware structured logs; ordinary
+  factory and programmer failures remain sanitized and classified separately.
 - Retrieval strategy resolution now validates the registered callable against
   the runtime `RetrievalStrategy` protocol before execution, closing another
   untyped plugin boundary.
