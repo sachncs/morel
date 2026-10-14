@@ -159,6 +159,9 @@ def create(
     require_admin = auth.dependency("admin", secret_provider)
 
     @app.exception_handler(HTTPException)
+    # FastAPI's decorator stubs are untyped on some supported dependency sets.
+    # Keep strict mypy enabled for the handler bodies across those environments.
+    # type: ignore[untyped-decorator, unused-ignore]
     async def http_error(request: Request, exc: HTTPException) -> JSONResponse:
         """Return one stable error envelope for expected HTTP failures."""
         request_id = getattr(request.state, "request_id", "unknown")
@@ -176,6 +179,7 @@ def create(
         )
 
     @app.exception_handler(RequestValidationError)
+    # type: ignore[untyped-decorator, unused-ignore]
     async def validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
         """Return validation failures without leaking an unstable traceback."""
         request_id = getattr(request.state, "request_id", "unknown")
@@ -200,6 +204,7 @@ def create(
         )
 
     @app.exception_handler(Exception)
+    # type: ignore[untyped-decorator, unused-ignore]
     async def internal_error(request: Request, exc: Exception) -> JSONResponse:
         """Sanitize unexpected failures while retaining an operator trace."""
         request_id = getattr(request.state, "request_id", "unknown")
@@ -220,6 +225,7 @@ def create(
         )
 
     @app.middleware("http")
+    # type: ignore[untyped-decorator, unused-ignore]
     async def observe(request: Request, call_next: Any) -> Any:
         """Count every request and serve Prometheus-formatted /metrics."""
         incoming = request.headers.get("X-Request-ID", "").strip()
@@ -260,6 +266,7 @@ def create(
         return response
 
     @app.get("/health", response_model=Health)
+    # type: ignore[untyped-decorator, unused-ignore]
     def health() -> Health:
         """Liveness probe: process is alive.
 
@@ -269,6 +276,7 @@ def create(
         return Health(status="ok", version=__version__)
 
     @app.get("/health/ready")
+    # type: ignore[untyped-decorator, unused-ignore]
     def readiness() -> dict[str, Any]:
         """Readiness probe: a real pipeline can be loaded.
 
@@ -292,12 +300,14 @@ def create(
         }
 
     @app.get(metrics_path)
+    # type: ignore[untyped-decorator, unused-ignore]
     def metrics() -> Any:  # body served by the middleware above
         if not metrics_enabled:
             raise HTTPException(status_code=404, detail="metrics endpoint disabled")
         return metrics_response(app.state.metrics_registry)
 
     @app.post("/v1/complete", response_model=Done)
+    # type: ignore[untyped-decorator, unused-ignore]
     def complete(
         payload: Fill,
         _: None = Depends(require_read),
@@ -328,6 +338,7 @@ def create(
         return Done(completed=serialize(completed))
 
     @app.post("/v1/recommend", response_model=List)
+    # type: ignore[untyped-decorator, unused-ignore]
     def recommend(
         payload: Query,
         request: Request,
@@ -353,6 +364,7 @@ def create(
         return List(items=items)
 
     @app.post("/v1/feedback", response_model=Tell)
+    # type: ignore[untyped-decorator, unused-ignore]
     def feedback(
         payload: Ask,
         _: None = Depends(require_admin),
@@ -368,6 +380,7 @@ def create(
         return Tell(queued=True, buffer_size=int(updater.stats()["events_buffered"]))
 
     @app.post("/v1/rollback", response_model=Rollback)
+    # type: ignore[untyped-decorator, unused-ignore]
     def rollback(
         steps: int = FastAPIQuery(
             default=1,
@@ -385,6 +398,7 @@ def create(
         return Rollback(restored_version=int(updater.rollback(steps=steps)))
 
     @app.get("/v1/stats", response_model=Stats)
+    # type: ignore[untyped-decorator, unused-ignore]
     def stats(
         _: None = Depends(require_admin),
         __: None = Depends(admin_limit),

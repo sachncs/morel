@@ -43,6 +43,8 @@ RUN pip install --no-cache-dir \
         "fastapi>=0.110" "uvicorn[standard]>=0.27" \
         "prometheus-client>=0.20" "httpx>=0.27" && \
     pip install --no-cache-dir /tmp/*.whl && \
+    pip install --no-cache-dir --upgrade \
+        "msgpack>=1.2.1" "setuptools>=78.1.1" "urllib3>=2.8.0" && \
     rm -rf /tmp/*.whl
 
 USER morel
