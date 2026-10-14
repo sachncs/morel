@@ -1,8 +1,9 @@
 # Production-readiness status
 
-This page is a current verification index, not a historical phase report.
-The complete issue register and staged remediation plan live in
-[AUDIT.md](https://github.com/sachncs/morel/blob/master/AUDIT.md).
+This page is the current verification index and production-scope statement.
+The historical refactor plan is retained in
+[`PLAN.md`](https://github.com/sachncs/morel/blob/master/PLAN.md); this page is
+the source of truth for what is and is not verified today.
 
 ## Verified locally
 
@@ -126,8 +127,14 @@ against a Pages-shaped `/morel/` artifact.
 - Repeated recommendation scores reuse an explicit completed-catalog cache;
   the cache is invalidated on corpus attachment and when training mode begins.
 - The in-process Prometheus exporter is now required in production and its
-  per-worker scrape behavior is documented. `ResolverSecretProvider` provides
-  a bounded, sanitized adapter seam for vendor secret managers; the repository
-  now includes alert starters and a rollback runbook at
-  `docs/operations/alerts.md` (published at `/docs/operations/alerts/`). A concrete provider integration and external
-  rollback/alert drills remain open.
+  per-worker scrape behavior is documented. The repository includes alert
+  starters and a rollback runbook at `docs/operations/alerts.md` (published at
+  `/docs/operations/alerts/`). **We are explicitly not doing
+  vendor-specific secret-manager integration in this repository.** The
+  following work is intentionally outside the local scope and remains open:
+
+  1. External rollback and alert drills.
+  2. Hardware-specific SLO/capacity calibration.
+  3. Third-party plugin contract testing.
+  4. Broader deployment-boundary fault injection.
+  5. Stale GitHub Actions run requiring external GitHub state resolution.

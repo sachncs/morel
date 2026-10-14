@@ -49,7 +49,6 @@ def main() -> int:
     coverage = coverage_percent()
     minimum_coverage_text = f"{MIN_COVERAGE:.2f}"
     checks = {
-        ROOT / "AUDIT.md": f"**{tests} passed**, at least {minimum_coverage_text}% coverage",
         ROOT / "docs/reference/production-readiness.md": (
             f"{tests} passed, at least {minimum_coverage_text}% coverage"
         ),

@@ -112,6 +112,7 @@ nav:
       - reference/benchmarks.md
       - reference/capacity-baseline.md
       - reference/production-readiness.md
+      - reference/site-ux-review.md
       - reference/limitations.md
   - Operations:
       - operations/index.md
