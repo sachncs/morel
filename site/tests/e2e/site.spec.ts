@@ -100,7 +100,9 @@ test.describe("visual contracts", () => {
     await expect(page).toHaveScreenshot("desktop-home.png", {
       animations: "disabled",
       caret: "hide",
-      maxDiffPixelRatio: 0.15,
+      // Keep visual regressions strict enough to catch palette and hierarchy
+      // changes; platform-specific baselines handle renderer differences.
+      maxDiffPixelRatio: 0.02,
     });
   });
 
@@ -111,7 +113,7 @@ test.describe("visual contracts", () => {
     await expect(page).toHaveScreenshot("mobile-home.png", {
       animations: "disabled",
       caret: "hide",
-      maxDiffPixelRatio: 0.15,
+      maxDiffPixelRatio: 0.02,
     });
   });
 });

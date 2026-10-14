@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Site visual contracts now use strict 2% pixel-diff thresholds with refreshed
+  Linux and macOS baselines, preventing palette regressions from passing as
+  acceptable visual drift.
+- Social preview artwork now uses the teal graph/tetrahedral brand mark used by
+  the deployed product site.
 - Rebrand: `rmr` → `morel` (MOdality-REcommended Links).
 - Single-word domain naming applied throughout; implementation visibility now
   follows the public/`_semi_private` convention in `docs/engineering.md`.
