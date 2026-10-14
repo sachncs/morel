@@ -25,7 +25,7 @@ from morel.core.types import Array
 from morel.encode import build as build_encode
 from morel.graph import Laplace
 from morel.recommend import KIND as RECOMMEND_KIND
-from morel.recommend import FeatureAware, Fits, Normalizes, RecommenderCapabilities
+from morel.recommend import FeatureAware, Fits, Normalizes, declared_capabilities
 from morel.recommend import build as build_recommend
 from morel.retrieve import Result, batch
 from morel.route import build as build_route
@@ -236,15 +236,9 @@ class Pipeline(nn.Module):
             feature_dim=feature_dim,
             seed=self.config.seed,
         )
-        capabilities = getattr(recommender, "capabilities", None)
-        if not isinstance(capabilities, RecommenderCapabilities):
+        capabilities = declared_capabilities(recommender)
+        if capabilities is None:
             raise Cfg("recommender must declare typed capabilities")
-        if capabilities.item_features != isinstance(recommender, FeatureAware):
-            raise Cfg("recommender item-feature capability does not match its protocol")
-        if capabilities.normalizes != isinstance(recommender, Normalizes):
-            raise Cfg("recommender normalization capability does not match its protocol")
-        if capabilities.fits != isinstance(recommender, Fits):
-            raise Cfg("recommender fit capability does not match its protocol")
         if isinstance(recommender, Normalizes):
             recommender.normalize(ui_graph)
         if isinstance(recommender, Fits):

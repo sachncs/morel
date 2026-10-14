@@ -15,6 +15,7 @@ from morel.recommend.protocol import (
     Normalizes,
     Recommender,
     RecommenderCapabilities,
+    declared_capabilities,
 )
 
 
@@ -76,14 +77,7 @@ def register(
 
 def _valid_capabilities(value: object) -> bool:
     """Validate capability declarations against the implementation surface."""
-    capabilities = getattr(value, "capabilities", None)
-    if not isinstance(capabilities, RecommenderCapabilities):
-        return False
-    return (
-        capabilities.item_features == isinstance(value, FeatureAware)
-        and capabilities.normalizes == isinstance(value, Normalizes)
-        and capabilities.fits == isinstance(value, Fits)
-    )
+    return declared_capabilities(value) is not None
 
 
 def _build_light(
@@ -156,6 +150,7 @@ __all__ = [
     "RecommenderCapabilities",
     "bpr",
     "build",
+    "declared_capabilities",
     "distinct",
     "negatives",
     "register",

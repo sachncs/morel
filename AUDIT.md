@@ -492,11 +492,11 @@ browser-content checks.
     `score`, `user_count`, and `item_count` before caching a model. A shared
     `FactoryRegistry[T]` now validates built-in encoder, router, codebook,
     completer, recommender, and retrieval strategy contracts at composition
-    time. Optional capabilities elsewhere still use `getattr`; a cross-surface
-    contract matrix now proves incompatible third-party registrations are
-    rejected before publication. Built-in recommenders now declare and validate
-    typed capabilities at registry and pipeline construction boundaries. The
-    remaining protocol boundaries still need equivalent capability surfaces.
+    time. A shared typed recommender-capability verifier is now used by both
+    registry construction and pipeline wiring; a cross-surface contract matrix
+    proves incompatible third-party registrations are rejected before
+    publication. The remaining protocol boundaries still need equivalent
+    capability surfaces.
 20. **Closed in this worktree:** `Pipeline.attach()` stores mutable corpus dictionaries/arrays by reference.
     Callers can mutate data after attachment and change inference behavior
     without invalidation or a clear lifecycle boundary.

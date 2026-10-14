@@ -81,10 +81,35 @@ class Fits(Protocol):
         ...
 
 
+def declared_capabilities(value: object) -> RecommenderCapabilities | None:
+    """Return validated recommender capabilities or ``None``.
+
+    Keeping this check beside the protocols prevents registries and pipeline
+    composition from making subtly different assumptions about optional
+    recommender behavior.
+    """
+    if not isinstance(value, Recommender):
+        return None
+    try:
+        capabilities = value.capabilities
+    except Exception:
+        return None
+    if not isinstance(capabilities, RecommenderCapabilities):
+        return None
+    if capabilities.item_features != isinstance(value, FeatureAware):
+        return None
+    if capabilities.normalizes != isinstance(value, Normalizes):
+        return None
+    if capabilities.fits != isinstance(value, Fits):
+        return None
+    return capabilities
+
+
 __all__ = [
     "FeatureAware",
     "Fits",
     "Normalizes",
     "Recommender",
     "RecommenderCapabilities",
+    "declared_capabilities",
 ]
