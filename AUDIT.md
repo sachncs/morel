@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **613 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **614 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -31,7 +31,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Checkpoint loading now preserves filesystem `OSError` failures for retry or
   operator handling instead of misclassifying them as corrupt model payloads;
   checkpoint saves use unique sibling temp files with guaranteed cleanup, and
-  regression tests cover both permission failures and failed writes.
+  regression tests cover both permission failures and failed writes. Truncated
+  or arbitrary checkpoint bytes, including PyTorch framing errors, normalize to
+  typed model failures.
 - Admin rollback requests now bound `steps` to a positive finite range before
   entering the updater loop, preventing query-parameter amplification.
 - Feedback requests now enforce non-negative IDs and a closed set of supported

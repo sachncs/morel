@@ -6,6 +6,7 @@ import hashlib
 import json
 import math
 import os
+import struct
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -29,6 +30,7 @@ _LOAD_ERRORS: tuple[type[BaseException], ...] = (
     IndexError,
     KeyError,
     RuntimeError,
+    struct.error,
     UnpicklingError,
     ValueError,
 )

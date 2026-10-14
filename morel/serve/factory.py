@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 from morel.core.config import Config
-from morel.core.errors import Model
+from morel.core.errors import Error, Model
 from morel.data.store import MAX_ARTIFACT_BYTES, load_graph, load_npz
 from morel.pipeline import Pipeline
 from morel.train.checkpoint import State
@@ -59,6 +59,16 @@ def _validate_features(features: dict[str, np.ndarray]) -> None:
 
 
 def from_run(directory: Path | str) -> Pipeline:
+    """Load a serving bundle and normalize artifact failures to ``Model``."""
+    try:
+        return _from_run(directory)
+    except Model:
+        raise
+    except Error as exc:
+        raise Model("invalid serving bundle") from exc
+
+
+def _from_run(directory: Path | str) -> Pipeline:
     """Load and validate a pipeline from a completed run directory.
 
     A serving bundle contains ``config.yaml``, ``best.pt``,

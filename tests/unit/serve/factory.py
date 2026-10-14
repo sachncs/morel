@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pytest
 
-from morel.core.errors import Model
+from morel.core.errors import Datum, Model
+from morel.serve import factory
 from morel.serve.factory import _load_mask, _validate_features
 
 
 class Checker:
     """Aggregated tests for serving bundle boundaries."""
 
-    def mask(self, tmp_path) -> None:
+    def mask(self, tmp_path: Path) -> None:
         """Reject unreadable, malformed, and non-finite mask artifacts."""
         corrupt = tmp_path / "corrupt.npy"
         corrupt.write_bytes(b"not a NumPy file")
@@ -35,3 +38,13 @@ class Checker:
         for features in cases:
             with pytest.raises(Model):
                 _validate_features(features)
+
+    def bundle_error_boundary(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+        """Normalize lower-level artifact errors before they reach serving startup."""
+
+        def broken_bundle(_: object) -> object:
+            raise Datum("malformed feature archive")
+
+        monkeypatch.setattr(factory, "_from_run", broken_bundle)
+        with pytest.raises(Model, match="invalid serving bundle"):
+            factory.from_run(tmp_path)
