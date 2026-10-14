@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         652 passed, at least 84.57% coverage
+pytest -q                         655 passed, at least 84.57% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -92,6 +92,9 @@ against a Pages-shaped `/morel/` artifact.
   result, and cancellation behavior; completion,
   recommendation, and readiness use the same sanitized policy, while
   cancellation remains outside the HTTP 500 boundary.
+- A local integration test now drives a real synthetic experiment through
+  checkpoint persistence, serving reconstruction, and finite recommendation
+  scoring; external plugin-package contract coverage remains open.
 - Critical-module coverage is gated separately for serving, pipeline, CLI, and
   checkpoint loading via `make audit-critical`; the latest local run measured
   85%, 85%, 73%, and 86% respectively, above each configured floor.

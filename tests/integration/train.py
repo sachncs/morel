@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import numpy as np
+import torch
 from torch.utils.data import DataLoader
 
+from morel.app.experiment import Experiment
 from morel.core.config import Config
 from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
 from morel.pipeline import Pipeline
+from morel.serve.factory import from_run
 from morel.train.completion import Completion, Fit
 from tests.shared import Corpus, build_path_graph, make_completion_collate
 
@@ -72,3 +75,30 @@ class Checker:
         pipeline.attach(features, mask, adj)
         trainer = Completion(pipeline, cfg, monitor=Monitor(), checkpoint_dir=tmp_path)
         trainer.fit(loader, loader, epochs=3, patience=5)
+
+    def artifact_to_serving(self, tmp_path) -> None:
+        """A real experiment artifact loads into the serving pipeline contract."""
+        config = Config.parse(
+            {
+                "device": "cpu",
+                "completion": {"epochs": 1, "batch": 8, "patience": 1},
+            }
+        )
+        directory = tmp_path / "completion"
+        report = Experiment(
+            config,
+            directory,
+            items=8,
+            users=4,
+            dv=2,
+            td=2,
+            epochs=1,
+            seed=0,
+        ).run()
+        pipeline = from_run(directory)
+        scores = pipeline.score(torch.tensor([0]), torch.arange(8))
+        assert report["cfg_hash"] == config.hash()
+        assert pipeline.user_count == 4
+        assert pipeline.item_count == 8
+        assert scores.shape == (1, 8)
+        assert torch.isfinite(scores).all()

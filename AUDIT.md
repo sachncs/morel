@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **652 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **655 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -529,7 +529,9 @@ browser-content checks.
     to reject incompatible serving pipelines before caching. Development and
     test loaders remain permissive for lightweight fixtures; unvalidated
     third-party registrations outside the production entry points still need a
-    common typed factory surface and contract suite.
+    common typed factory surface and contract suite. A local integration gate
+    now exercises the real experiment → checkpoint → serving reconstruction
+    path and asserts finite recommendation scores.
 25. **Partially addressed:** Serving budgets, factory timeout, trusted-proxy
    policy, per-worker concurrency, keep-alive, graceful shutdown, request
    recycling, and the production model-bundle requirement are now validated
