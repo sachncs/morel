@@ -27,6 +27,7 @@ from fastapi import HTTPException, Request
 from morel.core.errors import Cfg
 
 Scope = Literal["read", "admin"]
+SecretName = Literal["read", "admin", "legacy"]
 _MAX_SECRET_BYTES = 4096
 
 
@@ -34,8 +35,45 @@ _MAX_SECRET_BYTES = 4096
 class SecretProvider(Protocol):
     """Resolve a named serving secret without exposing its backend."""
 
-    def get(self, name: Literal["read", "admin", "legacy"]) -> str | None:
+    def get(self, name: SecretName) -> str | None:
         """Return a trimmed secret or ``None`` when it is absent."""
+
+
+class ResolverSecretProvider:
+    """Adapt an external secret resolver to :class:`SecretProvider`.
+
+    The resolver can call a cloud secret manager, workload identity sidecar,
+    or deployment-specific adapter. This boundary normalizes values and
+    converts ordinary backend failures into a redacted configuration error;
+    cancellation and process-interrupt exceptions are not swallowed.
+
+    Args:
+        resolver: Callable receiving ``read``, ``admin``, or ``legacy`` and
+            returning a secret string or ``None`` when it is absent.
+    """
+
+    def __init__(self, resolver: Callable[[SecretName], str | None]) -> None:
+        """Create a provider around one external resolver callable."""
+        if not callable(resolver):
+            raise ValueError("secret resolver must be callable")
+        self._resolver = resolver
+
+    def get(self, name: SecretName) -> str | None:
+        """Resolve, normalize, and bound one external secret value."""
+        try:
+            value = self._resolver(name)
+        except Exception as exc:
+            raise Cfg("external secret provider failed") from exc
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            raise Cfg("external secret provider returned a non-string value")
+        value = value.strip()
+        if not value:
+            return None
+        if len(value.encode("utf-8")) > _MAX_SECRET_BYTES:
+            raise Cfg(f"external secret exceeds {_MAX_SECRET_BYTES} bytes")
+        return value
 
 
 class EnvironmentSecretProvider:
@@ -194,7 +232,9 @@ def assert_production(provider: SecretProvider | None = None) -> None:
 
 __all__ = [
     "EnvironmentSecretProvider",
+    "ResolverSecretProvider",
     "Scope",
+    "SecretName",
     "SecretProvider",
     "admin",
     "assert_",

@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         583 passed, at least 84.57% coverage
+pytest -q                         584 passed, at least 84.57% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -101,6 +101,6 @@ against a Pages-shaped `/morel/` artifact.
 - Repeated recommendation scores reuse an explicit completed-catalog cache;
   the cache is invalidated on corpus attachment and when training mode begins.
 - The in-process Prometheus exporter is now required in production and its
-  per-worker scrape behavior is documented. A typed `SecretProvider` seam is
-  available for vendor secret managers; the vendor adapter, rollback
-  exercises, and alert drills remain open.
+  per-worker scrape behavior is documented. `ResolverSecretProvider` provides
+  a bounded, sanitized adapter seam for vendor secret managers; a concrete
+  provider integration, rollback exercises, and alert drills remain open.

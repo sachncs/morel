@@ -187,6 +187,25 @@ class Checker:
 
         assert_production(provider)
 
+    def resolver_secret_provider(self) -> None:
+        """The external resolver adapter bounds and sanitizes backend output."""
+        from morel.core.errors import Cfg
+        from morel.serve.auth import ResolverSecretProvider
+
+        values = {"read": "  read-token  ", "admin": "admin-token", "legacy": None}
+        provider = ResolverSecretProvider(lambda name: values[name])
+        assert provider.get("read") == "read-token"
+        assert provider.get("legacy") is None
+
+        def fail(name: str) -> str:
+            raise RuntimeError("vendor credential must not escape")
+
+        with pytest.raises(Cfg, match="external secret provider failed") as caught:
+            ResolverSecretProvider(fail).get("read")
+        assert "vendor credential" not in str(caught.value)
+        with pytest.raises(Cfg, match="exceeds"):
+            ResolverSecretProvider(lambda name: "x" * 4097).get("read")
+
     def missing_secret_file(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         from morel.core.errors import Cfg
 
