@@ -272,6 +272,19 @@ class Checker:
         assert time.monotonic() - started_at < 1.0
         assert "p" not in loader.building
 
+    def factory_failure_is_typed(self) -> None:
+        """Ordinary factory failures become typed model errors."""
+        loader = Loader()
+
+        def fail() -> object:
+            raise RuntimeError("secret backend password")
+
+        with pytest.raises(Model, match="loader factory for 'p' failed") as caught:
+            loader.get("p", fail)
+        assert isinstance(caught.value.__cause__, RuntimeError)
+        assert "secret backend password" not in str(caught.value)
+        assert "p" not in loader.building
+
     def build_capacity_fails_closed(self) -> None:
         """A full build map never evicts an active factory or duplicates work."""
         import threading
@@ -386,6 +399,20 @@ class Checker:
             r = await get(client, "/health/ready")
         assert r.status_code == 503
         assert "incompatible pipeline" in r.json()["error"]["message"]
+
+    async def health_ready_factory_failure(self) -> None:
+        """Readiness converts factory failures into a stable 503 response."""
+        loader = Loader()
+
+        def fail() -> object:
+            raise RuntimeError("secret backend password")
+
+        loader.register("default", fail)
+        async with make(create(loader)) as client:
+            r = await get(client, "/health/ready")
+        assert r.status_code == 503
+        assert r.json()["error"]["message"] == "loader factory for 'default' failed"
+        assert "secret backend password" not in r.text
 
     async def health_version_matches_package(self) -> None:
         """Health and OpenAPI expose the generated package version."""

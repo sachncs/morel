@@ -7,7 +7,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 from typing import Any
 
-from morel.core.errors import Model
+from morel.core.errors import Error, Model
 
 
 class Loader:
@@ -167,7 +167,12 @@ class Loader:
         deadline = _Deadline.after(self.factory_timeout)
         completed = False
         try:
-            model = build_factory()
+            try:
+                model = build_factory()
+            except Error:
+                raise
+            except Exception as exc:
+                raise Model(f"loader factory for {key!r} failed") from exc
             if model is None:
                 raise Model(f"loader factory returned None for key {key!r}")
             if validator is not None and not validator(model):
