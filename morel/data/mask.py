@@ -41,6 +41,9 @@ class ModalityMask:
 
     def __post_init__(self) -> None:
         """Validate the mask data on construction."""
+        snapshot = np.array(self.data, dtype=np.float32, copy=True)
+        snapshot.setflags(write=False)
+        object.__setattr__(self, "data", snapshot)
         if self.data.ndim != 2:
             raise Datum(f"mask must be 2-D, got {self.data.ndim}-D")
         if self.data.shape[0] == 0:
@@ -71,8 +74,8 @@ class ModalityMask:
         return absent
 
     def numpy(self) -> Array:
-        """Return the underlying array."""
-        return self.data
+        """Return a writable copy of the validated mask array."""
+        return self.data.copy()
 
 
 def bernoulli(items: int, modalities: int, ratio: float, *, seed: int) -> ModalityMask:

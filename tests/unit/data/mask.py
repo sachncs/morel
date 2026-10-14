@@ -14,7 +14,7 @@ import pytest
 from morel.app.experiment import synthetic
 from morel.core.config import Masking
 from morel.core.errors import Datum
-from morel.data import MASKS, build_mask
+from morel.data import MASKS, ModalityMask, build_mask
 
 
 class Checker:
@@ -68,3 +68,15 @@ class Checker:
         explicit = synthetic(40, 4, 2, 10, Masking())["mask"]
         implicit = synthetic(40, 4, 2, 10)["mask"]
         assert np.array_equal(explicit, implicit)
+
+    def snapshots(self) -> None:
+        """Mask construction and reads do not expose mutable internal state."""
+        source = np.ones((3, 2), dtype=np.float32)
+        mask = ModalityMask(source)
+        source[0, 0] = 0.0
+        assert mask.numpy()[0, 0] == 1.0
+        exposed = mask.numpy()
+        exposed[0, 0] = 0.0
+        assert mask.numpy()[0, 0] == 1.0
+        with pytest.raises(ValueError, match="read-only"):
+            mask.data[0, 0] = 0.0

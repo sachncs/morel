@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **623 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **624 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -27,6 +27,9 @@ Scope: repository, local Python package, local React site, and the deployed
   factory and programmer failures remain sanitized and classified separately.
 - Readiness applies the same fail-closed policy, returning a retryable 503 for
   model-loading timeouts instead of allowing a generic 500 to escape.
+- `ModalityMask` now snapshots caller-owned arrays, keeps validated storage
+  read-only, and returns copy-on-read arrays so experiment inputs cannot be
+  mutated behind the value object's back.
 - Retrieval strategy resolution now validates the registered callable against
   the runtime `RetrievalStrategy` protocol before execution, closing another
   untyped plugin boundary.
@@ -316,7 +319,7 @@ history. This status map prevents historical findings from being mistaken for
 open defects:
 
 - **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
-  50–63, and the local/deployed portions of 43–48.
+  50–64, and the local/deployed portions of 43–48.
 - **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
@@ -517,6 +520,11 @@ and release operations.
     into memory and leaked parse/type errors from malformed final records. The
     monitor now enforces a size cap, scans only the latest line, and raises a
     typed training error for malformed metrics.
+
+64. **Closed in this worktree:** Frozen `ModalityMask` instances retained a
+    caller-owned NumPy buffer and returned that buffer directly from `numpy()`.
+    Masks now snapshot input arrays, freeze internal storage, and return copies
+    on read so downstream code cannot mutate validated experiment state.
 
 ### P3 — testing and quality gates
 
