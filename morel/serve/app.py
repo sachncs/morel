@@ -434,18 +434,42 @@ def run(
             status_code=503,
             detail="loaded pipeline has no attached feature corpus",
         )
-    first = next(iter(corpus.values()), None)
-    if first is None:
+    if not corpus:
         raise HTTPException(status_code=503, detail="loaded pipeline feature corpus is empty")
-    count = int(first.shape[0])
+    try:
+        arrays = {name: np.asarray(values) for name, values in corpus.items()}
+        if any(
+            value.ndim != 2
+            or not np.issubdtype(value.dtype, np.number)
+            or not np.isfinite(value).all()
+            for value in arrays.values()
+        ):
+            raise ValueError("feature arrays must be finite 2-D numeric arrays")
+        row_counts = {int(value.shape[0]) for value in arrays.values()}
+        if len(row_counts) != 1:
+            raise ValueError("feature arrays must share a row count")
+        count = next(iter(row_counts))
+        mask_array = np.asarray(corpus_mask)
+        if (
+            mask_array.ndim != 2
+            or mask_array.shape != (count, len(arrays))
+            or not np.issubdtype(mask_array.dtype, np.number)
+            or not np.isfinite(mask_array).all()
+        ):
+            raise ValueError("feature mask has an invalid shape or values")
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="loaded pipeline feature corpus is invalid; see server logs with the request id",
+        ) from exc
     indices = np.asarray(items, dtype=np.int64)
     if np.any(indices < 0) or np.any(indices >= count):
         raise HTTPException(status_code=422, detail=f"item ids must be in [0, {count})")
     features = {
-        name: torch.from_numpy(np.asarray(values, dtype=np.float32)[indices])
-        for name, values in corpus.items()
+        name: torch.from_numpy(values.astype(np.float32, copy=False)[indices])
+        for name, values in arrays.items()
     }
-    mask_t = torch.from_numpy(np.asarray(corpus_mask, dtype=np.float32)[indices])
+    mask_t = torch.from_numpy(mask_array.astype(np.float32, copy=False)[indices])
     try:
         output = pipeline(
             features,

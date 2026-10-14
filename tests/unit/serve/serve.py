@@ -525,6 +525,23 @@ class Checker:
         )
         assert "backend credential" not in response.text
 
+    async def complete_rejects_malformed_corpus(self) -> None:
+        """Malformed feature arrays fail closed before tensor indexing."""
+
+        class MalformedPipeline(StubPipeline):
+            def __init__(self) -> None:
+                import numpy as np
+
+                super().__init__()
+                self.cfeat["visual"] = np.zeros((self.items, 4, 1), dtype=np.float32)
+
+        loader = Loader()
+        loader.register("default", MalformedPipeline)
+        async with make(create(loader)) as client:
+            response = await post(client, "/v1/complete", json={"items": [0]})
+        assert response.status_code == 503
+        assert "feature corpus is invalid" in response.json()["error"]["message"]
+
     async def complete_oversize(self) -> None:
         """Oversized item lists are rejected before the handler runs."""
         app, _, _ = make_app_with_factory()
