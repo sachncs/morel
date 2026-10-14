@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **650 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **651 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -470,8 +470,10 @@ and release operations.
     boundaries now route unexpected ordinary exceptions from completion,
     recommendation, readiness, and the final ASGI middleware boundary through
     the typed failure policy while preserving cancellation and process-interrupt
-    semantics. The loader taxonomy matrix remains in the staged plan.
-    taxonomy coverage remains in the staged plan.
+    semantics. A loader failure taxonomy matrix now covers factory, validator,
+    incompatible-result, timeout, cancellation, and build-capacity paths; the
+    remaining staged work is broader fault-injection coverage at external
+    deployment boundaries.
 
 ### P2 — architecture and API design
 

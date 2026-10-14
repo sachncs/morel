@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pipeline validation rejecting mismatches before serving.
 - Sparse-artifact property coverage now verifies oversized graph metadata is
   rejected before allocation.
+- Serving loader tests now exercise a failure-taxonomy matrix and verify failed
+  builds cannot leave stale in-flight state.
 - Site visual contracts now use strict 2% pixel-diff thresholds with refreshed
   Linux and macOS baselines, preventing palette regressions from passing as
   acceptable visual drift.

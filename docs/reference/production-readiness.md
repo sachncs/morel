@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         650 passed, at least 84.57% coverage
+pytest -q                         651 passed, at least 84.57% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -83,8 +83,9 @@ against a Pages-shaped `/morel/` artifact.
   fails on the configured p95 and p99 budgets (`MOREL_MODEL_SMOKE_P95_SECONDS`
   and `MOREL_MODEL_SMOKE_P99_SECONDS`, both defaulting to 30 seconds);
   production hardware-specific budgets still need calibration.
-- The serving failure-policy matrix is directly tested for timeout, domain,
-  dependency, programmer, and cancellation behavior; completion,
+- The serving failure-policy matrix and loader failure-taxonomy matrix are
+  directly tested for timeout, domain, dependency, programmer, incompatible
+  result, and cancellation behavior; completion,
   recommendation, and readiness use the same sanitized policy, while
   cancellation remains outside the HTTP 500 boundary.
 - Critical-module coverage is gated separately for serving, pipeline, CLI, and

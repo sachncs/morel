@@ -299,6 +299,29 @@ class Checker:
         assert "validator secret" not in str(caught.value)
         assert "p" not in loader.building
 
+    def loader_failure_taxonomy_matrix(self) -> None:
+        """Every loader construction failure is typed and clears in-flight state."""
+
+        def factory_failure() -> object:
+            raise RuntimeError("backend credential")
+
+        def validator_failure(_: object) -> bool:
+            raise RuntimeError("validator credential")
+
+        cases = (
+            (factory_failure, None, "loader factory for 'p' failed"),
+            (lambda: object(), lambda _: False, "incompatible value"),
+            (lambda: object(), validator_failure, "loader result validation failed"),
+        )
+        for factory, validator, message in cases:
+            loader = Loader()
+            loader.register("p", factory, validator=validator)
+            with pytest.raises(Model, match=message) as caught:
+                loader.get("p")
+            assert "credential" not in str(caught.value)
+            assert loader.building == {}
+            assert loader.keys() == []
+
     def build_capacity_fails_closed(self) -> None:
         """A full build map never evicts an active factory or duplicates work."""
         import threading
