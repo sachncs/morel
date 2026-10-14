@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import {
   Code2,
@@ -35,10 +35,23 @@ const layout: Array<{ className: string; emphasis?: boolean }> = [
 ];
 
 function FeatureVisual({ icon }: { icon: string }) {
+  const reduceMotion = useReducedMotion();
+
   switch (icon) {
     case "codebook":
       return (
-        <svg viewBox="0 0 360 160" className="h-auto w-full">
+        <motion.svg
+          viewBox="0 0 360 160"
+          className="h-auto w-full"
+          role="img"
+          aria-labelledby="feature-codebook-title"
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35, ease }}
+        >
+          <title id="feature-codebook-title">
+            A codebook matrix resolving across five rows of latent vectors
+          </title>
           <defs>
             <linearGradient id="feat-cb" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#43cbb4" />
@@ -47,7 +60,7 @@ function FeatureVisual({ icon }: { icon: string }) {
           </defs>
           {Array.from({ length: 5 }).map((_, r) =>
             Array.from({ length: 18 }).map((_, c) => (
-              <rect
+              <motion.rect
                 key={`${r}-${c}`}
                 x={c * 19 + 4}
                 y={r * 28 + 10}
@@ -58,10 +71,21 @@ function FeatureVisual({ icon }: { icon: string }) {
                 opacity={
                   ((r * 7 + c * 3) % 11) / 11 * 0.7 + 0.15
                 }
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.7 }}
+                animate={{
+                  opacity: ((r * 7 + c * 3) % 11) / 11 * 0.7 + 0.15,
+                  scale: 1,
+                }}
+                style={{ transformOrigin: `${c * 19 + 11}px ${r * 28 + 20}px` }}
+                transition={{
+                  delay: reduceMotion ? 0 : r * 0.12 + c * 0.018,
+                  duration: 0.28,
+                  ease,
+                }}
               />
             )),
           )}
-        </svg>
+        </motion.svg>
       );
     case "graph":
       return (

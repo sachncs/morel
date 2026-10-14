@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 import { Section } from "../components/section";
 import { PIPELINE_STAGES } from "../lib/content";
@@ -7,10 +7,23 @@ import { cn } from "../lib/utils";
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 function StageVisual({ stage }: { stage: number }) {
+  const reduceMotion = useReducedMotion();
+
   switch (stage) {
     case 0:
       return (
-        <svg viewBox="0 0 600 320" className="h-auto w-full">
+        <motion.svg
+          viewBox="0 0 600 320"
+          className="h-auto w-full"
+          role="img"
+          aria-labelledby="architecture-stage-1-title"
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35, ease }}
+        >
+          <title id="architecture-stage-1-title">
+            User-item graph with two masked item modalities
+          </title>
           <defs>
             <linearGradient id="ar-stage1" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#43cbb4" />
@@ -20,24 +33,32 @@ function StageVisual({ stage }: { stage: number }) {
           <g>
             {/* Users column */}
             {[0, 1, 2, 3, 4, 5].map((i) => (
-              <circle
+              <motion.circle
                 key={`u${i}`}
                 cx="80"
                 cy={60 + i * 40}
                 r="10"
                 fill="url(#ar-stage1)"
                 opacity={0.85}
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 0.85, scale: 1 }}
+                style={{ transformOrigin: `80px ${60 + i * 40}px` }}
+                transition={{ delay: i * 0.04, duration: 0.35, ease }}
               />
             ))}
             {/* Items column */}
             {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-              <circle
+              <motion.circle
                 key={`i${i}`}
                 cx="280"
                 cy={40 + i * 36}
                 r="9"
                 fill="#aef0e1"
                 opacity={i === 2 || i === 5 ? 0.45 : 0.9}
+                initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
+                animate={{ opacity: i === 2 || i === 5 ? 0.45 : 0.9, scale: 1 }}
+                style={{ transformOrigin: `280px ${40 + i * 36}px` }}
+                transition={{ delay: 0.18 + i * 0.04, duration: 0.35, ease }}
               />
             ))}
             {/* Edges */}
@@ -47,16 +68,31 @@ function StageVisual({ stage }: { stage: number }) {
                 [2, 1], [2, 3], [3, 3], [3, 4], [4, 4],
                 [4, 5], [5, 5], [5, 6], [2, 5],
               ].map(([u, i], k) => (
-                <line key={k} x1="92" y1={60 + u * 40} x2="269" y2={40 + i * 36} />
+                <motion.line
+                  key={k}
+                  x1="92"
+                  y1={60 + u * 40}
+                  x2="269"
+                  y2={40 + i * 36}
+                  initial={reduceMotion ? false : { pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 0.55 }}
+                  transition={{ delay: 0.45 + k * 0.035, duration: 0.3, ease }}
+                />
               ))}
             </g>
             {/* Mask overlay */}
             <g>
               {[2, 5].map((i) => (
-                <g key={i}>
+                <motion.g
+                  key={i}
+                  initial={reduceMotion ? false : { opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  style={{ transformOrigin: `280px ${40 + i * 36}px` }}
+                  transition={{ delay: 1.05 + i * 0.08, duration: 0.4, ease }}
+                >
                   <rect x="269" y={31 + i * 36} width="22" height="18" rx="4" fill="none" stroke="#43cbb4" strokeDasharray="2 2" opacity="0.7" />
                   <text x="280" y={44 + i * 36} textAnchor="middle" fontSize="9" fontFamily="ui-monospace, monospace" fill="#0c8f7d">M=0</text>
-                </g>
+                </motion.g>
               ))}
             </g>
             <text x="80" y="295" textAnchor="middle" fontSize="11" fontFamily="ui-sans-serif, system-ui" fill="#8a8a98">
@@ -69,7 +105,7 @@ function StageVisual({ stage }: { stage: number }) {
               mask = bernoulli(0.4)
             </text>
           </g>
-        </svg>
+        </motion.svg>
       );
     case 1:
       return (

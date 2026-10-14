@@ -1,21 +1,21 @@
-/* morel visual system. One accent (deep indigo), neutral canvas, dense
+/* morel visual system. One accent (teal), near-black canvas, dense
    information hierarchy. Compatible with mkdocs-material: shadowing
    vars instead of redefining Material defaults, and all custom
    classes are namespaced under .morel-* so future Material updates
    cannot silently collide. */
 
 :root {
-  --morel-accent: #3d5afe;
-  --morel-accent-strong: #5e3dab;
-  --morel-text: #11121a;
-  --morel-text-soft: #4a4a55;
-  --morel-text-mute: #75757f;
-  --morel-bg: #ffffff;
-  --morel-bg-soft: #f6f6fa;
-  --morel-bg-card: #fafafd;
-  --morel-line: #e5e5ed;
-  --morel-line-strong: #c9c9d3;
-  --morel-code-bg: #f1f1f7;
+  --morel-accent: #0c8f7d;
+  --morel-accent-strong: #087565;
+  --morel-text: #0b1820;
+  --morel-text-soft: #4c5b63;
+  --morel-text-mute: #718087;
+  --morel-bg: #f7faf9;
+  --morel-bg-soft: #eef5f3;
+  --morel-bg-card: #fbfdfc;
+  --morel-line: #d9e6e2;
+  --morel-line-strong: #b9d0ca;
+  --morel-code-bg: #eaf2f0;
   --morel-radius: 10px;
   --morel-radius-lg: 16px;
   --morel-shadow-sm: 0 1px 2px rgba(20, 20, 36, 0.04);
@@ -27,17 +27,17 @@
 }
 
 [data-md-color-scheme="slate"] {
-  --morel-accent: #7c8cff;
-  --morel-accent-strong: #c292ff;
-  --morel-text: #f1f1f7;
-  --morel-text-soft: #b6b6c3;
-  --morel-text-mute: #82828f;
-  --morel-bg: #14141d;
-  --morel-bg-soft: #1b1b27;
-  --morel-bg-card: #20202d;
-  --morel-line: #2a2a3a;
-  --morel-line-strong: #3a3a4a;
-  --morel-code-bg: #232331;
+  --morel-accent: #43cbb4;
+  --morel-accent-strong: #aef0e1;
+  --morel-text: #f1f7f5;
+  --morel-text-soft: #b5c7c3;
+  --morel-text-mute: #829894;
+  --morel-bg: #09131a;
+  --morel-bg-soft: #0f1d24;
+  --morel-bg-card: #142630;
+  --morel-line: #203842;
+  --morel-line-strong: #31515a;
+  --morel-code-bg: #11232b;
   --morel-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --morel-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
   --morel-shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.6);

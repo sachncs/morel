@@ -1,19 +1,17 @@
-import { motion } from "framer-motion";
-
-const fade = (delay = 0) => ({
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
-});
+import { motion, useReducedMotion } from "framer-motion";
 
 export function PipelineDiagram() {
+  const reduceMotion = useReducedMotion();
+
   return (
     <motion.svg
       viewBox="0 0 720 360"
       role="img"
       aria-label="morel pipeline: user-item graph, retrieval, completion, ranking"
       className="h-auto w-full"
-      {...fade(0.1)}
+      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
     >
       <defs>
         <linearGradient id="pd-edge" x1="0" y1="0" x2="1" y2="1">
@@ -48,7 +46,12 @@ export function PipelineDiagram() {
       <rect x="0" y="14" width="720" height="2" fill="url(#pd-band)" opacity="0.7" />
 
       {/* === Stage 1: User-item graph === */}
-      <g transform="translate(40, 60)">
+      <motion.g
+        transform="translate(40, 60)"
+        initial={reduceMotion ? false : { opacity: 0, x: -10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.35, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      >
         {/* Users on left */}
         <g fill="#43cbb4">
           <circle cx="0" cy="20" r="3.4" />
@@ -83,10 +86,16 @@ export function PipelineDiagram() {
           <line x1="92" y1="105" x2="142" y2="105" />
           <path d="M 138 102 L 142 105 L 138 108" />
         </g>
-      </g>
+      </motion.g>
 
       {/* === Stage 2: Retrieval === */}
-      <g transform="translate(190, 80)">
+      <motion.g
+        transform="translate(190, 80)"
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        style={{ transformOrigin: "250px 180px" }}
+        transition={{ delay: 0.55, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      >
         {/* Anchor ring */}
         <circle cx="60" cy="100" r="60" fill="none" stroke="url(#pd-edge)" strokeWidth="1" strokeDasharray="2 4" opacity="0.55" />
         {/* Query node */}
@@ -117,15 +126,20 @@ export function PipelineDiagram() {
           <line x1="138" y1="100" x2="188" y2="100" />
           <path d="M 184 97 L 188 100 L 184 103" />
         </g>
-      </g>
+      </motion.g>
 
       {/* === Stage 3: Completion (codebook) === */}
-      <g transform="translate(400, 80)">
+      <motion.g
+        transform="translate(400, 80)"
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.75, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      >
         {/* Codebook grid */}
         <g>
           {Array.from({ length: 8 }).map((_, row) =>
             Array.from({ length: 10 }).map((_, col) => (
-              <rect
+              <motion.rect
                 key={`${row}-${col}`}
                 x={col * 11 + 8}
                 y={row * 18 + 12}
@@ -134,6 +148,9 @@ export function PipelineDiagram() {
                 rx="2"
                 fill="url(#pd-edge)"
                 opacity={(row + col) % 5 === 0 ? 0.85 : 0.18}
+                initial={reduceMotion ? false : { opacity: 0 }}
+                animate={{ opacity: (row + col) % 5 === 0 ? 0.85 : 0.18 }}
+                transition={{ delay: reduceMotion ? 0 : 0.82 + row * 0.04 + col * 0.012, duration: 0.22 }}
               />
             )),
           )}
@@ -148,10 +165,15 @@ export function PipelineDiagram() {
           <line x1="120" y1="80" x2="170" y2="80" />
           <path d="M 166 77 L 170 80 L 166 83" />
         </g>
-      </g>
+      </motion.g>
 
       {/* === Stage 4: Ranking === */}
-      <g transform="translate(580, 80)">
+      <motion.g
+        transform="translate(580, 80)"
+        initial={reduceMotion ? false : { opacity: 0, x: 10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 1, duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      >
         <g stroke="url(#pd-edge)" strokeWidth="1" fill="none">
           <line x1="0" y1="20" x2="100" y2="20" opacity="0.85" />
           <line x1="0" y1="40" x2="100" y2="40" opacity="0.6" />
@@ -164,7 +186,7 @@ export function PipelineDiagram() {
         {/* Score bars on the right */}
         <g>
           {[18, 36, 30, 42, 26, 36, 22, 30, 18, 24].map((h, i) => (
-            <rect
+            <motion.rect
               key={i}
               x={104 + i * 4}
               y={70 - h / 2}
@@ -173,6 +195,10 @@ export function PipelineDiagram() {
               fill="url(#pd-edge)"
               opacity={0.4 + i * 0.05}
               rx="1"
+              initial={reduceMotion ? false : { scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              style={{ transformOrigin: `${105 + i * 4}px 70px` }}
+              transition={{ delay: reduceMotion ? 0 : 1.08 + i * 0.035, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             />
           ))}
         </g>
@@ -184,7 +210,7 @@ export function PipelineDiagram() {
             top-1
           </text>
         </g>
-      </g>
+      </motion.g>
 
       {/* Bottom annotation */}
       <g fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="10" fill="#8a8a98">
