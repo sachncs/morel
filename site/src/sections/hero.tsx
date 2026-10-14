@@ -31,7 +31,7 @@ export function Hero() {
         className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[820px]"
         style={{
           background:
-            "radial-gradient(60% 60% at 50% 0%, rgba(184,122,44,0.22) 0%, rgba(111,78,55,0.12) 40%, rgba(0,0,0,0) 75%)",
+            "radial-gradient(60% 60% at 50% 0%, rgba(24,184,157,0.24) 0%, rgba(24,96,111,0.14) 40%, rgba(0,0,0,0) 75%)",
         }}
       />
       {/* Subtle grid */}

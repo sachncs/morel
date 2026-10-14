@@ -16,32 +16,45 @@ export function Logo({ className, size = 28, withWordmark = true }: LogoProps) {
         aria-hidden="true"
         className="shrink-0 text-accent-600 dark:text-accent-300"
       >
+        <defs>
+          <linearGradient id="morel-mark" x1="10" y1="8" x2="54" y2="56" gradientUnits="userSpaceOnUse">
+            <stop stopColor="currentColor" />
+            <stop offset="1" stopColor="currentColor" stopOpacity="0.58" />
+          </linearGradient>
+        </defs>
         <path
-          d="M10 30c3-11 11-18 22-18s19 7 22 18c-8 5-16 7-22 7S18 35 10 30Z"
-          fill="currentColor"
-          opacity="0.16"
-        />
-        <path
-          d="M10 30c3-11 11-18 22-18s19 7 22 18c-8 5-16 7-22 7S18 35 10 30Z"
+          d="M32 9 51 20v22L32 53 13 42V20L32 9Z"
           fill="none"
-          stroke="currentColor"
+          stroke="url(#morel-mark)"
           strokeWidth="2.2"
-          strokeLinecap="round"
           strokeLinejoin="round"
         />
-        <g fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.8">
-          <path d="M18 27c2 3 3 5 3 8" />
-          <path d="M25 25c1 4 2 7 2 10" />
-          <path d="M32 24v11" />
-          <path d="M39 25c-1 4-2 7-2 10" />
-          <path d="M46 27c-2 3-3 5-3 8" />
-        </g>
-        <path d="M27 35h10l2 14H25l2-14Z" fill="currentColor" opacity="0.9" />
-        <path d="M30 49v5M34 49v5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        <g fill="currentColor" stroke="white" strokeWidth="1.2" className="dark:stroke-ink-950">
-          <circle cx="14" cy="20" r="2.5" />
-          <circle cx="50" cy="20" r="2.5" />
-          <circle cx="32" cy="10" r="2.5" />
+        <path
+          d="m13 20 19 11 19-11M32 31v22"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.72"
+        />
+        <path
+          d="M21 25 32 19l11 6-11 6-11-6Z"
+          fill="currentColor"
+          opacity="0.18"
+        />
+        <path
+          d="M21 25 32 19l11 6-11 6-11-6Z"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <g fill="currentColor" stroke="#09131a" strokeWidth="1.4">
+          <circle cx="13" cy="20" r="3.2" />
+          <circle cx="51" cy="20" r="3.2" />
+          <circle cx="32" cy="9" r="3.2" />
+          <circle cx="32" cy="53" r="3.2" />
         </g>
       </svg>
       {withWordmark && (

@@ -65,16 +65,16 @@ const config: Config = {
           950: "#0a0a0e",
         },
         accent: {
-          50: "#fbf3e5",
-          100: "#f4e4c7",
-          200: "#e8ca98",
-          300: "#d6aa65",
-          400: "#c58e3d",
-          500: "#b87a2c",
-          600: "#9a5e1d",
-          700: "#7c4819",
-          800: "#633a1b",
-          900: "#4b2e1a",
+          50: "#effcf9",
+          100: "#d5f8f0",
+          200: "#aef0e1",
+          300: "#79e3cf",
+          400: "#43cbb4",
+          500: "#18b89d",
+          600: "#0c8f7d",
+          700: "#0b7166",
+          800: "#0b574f",
+          900: "#0b403b",
         },
       },
       letterSpacing: {
@@ -91,10 +91,10 @@ const config: Config = {
       },
       backgroundImage: {
         "grid-fade": "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0) 100%)",
-        "hero-glow":
-          "radial-gradient(80% 60% at 50% 0%, rgba(184, 122, 44, 0.16) 0%, rgba(111, 78, 55, 0.08) 35%, rgba(0,0,0,0) 70%)",
-        "soft-glow":
-          "radial-gradient(40% 40% at 50% 50%, rgba(184, 122, 44, 0.16) 0%, rgba(0,0,0,0) 70%)",
+          "hero-glow":
+          "radial-gradient(80% 60% at 50% 0%, rgba(24, 184, 157, 0.18) 0%, rgba(24, 96, 111, 0.10) 35%, rgba(0,0,0,0) 70%)",
+          "soft-glow":
+          "radial-gradient(40% 40% at 50% 50%, rgba(24, 184, 157, 0.18) 0%, rgba(0,0,0,0) 70%)",
       },
       boxShadow: {
         glow: "0 0 0 1px rgba(255,255,255,0.04), 0 30px 80px -20px rgba(184,122,44,0.22)",

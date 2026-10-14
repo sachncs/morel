@@ -20,7 +20,7 @@
   }
 
   ::selection {
-    background-color: rgba(184, 122, 44, 0.28);
+    background-color: rgba(24, 184, 157, 0.32);
     color: inherit;
   }
 
@@ -30,16 +30,16 @@
 
   html:not(.dark) body {
     background:
-      radial-gradient(1200px 600px at 50% -10%, rgba(184, 122, 44, 0.10), transparent 60%),
-      radial-gradient(900px 500px at 100% 0%, rgba(111, 78, 55, 0.06), transparent 70%),
-      #fbfaf7;
+      radial-gradient(1200px 600px at 50% -10%, rgba(24, 184, 157, 0.11), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(24, 96, 111, 0.07), transparent 70%),
+      #f5faf9;
   }
 
   html.dark body {
     background:
-      radial-gradient(1200px 600px at 50% -10%, rgba(184, 122, 44, 0.15), transparent 60%),
-      radial-gradient(900px 500px at 100% 0%, rgba(111, 78, 55, 0.12), transparent 70%),
-      #151311;
+      radial-gradient(1200px 600px at 50% -10%, rgba(24, 184, 157, 0.18), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(24, 96, 111, 0.15), transparent 70%),
+      #09131a;
   }
 }
 
@@ -95,7 +95,7 @@
   }
 
   .gradient-text {
-    background: linear-gradient(135deg, #9a5e1d 0%, #b87a2c 45%, #d6aa65 90%);
+    background: linear-gradient(135deg, #0c8f7d 0%, #18b89d 45%, #79e3cf 90%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -120,7 +120,7 @@
   }
 
   .focus-ring:focus-visible {
-    outline: 2px solid #b87a2c;
+    outline: 2px solid #18b89d;
     outline-offset: 3px;
   }
 }

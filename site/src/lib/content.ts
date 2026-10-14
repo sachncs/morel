@@ -27,8 +27,8 @@ export const HERO_PILLS = [
 // dated verification run instead of silently presenting illustrative values.
 export const VERIFICATION = {
   tests: 643,
-  coverage: 84.57,
-  lastVerified: "2026-10-13",
+  coverage: 84.98,
+  lastVerified: "2026-10-14",
 } as const;
 
 export const PIPELINE_STAGES = [

@@ -17,17 +17,17 @@ export function PipelineDiagram() {
     >
       <defs>
         <linearGradient id="pd-edge" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#c58e3d" />
-          <stop offset="100%" stopColor="#e1bd7a" />
+          <stop offset="0%" stopColor="#43cbb4" />
+          <stop offset="100%" stopColor="#aef0e1" />
         </linearGradient>
         <linearGradient id="pd-band" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#c58e3d" stopOpacity="0.0" />
-          <stop offset="50%" stopColor="#c58e3d" stopOpacity="0.4" />
-          <stop offset="100%" stopColor="#e1bd7a" stopOpacity="0.0" />
+          <stop offset="0%" stopColor="#43cbb4" stopOpacity="0.0" />
+          <stop offset="50%" stopColor="#43cbb4" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#aef0e1" stopOpacity="0.0" />
         </linearGradient>
         <radialGradient id="pd-halo" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#c58e3d" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#c58e3d" stopOpacity="0" />
+          <stop offset="0%" stopColor="#43cbb4" stopOpacity="0.45" />
+          <stop offset="100%" stopColor="#43cbb4" stopOpacity="0" />
         </radialGradient>
         <pattern id="pd-grid" width="32" height="32" patternUnits="userSpaceOnUse">
           <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgba(127,127,160,0.08)" strokeWidth="0.5" />
@@ -50,7 +50,7 @@ export function PipelineDiagram() {
       {/* === Stage 1: User-item graph === */}
       <g transform="translate(40, 60)">
         {/* Users on left */}
-        <g fill="#c58e3d">
+        <g fill="#43cbb4">
           <circle cx="0" cy="20" r="3.4" />
           <circle cx="0" cy="60" r="3.4" />
           <circle cx="0" cy="100" r="3.4" />
@@ -58,7 +58,7 @@ export function PipelineDiagram() {
           <circle cx="0" cy="180" r="3.4" />
         </g>
         {/* Items on right */}
-        <g fill="#e1bd7a">
+        <g fill="#aef0e1">
           <circle cx="80" cy="30" r="3.4" />
           <circle cx="80" cy="70" r="3.4" />
           <circle cx="80" cy="110" r="3.4" opacity="0.45" />
@@ -92,9 +92,9 @@ export function PipelineDiagram() {
         {/* Query node */}
         <circle cx="60" cy="100" r="32" fill="url(#pd-halo)" />
         <circle cx="60" cy="100" r="10" fill="#fff" stroke="url(#pd-edge)" strokeWidth="1.6" />
-        <text x="60" y="103" textAnchor="middle" fontSize="9" fontWeight="600" fill="#9a5e1d" fontFamily="ui-sans-serif, system-ui">q</text>
+        <text x="60" y="103" textAnchor="middle" fontSize="9" fontWeight="600" fill="#0c8f7d" fontFamily="ui-sans-serif, system-ui">q</text>
         {/* Retrieved nodes */}
-        <g fill="#e1bd7a" stroke="#fff" strokeWidth="0.5">
+        <g fill="#aef0e1" stroke="#fff" strokeWidth="0.5">
           <circle cx="60" cy="30" r="4" />
           <circle cx="115" cy="100" r="4" />
           <circle cx="60" cy="170" r="4" />
@@ -179,8 +179,8 @@ export function PipelineDiagram() {
         {/* Top item callout */}
         <g transform="translate(0, -8)">
           <rect x="0" y="-4" width="100" height="14" rx="3" fill="url(#pd-edge)" opacity="0.18" />
-          <circle cx="6" cy="3" r="2" fill="#c58e3d" />
-          <text x="13" y="6" fontSize="7" fontFamily="ui-sans-serif, system-ui" fill="#9a5e1d">
+          <circle cx="6" cy="3" r="2" fill="#43cbb4" />
+          <text x="13" y="6" fontSize="7" fontFamily="ui-sans-serif, system-ui" fill="#0c8f7d">
             top-1
           </text>
         </g>
