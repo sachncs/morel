@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         610 passed, at least 84.57% coverage
+pytest -q                         611 passed, at least 84.57% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -88,7 +88,8 @@ against a Pages-shaped `/morel/` artifact.
 - Malformed HTTP payload property coverage and data-stream boundary tests are
   present; configuration, manifest, and safe-checkpoint boundaries now have
   malformed-input tests and size caps. Empty, isolated, duplicate-edge, and
-  self-loop sparse graph cases are covered; broader artifact fuzz coverage
+  self-loop sparse graph cases are covered; arbitrary checkpoint bytes are
+  covered; broader artifact fuzz coverage
   remains incomplete.
 - Streaming co-occurrence construction groups records by user and enforces a
   directed-edge accumulation budget, failing with a domain error before a
