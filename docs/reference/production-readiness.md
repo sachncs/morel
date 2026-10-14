@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         656 passed, at least 84.57% coverage
+pytest -q                         657 passed, at least 84.57% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -99,7 +99,7 @@ against a Pages-shaped `/morel/` artifact.
   checkpoint loading via `make audit-critical`; the latest local run measured
   85%, 85%, 73%, and 86% respectively, above each configured floor.
 - Malformed HTTP payload property coverage and data-stream boundary tests are
-  present; configuration file bytes, manifest sidecars, and safe-checkpoint boundaries now have
+  present; configuration file bytes, manifest sidecar bytes, and safe-checkpoint boundaries now have
   malformed-input tests and size caps. Empty, isolated, duplicate-edge, and
   self-loop sparse graph cases are covered; arbitrary checkpoint and serving
   mask and persisted manifest-sidecar bytes are covered; oversized sparse-graph node metadata and caller-

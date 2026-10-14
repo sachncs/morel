@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from morel.core.errors import Datum
-from morel.data.manifest import Manifest
+from morel.data.manifest import Manifest, load
 
 json_scalar = st.one_of(
     st.none(),
@@ -41,3 +43,18 @@ class Checker:
         except Datum:
             return
         assert isinstance(parsed, Manifest)
+
+    @given(st.binary(max_size=4096))
+    @settings(max_examples=30, deadline=None)
+    def malformed_sidecar_bytes_never_leak_internal_errors(self, payload: bytes) -> None:
+        """Arbitrary persisted sidecar bytes reject as ``Datum`` or load safely."""
+        with TemporaryDirectory() as directory:
+            artifact = Path(directory) / "artifact.bin"
+            artifact.write_bytes(b"artifact")
+            sidecar = artifact.with_suffix(artifact.suffix + ".manifest.json")
+            sidecar.write_bytes(payload)
+            try:
+                manifest = load(artifact)
+            except Datum:
+                return
+            assert isinstance(manifest, Manifest)
