@@ -99,11 +99,12 @@ against a Pages-shaped `/morel/` artifact.
 - The retrieval encoder uses batched gathers for padded subgraphs; MAGE shares
   one relevance and anchor-normalization index across a batch and lazily
   materializes active neighbor rows. ACS uses compiled SciPy shortest-path
-  traversal. The bounded local 1k-item benchmark measures approximately 969
-  ms; the 10k-item/32-query end-to-end smoke measures approximately 7.9 s
-  locally after the ACS change. These are capacity signals, not production
-  SLOs: representative hardware thresholds and CPU transformer capacity
-  planning remain open. Shift-invert Laplacian positional encoding for a
+  traversal. The refreshed bounded forward benchmark measures 216.70 ms mean
+  for 1k items and 7.464 s mean for 10k items at commit `0386e12`; a separate
+  10k-item/32-query end-to-end smoke remains approximately 7.9 s locally
+  after the ACS change. These are capacity signals, not production SLOs:
+  representative hardware thresholds and CPU transformer capacity planning
+  remain open. Shift-invert Laplacian positional encoding for a
   10k-node graph measures approximately 30 ms locally, and persisted/warmed
   graph encodings keep that cost out of the first request.
 - Repeated recommendation scores reuse an explicit completed-catalog cache;

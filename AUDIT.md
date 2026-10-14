@@ -86,13 +86,13 @@ Scope: repository, local Python package, local React site, and the deployed
   before caching instead of falling back to reflective dispatch.
 - `make audit-critical`: passes with per-subsystem coverage floors for serving
   (79%), pipeline (77%), CLI (71%), and checkpoint loading (84%).
-- The corrected forward benchmark uses a bounded 32-query batch; the local
-  1k-item case measures approximately **969 ms** for one default-MAGE run.
-  After compiled ACS traversal, the 10k-item/32-query end-to-end smoke
-  measures approximately **7.9 s** locally: retrieval is about 2.4 s and the
-  CPU transformer encoder about 9.2 s under profiling. This is evidence for
-  capacity planning, not a production SLO; representative hardware and
-  production-shaped retrieval thresholds are still required.
+- The refreshed forward benchmark at commit `0386e12` uses a bounded 32-query
+  batch and measures 1k items at **216.70 ms mean** and 10k items at
+  **7.464 s mean** on the recorded local environment. A separate compiled-ACS
+  10k-item end-to-end smoke remains approximately **7.9 s** locally, with
+  retrieval and CPU transformer costs profiled separately. These are capacity
+  signals, not production SLOs; representative hardware and production-shaped
+  retrieval thresholds are still required.
 - `pnpm build` in `site/`: passes after `pnpm install --frozen-lockfile`.
 - `make lock-check`: passes for the pinned Linux/Python 3.11 target; lock
   regeneration now uses explicit upgrade semantics.
@@ -497,7 +497,7 @@ and release operations.
     1.73x lower anchor-selection time with the shared index. Serving also
     enforces a validated retrieval-node budget and fails with a typed domain
     error when it is exceeded. A bounded 1k run is
-    approximately 969 ms. The 10k Laplacian positional encoding now uses
+    approximately 216.70 ms mean. The 10k Laplacian positional encoding now uses
     shift-invert ARPACK and measures approximately 30 ms locally, down from
     17.1 s with the previous smallest-magnitude solver; large-graph failures
     now raise instead of attempting dense allocation. Compiled ACS traversal
