@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Any
 
 from hypothesis import given, settings
@@ -38,3 +40,16 @@ class Checker:
             Config.parse(payload)
         except Cfg:
             return
+
+    @given(st.binary(max_size=2048))
+    @settings(max_examples=30, deadline=None)
+    def malformed_file_never_leaks_internal_errors(self, payload: bytes) -> None:
+        """Arbitrary configuration bytes reject as ``Cfg`` or load safely."""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "fuzz-config.yaml"
+            path.write_bytes(payload)
+            try:
+                loaded = Config.load(path)
+            except Cfg:
+                return
+            assert isinstance(loaded, Config)

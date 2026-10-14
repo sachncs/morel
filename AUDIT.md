@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **655 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **656 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -632,7 +632,7 @@ browser-content checks.
     malformed HTTP payloads, checkpoint files, configuration YAML, sparse
     matrix indices, streaming JSON/chunks, duplicate-edge k-core behavior, and
     bounded graph shapes, non-finite weights, malformed sparse artifacts, and
-    arbitrary manifest JSON. Configuration, manifest sidecars, and safe
+    arbitrary manifest JSON and configuration file bytes. Configuration, manifest sidecars, and safe
     checkpoints now have bounded input sizes and typed malformed-file errors.
     Empty, isolated, duplicate-edge, and self-loop graph cases are covered;
     arbitrary checkpoint, serving-mask, and persisted manifest-sidecar bytes
