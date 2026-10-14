@@ -7,10 +7,20 @@ uniformly.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
 import scipy.sparse as sp
 import torch
+
+
+@dataclass(frozen=True)
+class RecommenderCapabilities:
+    """Declared optional behavior exposed by one recommender implementation."""
+
+    item_features: bool
+    normalizes: bool
+    fits: bool
 
 
 @runtime_checkable
@@ -23,7 +33,10 @@ class Recommender(Protocol):
 
     Attributes:
         forward: Returns user-item score matrix.
+        capabilities: Explicit optional behavior supported by this ranker.
     """
+
+    capabilities: RecommenderCapabilities
 
     def forward(
         self,
@@ -68,4 +81,10 @@ class Fits(Protocol):
         ...
 
 
-__all__ = ["FeatureAware", "Fits", "Normalizes", "Recommender"]
+__all__ = [
+    "FeatureAware",
+    "Fits",
+    "Normalizes",
+    "Recommender",
+    "RecommenderCapabilities",
+]

@@ -9,7 +9,13 @@ from morel.core.factory import FactoryRegistry, _accepts_keywords, _validate_imp
 from morel.recommend.baseline import MF, Pop
 from morel.recommend.bpr import bpr, distinct, negatives, to_ranks
 from morel.recommend.light import Light
-from morel.recommend.protocol import FeatureAware, Fits, Normalizes, Recommender
+from morel.recommend.protocol import (
+    FeatureAware,
+    Fits,
+    Normalizes,
+    Recommender,
+    RecommenderCapabilities,
+)
 
 
 def build(
@@ -68,6 +74,18 @@ def register(
     _KIND[kind] = implementation
 
 
+def _valid_capabilities(value: object) -> bool:
+    """Validate capability declarations against the implementation surface."""
+    capabilities = getattr(value, "capabilities", None)
+    if not isinstance(capabilities, RecommenderCapabilities):
+        return False
+    return (
+        capabilities.item_features == isinstance(value, FeatureAware)
+        and capabilities.normalizes == isinstance(value, Normalizes)
+        and capabilities.fits == isinstance(value, Fits)
+    )
+
+
 def _build_light(
     *,
     users: int,
@@ -119,7 +137,7 @@ def _build_pop(
 _FACTORIES = FactoryRegistry[nn.Module](
     "recommender",
     {"light": _build_light, "mf": _build_mf, "pop": _build_pop},
-    validator=lambda value: isinstance(value, Recommender),
+    validator=lambda value: isinstance(value, Recommender) and _valid_capabilities(value),
     factory_validator=lambda value: _accepts_keywords(
         value, ("users", "items", "embed", "layers", "feature_dim", "seed")
     ),
@@ -135,6 +153,7 @@ __all__ = [
     "Normalizes",
     "Pop",
     "Recommender",
+    "RecommenderCapabilities",
     "bpr",
     "build",
     "distinct",

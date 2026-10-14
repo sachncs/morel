@@ -10,7 +10,7 @@ import torch
 from morel.core.errors import Datum, Model
 from morel.recommend import KIND, MF, Light, Pop, bpr, build, negatives
 from morel.recommend.bpr import distinct, to_ranks
-from morel.recommend.protocol import FeatureAware, Recommender
+from morel.recommend.protocol import FeatureAware, Recommender, RecommenderCapabilities
 
 
 class Checker:
@@ -38,6 +38,17 @@ class Checker:
             assert isinstance(ranker, Recommender)
             scores = ranker(torch.arange(3), torch.arange(4), ui)
             assert scores.shape == (3, 4)
+
+    def capabilities(self) -> None:
+        """Every built-in ranker declares capabilities matching its protocols."""
+        expected = {
+            "light": RecommenderCapabilities(item_features=True, normalizes=True, fits=False),
+            "mf": RecommenderCapabilities(item_features=False, normalizes=False, fits=False),
+            "pop": RecommenderCapabilities(item_features=False, normalizes=False, fits=True),
+        }
+        for name, capabilities in expected.items():
+            ranker = build(name, users=3, items=4, embed=8, layers=1, seed=0)
+            assert ranker.capabilities == capabilities
 
     def feature_contract(self) -> None:
         """Feature-aware rankers expose the completed-feature capability explicitly."""

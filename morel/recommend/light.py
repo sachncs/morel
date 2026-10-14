@@ -15,6 +15,7 @@ import torch.nn as nn
 
 from morel.core.errors import Model
 from morel.core.seed import deterministic
+from morel.recommend.protocol import RecommenderCapabilities
 
 
 @dataclass(frozen=True)
@@ -71,6 +72,8 @@ class Light(nn.Module):
         item_emb: Item embedding layer.
         cache: Owned normalized adjacency cache, or ``None`` before wiring.
     """
+
+    capabilities = RecommenderCapabilities(item_features=True, normalizes=True, fits=False)
 
     def __init__(
         self,

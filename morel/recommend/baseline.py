@@ -10,6 +10,7 @@ import torch
 import torch.nn as nn
 
 from morel.core.seed import deterministic
+from morel.recommend.protocol import RecommenderCapabilities
 
 
 class MF(nn.Module):
@@ -21,6 +22,8 @@ class MF(nn.Module):
         user_emb: User embedding layer.
         item_emb: Item embedding layer.
     """
+
+    capabilities = RecommenderCapabilities(item_features=False, normalizes=False, fits=False)
 
     def __init__(self, users: int, items: int, *, embed: int = 64, seed: int | None = None) -> None:
         """Build a matrix-factorization ranker.
@@ -72,6 +75,8 @@ class Pop(nn.Module):
         popularity: Item popularity buffer.
         fitted: Whether the model has been fit.
     """
+
+    capabilities = RecommenderCapabilities(item_features=False, normalizes=False, fits=True)
 
     def __init__(self, users: int, items: int) -> None:
         """Initialize the popularity baseline.

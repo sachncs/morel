@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **648 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **649 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -480,8 +480,9 @@ and release operations.
     original `Mask`, `Feature`, and `Enc` names remain documented compatibility
     aliases.
 18. **Closed in this worktree:** Recommenders and encoders do not share a single stable runtime contract.
-    `Light`, `MF`, and `Pop` are selected through registries but are not unified
-    behind a documented abstract interface with capability declarations.
+    `Light`, `MF`, and `Pop` are selected through registries and recommender
+    implementations now share a documented runtime protocol with typed capability
+    declarations and polymorphic optional interfaces.
 19. **Partially addressed:** Serving factories now accept runtime validators,
     and the CLI/runtime register an explicit serving contract requiring
     `score`, `user_count`, and `item_count` before caching a model. A shared
@@ -489,8 +490,9 @@ and release operations.
     completer, recommender, and retrieval strategy contracts at composition
     time. Optional capabilities elsewhere still use `getattr`; a cross-surface
     contract matrix now proves incompatible third-party registrations are
-    rejected before publication. The remaining protocol boundaries still need
-    a typed capability/plugin surface.
+    rejected before publication. Built-in recommenders now declare and validate
+    typed capabilities at registry and pipeline construction boundaries. The
+    remaining protocol boundaries still need equivalent capability surfaces.
 20. **Closed in this worktree:** `Pipeline.attach()` stores mutable corpus dictionaries/arrays by reference.
     Callers can mutate data after attachment and change inference behavior
     without invalidation or a clear lifecycle boundary.

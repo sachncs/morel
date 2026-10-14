@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Recommender implementations now declare typed capabilities, with registry and
+  pipeline validation rejecting mismatches before serving.
 - Site visual contracts now use strict 2% pixel-diff thresholds with refreshed
   Linux and macOS baselines, preventing palette regressions from passing as
   acceptable visual drift.

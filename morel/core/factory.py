@@ -16,7 +16,10 @@ def _validate_implementation(value: object, contract: type | tuple[type, ...], n
     try:
         valid = isinstance(value, type) and issubclass(value, contract)
     except TypeError:
-        valid = False
+        # Runtime-checkable protocols containing data attributes cannot be
+        # passed to ``issubclass``.  Validate the class object structurally so
+        # those contracts remain usable for class-based plugin registration.
+        valid = isinstance(value, contract)
     if not valid:
         raise Cfg(f"{name} implementation must satisfy its declared contract")
 
