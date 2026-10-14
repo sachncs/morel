@@ -169,7 +169,7 @@ Scope: repository, local Python package, local React site, and the deployed
 - Fixed `make audit-artifact` to select the newest wheel instead of installing
   every stale wheel left in `dist/`, which previously made a valid build fail
   with a misleading dependency-resolution conflict.
-- `pnpm test:e2e --project=chromium`: **14 passed** against the built site
+- `pnpm test:e2e --project=chromium`: **15 passed** against the built site
   preview, covering mobile navigation focus trapping, Escape/focus restore,
   anchor navigation, theme persistence, clipboard feedback, reduced motion,
   and canonical link targets, plus an axe WCAG A/AA audit with zero
@@ -196,7 +196,7 @@ Scope: repository, local Python package, local React site, and the deployed
   model bundle, and `/metrics` returns 200; the image runs as the non-root
   user.
 - GitHub Pages deployment `38451394978` published the redesigned artifact after
-  the real Linux runner passed all 14 browser checks; `curl -fsSIL
+  the real Linux runner passed all 15 browser checks; `curl -fsSIL
   https://sachncs.github.io/morel/` returns HTTP 200 and the live HTML contains
   the `/morel/` favicon, truthful product copy, and canonical site metadata.
 

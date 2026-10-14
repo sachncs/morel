@@ -22,7 +22,7 @@ make serve-workers-smoke          two-worker lifecycle and fail-closed readiness
 make serve-model-smoke            two-worker real-checkpoint inference pass
 make serve-soak                   bounded concurrent two-worker HTTP soak pass
 docker build + health smoke      image builds; liveness 200; readiness 503 without model
-pnpm test:e2e --project=chromium  14 passed
+pnpm test:e2e --project=chromium  15 passed
 ```
 
 The browser suite covers mobile navigation, focus trapping, Escape handling,
