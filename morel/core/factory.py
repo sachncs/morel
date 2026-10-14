@@ -21,6 +21,9 @@ class FactoryRegistry(Generic[T]):
         name: Human-readable extension-point name used in configuration errors.
         factories: Mapping from stable configuration names to callables.
         validator: Optional runtime contract predicate for constructed values.
+        factory_validator: Optional predicate for the callable contract. It is
+            evaluated during registration, so incompatible plugins fail before
+            configuration can select them.
     """
 
     def __init__(
@@ -44,6 +47,13 @@ class FactoryRegistry(Generic[T]):
         self._factories = dict(factories)
         self._validator = validator
         self._factory_validator = factory_validator
+        if factory_validator is not None:
+            invalid = [
+                kind for kind, factory in self._factories.items() if not factory_validator(factory)
+            ]
+            if invalid:
+                names = ", ".join(repr(kind) for kind in invalid)
+                raise Cfg(f"{name} registry has incompatible factory registration: {names}")
 
     def __contains__(self, kind: object) -> bool:
         """Return whether ``kind`` is registered."""
@@ -63,8 +73,6 @@ class FactoryRegistry(Generic[T]):
         if factory is None:
             available = ", ".join(self.keys()) or "(none)"
             raise Cfg(f"unknown {self.name} '{kind}'; available: {available}")
-        if self._factory_validator is not None and not self._factory_validator(factory):
-            raise Cfg(f"{self.name} '{kind}' factory does not satisfy its runtime contract")
         return factory
 
     def build(self, kind: str, **kwargs: object) -> T:

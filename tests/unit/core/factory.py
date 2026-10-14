@@ -33,14 +33,13 @@ class Checker:
             registry.build("bad")
 
     def validates_factory(self) -> None:
-        """Registries can validate the callable contract before invocation."""
-        registry = FactoryRegistry[int](
-            "number",
-            {"bad": lambda: 1},
-            factory_validator=lambda value: callable(value) and hasattr(value, "required"),
-        )
-        with pytest.raises(Cfg, match="factory does not satisfy"):
-            registry.resolve("bad")
+        """Registries reject incompatible factories during registration."""
+        with pytest.raises(Cfg, match="incompatible factory registration"):
+            FactoryRegistry[int](
+                "number",
+                {"bad": lambda: 1},
+                factory_validator=lambda value: callable(value) and hasattr(value, "required"),
+            )
 
     def snapshots(self) -> None:
         """Mutating the source mapping does not mutate the registry."""

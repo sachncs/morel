@@ -617,6 +617,9 @@ error code, log fields, and retry/no-retry behavior.
    strategy, including optional capabilities currently accessed with `getattr`.
 2. Require validators for third-party factory registrations and reject an
    incompatible plugin at registration/startup rather than first request.
+   `FactoryRegistry` now enforces its factory validator while the registry is
+   constructed; the remaining work is to apply the same typed contract suite
+   consistently to every extension point and external plugin package.
 3. Document public, semi-private, and private naming; import boundaries;
    deprecation policy; ownership; immutability; and cache invalidation rules.
 4. Run every built-in and test plugin through the same contract suite, including
