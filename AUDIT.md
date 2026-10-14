@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **640 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **641 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -57,6 +57,8 @@ Scope: repository, local Python package, local React site, and the deployed
   mask, and adjacency values before publishing live serving state.
 - NPZ and sparse-graph loaders now bound ZIP member expansion before NumPy
   materializes compressed arrays, closing a decompression-amplification path.
+- Property coverage now round-trips generated empty, isolated, duplicate-edge,
+  and self-loop sparse graphs through atomic persistence and reload.
 - Graph invariant helpers now enforce sparse square inputs, finite values,
   non-negative tolerances, and valid degree controls through typed `Net`
   failures instead of leaking shape/type exceptions.
