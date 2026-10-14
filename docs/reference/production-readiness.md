@@ -36,6 +36,9 @@ against a Pages-shaped `/morel/` artifact.
   admin credentials.
 - Production startup requires a serving bundle path through `--model-dir` or
   `MOREL_SERVE_MODEL_DIR`; development may start fail-closed without one.
+- Production CLI and multi-worker application factories use strict loader mode:
+  every model factory must declare a runtime result validator before it can be
+  registered or loaded. Development/test loaders remain permissive for fixtures.
 - Metrics exposure and the Prometheus route are explicit validated serving
   settings rather than an undocumented hard-coded deployment assumption.
 - Serving rate limits, model-factory timeout, and trusted proxy CIDRs are
