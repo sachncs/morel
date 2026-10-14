@@ -493,7 +493,8 @@ browser-content checks.
     time. A shared typed recommender-capability verifier is now used by both
     registry construction and pipeline wiring; a cross-surface contract matrix
     proves incompatible third-party registrations are rejected before
-    publication. The remaining protocol boundaries still need equivalent
+    publication, including malformed or exception-raising capability
+    declarations. The remaining protocol boundaries still need equivalent
     capability surfaces.
 20. **Closed in this worktree:** `Pipeline.attach()` stores mutable corpus dictionaries/arrays by reference.
     Callers can mutate data after attachment and change inference behavior

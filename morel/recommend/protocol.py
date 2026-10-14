@@ -88,9 +88,9 @@ def declared_capabilities(value: object) -> RecommenderCapabilities | None:
     composition from making subtly different assumptions about optional
     recommender behavior.
     """
-    if not isinstance(value, Recommender):
-        return None
     try:
+        if not isinstance(value, Recommender):
+            return None
         capabilities = value.capabilities
     except Exception:
         return None

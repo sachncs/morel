@@ -10,7 +10,12 @@ import torch
 from morel.core.errors import Datum, Model
 from morel.recommend import KIND, MF, Light, Pop, bpr, build, negatives
 from morel.recommend.bpr import distinct, to_ranks
-from morel.recommend.protocol import FeatureAware, Recommender, RecommenderCapabilities
+from morel.recommend.protocol import (
+    FeatureAware,
+    Recommender,
+    RecommenderCapabilities,
+    declared_capabilities,
+)
 
 
 class Checker:
@@ -49,6 +54,42 @@ class Checker:
         for name, capabilities in expected.items():
             ranker = build(name, users=3, items=4, embed=8, layers=1, seed=0)
             assert ranker.capabilities == capabilities
+
+    def malformed_capabilities_fail_closed(self) -> None:
+        """Plugin capability failures become an ordinary contract rejection."""
+
+        class Exploding:
+            @property
+            def capabilities(self) -> RecommenderCapabilities:
+                raise RuntimeError("plugin metadata unavailable")
+
+            def forward(
+                self,
+                users: torch.Tensor,
+                items: torch.Tensor,
+                ui_graph: sp.csr_matrix | None = None,
+            ) -> torch.Tensor:
+                del users, items, ui_graph
+                return torch.empty(0)
+
+        class Mismatched:
+            capabilities = RecommenderCapabilities(
+                item_features=True,
+                normalizes=False,
+                fits=False,
+            )
+
+            def forward(
+                self,
+                users: torch.Tensor,
+                items: torch.Tensor,
+                ui_graph: sp.csr_matrix | None = None,
+            ) -> torch.Tensor:
+                del users, items, ui_graph
+                return torch.empty(0)
+
+        assert declared_capabilities(Exploding()) is None
+        assert declared_capabilities(Mismatched()) is None
 
     def feature_contract(self) -> None:
         """Feature-aware rankers expose the completed-feature capability explicitly."""
