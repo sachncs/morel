@@ -296,9 +296,9 @@ The numbered inventory below is intentionally retained as the complete issue
 history. This status map prevents historical findings from being mistaken for
 open defects:
 
-- **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–33, 34–42, 49,
+- **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
   50–60, and the local/deployed portions of 43–48.
-- **Partially addressed:** 6, 16, 19, 21, 22, 24, and 25.
+- **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
   check.
@@ -501,10 +501,12 @@ and release operations.
     workflow also retains a lockfile-derived CycloneDX SBOM with the published
     artifacts. Local image scanning remains an optional convenience, not a
     release gate.
-33. **Closed in this worktree:** Property and boundary coverage now exercises
+33. **Partially addressed:** Property and boundary coverage now exercises
     malformed HTTP payloads, checkpoint files, configuration YAML, sparse
     matrix indices, streaming JSON/chunks, duplicate-edge k-core behavior, and
-    bounded graph shapes, non-finite weights, and malformed sparse artifacts.
+    bounded graph shapes, non-finite weights, malformed sparse artifacts, and
+    arbitrary manifest JSON. Broader configuration/artifact fuzzing and the
+    remaining sparse edge-case matrix are still open.
     Persisted sparse graphs now enforce explicit node and edge budgets at save
     and load boundaries, including caller-selectable lower limits for services.
 
