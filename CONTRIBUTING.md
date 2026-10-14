@@ -66,7 +66,9 @@ Adding a new algorithm:
 
 1. Define a `Protocol` in the appropriate subpackage.
 2. Implement the algorithm.
-3. Register it in `morel.app.registry`.
+3. Add a typed adapter to the owning package's private factory registry and
+   expose only the package's `KIND` mapping for introspection. For ablations,
+   add the transform to `morel.eval.ablation.KIND`.
 4. Add unit, property, and research validation tests.
 
 ## Release process

@@ -125,7 +125,7 @@ import-layer contracts.
 ### Ablations
 
 `eval.ablations` names the conditions an ablation sweep compares. Each is
-registered in `morel.eval.ablation.ABLATIONS` as a function from a `Config` to
+registered in `morel.eval.ablation.KIND` as a function from a `Config` to
 an ablated `Config`, so a condition runs through the same pipeline as the
 baseline with only the named component changed.
 
