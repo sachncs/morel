@@ -76,7 +76,7 @@ jobs:
           base="https://sachncs.github.io/morel"
           root="$(curl --fail --silent --show-error --location \
             --retry 10 --retry-delay 3 --retry-all-errors "$base/")"
-          grep -q 'Robust multimodal recommendation' <<<"$root"
+          grep -q 'Complete missing modalities' <<<"$root"
           docs="$(curl --fail --silent --show-error --location \
             --retry 10 --retry-delay 3 --retry-all-errors "$base/docs/")"
           grep -q '<title>morel</title>' <<<"$docs"
