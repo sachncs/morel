@@ -134,5 +134,5 @@ Home (index.md)
 
 If you spot something missing or wrong, open a GitHub issue or
 follow the [Contributing](project/contributing.md) guide and send a
-pull request. The `mkdocs build --strict` step enforces internal
+pull request. The Astro build renders the internal
 links on every build, so a broken link fails CI before merge.

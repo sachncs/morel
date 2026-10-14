@@ -7,15 +7,13 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: process.env.BASE_URL ?? "http://127.0.0.1:4173",
+    baseURL: process.env.BASE_URL ?? "http://127.0.0.1:4173/morel/",
     trace: "retain-on-failure",
   },
   webServer: {
-    command: process.env.BASE_URL?.includes("/morel/")
-      ? "node scripts/preview-pages.mjs"
-      : "pnpm preview --host 127.0.0.1 --port 4173",
-    url: process.env.BASE_URL ?? "http://127.0.0.1:4173",
-    reuseExistingServer: !process.env.CI && !process.env.BASE_URL?.includes("/morel/"),
+    command: "pnpm exec astro preview --host 127.0.0.1 --port 4173 --strictPort",
+    url: process.env.BASE_URL ?? "http://127.0.0.1:4173/morel/",
+    reuseExistingServer: !process.env.CI,
   },
   projects: [
     {

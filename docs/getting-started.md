@@ -32,7 +32,7 @@ The output should start with `3.10`, `3.11`, `3.12`, or `3.13`.
     pip install -e '.[dev]'
     ```
 
-    The `.[dev]` extra pulls in pytest, ruff, mypy, mkdocs and the rest of
+    The `.[dev]` extra pulls in pytest, ruff, mypy, the site toolchain and the rest of
     the developer tooling.
 
 === "Inference server too"

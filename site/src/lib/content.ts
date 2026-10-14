@@ -179,7 +179,7 @@ export const ADOPTION = [
     cta: "Read the docs",
     href: `${SITE.repo}#where-to-go-next`,
     highlight: false,
-    features: ["Public API surface", "Frozen config tree", "Strict typing", "mkdocstrings reference"],
+    features: ["Public API surface", "Frozen config tree", "Strict typing", "Rendered API reference"],
   },
 ] as const;
 

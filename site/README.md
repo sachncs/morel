@@ -1,11 +1,12 @@
 # morel — product site
 
-Premium product page for [morel](https://github.com/sachncs/morel), built with
-Vite + React + TypeScript + Tailwind CSS and deployed to GitHub Pages.
+Product page and documentation site for [morel](https://github.com/sachncs/morel),
+built with Astro, React, TypeScript, and Tailwind CSS and deployed to GitHub
+Pages in one build.
 
 ## Stack
 
-- [Vite 5](https://vitejs.dev/) — dev server and production bundler
+- [Astro](https://astro.build/) — one static build for product and docs routes
 - [React 18](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
 - [Tailwind CSS 3](https://tailwindcss.com/) — design tokens and utility CSS
 - [Framer Motion](https://www.framer.com/motion/) — refined scroll and reveal animations
@@ -15,7 +16,7 @@ Vite + React + TypeScript + Tailwind CSS and deployed to GitHub Pages.
 
 ```bash
 pnpm install
-pnpm dev          # http://localhost:5173
+pnpm dev          # http://localhost:4321/morel/
 ```
 
 ## Type-check and build
@@ -25,10 +26,8 @@ pnpm typecheck
 pnpm build        # outputs site/dist
 ```
 
-The build respects the `GITHUB_PAGES` env var. When set to `1`, asset URLs are
-prefixed with `/morel/` so the bundle works under
-<https://sachncs.github.io/morel/>. Locally the prefix is `/`, which is what
-`vite preview` expects.
+Astro uses the `/morel/` base path in both local preview and production so the
+same route contract is exercised before deployment.
 
 ## Deploy
 
@@ -40,13 +39,14 @@ on every push to `master`. Make sure Pages is enabled for the repository under
 
 ```
 site/
-├── index.html              Entry HTML
+├── astro.config.mjs        Astro build and Pages base path
 ├── public/                 Static assets served at site root
 │   ├── favicon.svg
 │   └── og-image.svg
 └── src/
-    ├── main.tsx            React entry
-    ├── App.tsx             Page composition
+    ├── pages/               Product and documentation routes
+    ├── layouts/             Documentation shell
+    ├── App.tsx              Product page composition
     ├── styles.css          Tailwind layers + global tokens
     ├── lib/
     │   ├── content.ts      All editorial copy (single source of truth)
@@ -55,6 +55,6 @@ site/
     └── sections/           Page sections (Hero, Features, Architecture, …)
 ```
 
-The product page renders directly from the React tree in `App.tsx`. It does
-**not** load content from `docs/` or any markdown — every string lives in
-`src/lib/content.ts`.
+The product page renders from the React tree in `App.tsx`. Astro renders the
+documentation routes from the Markdown source in the repository, but keeps
+the product page copy and interaction model independent from the docs.

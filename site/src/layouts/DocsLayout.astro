@@ -1,0 +1,39 @@
+---
+import type { DocPage } from "../lib/docs";
+import "../styles/docs.css";
+
+const { page, pages } = Astro.props as { page: DocPage; pages: DocPage[] };
+const groups = new Map<string, DocPage[]>();
+for (const item of pages) {
+  const group = item.section === "home" ? "Start here" : item.section.replace(/-/g, " ");
+  groups.set(group, [...(groups.get(group) ?? []), item]);
+}
+const pageHref = (slug: string) => `/morel/docs/${slug ? `${slug}/` : ""}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{page.title} · morel</title>
+    <meta name="description" content="morel documentation — graph retrieval-enhanced modality completion." />
+    <link rel="icon" href="/morel/favicon.svg" />
+  </head>
+  <body>
+    <header class="docs-header">
+      <a class="brand" href="/morel/" aria-label="morel home"><img src="/morel/favicon.svg" alt="" width="32" height="32" /><span>morel</span></a>
+      <nav aria-label="Global navigation"><a href="/morel/">Product</a><a href="/morel/docs/" aria-current={page.slug === "" ? "page" : undefined}>Docs</a><a href="https://github.com/sachncs/morel">GitHub</a></nav>
+    </header>
+    <div class="docs-shell">
+      <aside class="docs-sidebar">
+        <p class="eyebrow">Documentation</p>
+        {Array.from(groups.entries()).map(([group, items]) => (
+          <section><h2>{group}</h2><ul>{items.map((item) => <li><a class:list={{ active: item.slug === page.slug }} href={pageHref(item.slug)}>{item.title}</a></li>)}</ul></section>
+        ))}
+      </aside>
+      <main class="docs-main"><div class="breadcrumbs"><a href="/morel/docs/">Docs</a><span>/</span><span>{page.title}</span></div><article class="prose" set:html={page.html} /></main>
+    </div>
+    <footer class="docs-footer">morel · MIT licensed · <a href="/morel/">Back to product site</a></footer>
+  </body>
+</html>

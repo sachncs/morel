@@ -1,6 +1,6 @@
 # Operations — GitHub Pages
 
-The marketing site lives in `site/` (Vite + React + Tailwind) and is
+The marketing site lives in `site/` (Astro + React + Tailwind) and is
 built and published by `.github/workflows/pages.yml` to
 <https://sachncs.github.io/morel/>.
 
@@ -63,6 +63,6 @@ GITHUB_PAGES=1 pnpm build   # uses /morel/ asset prefix
 pnpm preview
 ```
 
-The MkDocs documentation in `docs/` is still useful for offline
-reference — run `mkdocs serve` from the repo root to browse it
-locally — but it is no longer deployed to GitHub Pages.
+The Markdown in `docs/` is the source for the Astro-rendered documentation.
+Run `pnpm --dir site dev` from the repo root to browse the product site and
+documentation together locally.

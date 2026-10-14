@@ -92,6 +92,22 @@ test("primary links expose the canonical repository and docs targets", async ({ 
   );
 });
 
+test("Astro docs render as task-oriented pages inside the site build", async ({ page }) => {
+  await page.goto("/morel/docs/");
+  await expect(page).toHaveTitle("Documentation · morel");
+  await expect(page.getByRole("heading", { name: "Documentation", level: 1 })).toBeVisible();
+  await expect(page.locator(".morel-hero")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "License" })).toHaveAttribute(
+    "href",
+    "/morel/docs/project/license/",
+  );
+
+  const hrefs = await page.locator("a[href]").evaluateAll((links) =>
+    links.map((link) => link.getAttribute("href")).filter((href): href is string => Boolean(href)),
+  );
+  expect(hrefs.some((href) => href.endsWith(".md"))).toBe(false);
+});
+
 test("desktop page has no axe WCAG A/AA violations", async ({ page }) => {
   await page.goto("./");
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa"]).analyze();

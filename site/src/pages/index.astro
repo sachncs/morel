@@ -1,0 +1,25 @@
+---
+import "../styles.css";
+import App from "../App";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>morel — Complete missing modalities, then rank with graph context</title>
+    <meta name="description" content="morel is an open-source Python library that completes missing item modalities from graph context, then ranks with LightGCN." />
+    <meta property="og:title" content="morel — Complete missing modalities, then rank with graph context" />
+    <meta property="og:description" content="A paper-faithful, deterministic pipeline you can benchmark, inspect, and self-host." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://sachncs.github.io/morel/" />
+    <link rel="icon" href="/morel/favicon.svg" />
+    <script is:inline>
+      document.documentElement.classList.toggle("dark", localStorage.getItem("morel-theme") !== "light");
+    </script>
+  </head>
+  <body>
+    <App client:load />
+  </body>
+</html>

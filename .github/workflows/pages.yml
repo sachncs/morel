@@ -25,37 +25,24 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
       - name: Install pnpm
         run: |
           npm install -g pnpm@9.15.0
           pnpm --version
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
-        env:
-          GITHUB_PAGES: "1"
       - name: Install Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify Pages base path
         run: pnpm exec playwright test --project=chromium
         env:
           BASE_URL: "http://127.0.0.1:4173/morel/"
-      - name: Install documentation toolchain
+      - name: Verify rendered documentation
         working-directory: .
         run: |
-          python -m pip install --disable-pip-version-check \
-            "mkdocs==1.6.1" \
-            "mkdocs-material==9.7.7" \
-            "mkdocstrings==1.0.7" \
-            "mkdocstrings-python==2.0.9"
-      - name: Build published documentation
-        working-directory: .
-        run: |
-          mkdocs build --strict --site-dir site/dist/docs
           test -f site/dist/docs/index.html
-          grep -q '<title>morel</title>' site/dist/docs/index.html
+          test -f site/dist/docs/project/license/index.html
+          grep -q 'Documentation' site/dist/docs/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -79,8 +66,8 @@ jobs:
           grep -q 'Complete missing modalities' <<<"$root"
           docs="$(curl --fail --silent --show-error --location \
             --retry 10 --retry-delay 3 --retry-all-errors "$base/docs/")"
-          grep -q '<title>morel</title>' <<<"$docs"
+          grep -q '<title>Documentation · morel</title>' <<<"$docs"
           grep -q 'Documentation' <<<"$docs"
           alerts="$(curl --fail --silent --show-error --location \
             --retry 10 --retry-delay 3 --retry-all-errors "$base/docs/operations/alerts/")"
-          grep -q '<title>Alerts and rollback runbook' <<<"$alerts"
+          grep -q '<title>Alerts and rollback runbook · morel</title>' <<<"$alerts"

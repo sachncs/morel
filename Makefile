@@ -73,8 +73,8 @@ reproduce: ## Run end-to-end reproduction
 fidelity: ## Render the fidelity report
 	python -m morel render-fidelity docs/FIDELITY.md docs/FIDELITY.json
 
-docs: ## Build documentation
-	mkdocs build --strict
+docs: ## Build the product site and Astro documentation
+	pnpm --dir site build
 
 docs-check: ## Verify documentation examples use the current public API
 	python scripts/check_docs.py

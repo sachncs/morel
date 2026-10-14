@@ -31,7 +31,7 @@ The runtime dependencies declared in ``pyproject.toml``:
 | ``[bench]``  | ``pytest-benchmark``                              |
 | ``[text]``   | sentence-transformers (required for text encoders) |
 | ``[vision]`` | torchvision (required for visual encoders)        |
-| ``[dev]``    | pytest stack, ruff, mypy, mkdocs, pip-audit, build, twine |
+| ``[dev]``    | pytest stack, ruff, mypy, pip-audit, build, twine |
 
 ## Install patterns
 
