@@ -17,14 +17,12 @@ hide:
     <div class="morel-hero__inner">
       <div class="morel-hero__lockup">
         <span class="morel-eyebrow">Graph retrieval · Modality completion</span>
-        <h1>Robust multimodal recommendation, <span class="morel-accent">one graph at a time.</span></h1>
+        <h1>Complete missing modalities, <span class="morel-accent">then rank with graph context.</span></h1>
         <p class="morel-subhead">
-          <strong>morel</strong> is an open-source Python library for graph
-          retrieval-enhanced modality completion. Feed it a user–item
-          graph with incomplete per-item features, and it returns a
-          trained recommender that finishes missing modalities before
-          ranking — backed by a paper-fidelity registry, deterministic
-          manifests, and a FastAPI inference server.
+          <strong>morel</strong> is an open-source Python library that completes
+          missing item modalities from graph context, then ranks with LightGCN.
+          Build a paper-faithful, deterministic pipeline you can benchmark,
+          inspect, and self-host.
         </p>
         <div class="morel-cta-row">
           <a href="getting-started/" class="morel-cta-primary">Get started</a>
