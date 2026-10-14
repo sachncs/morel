@@ -462,10 +462,7 @@ class Checker:
         )
         assert messages[0]["status"] == 503
         assert messages[0]["headers"]
-        assert any(
-            key == b"retry-after" and value == b"1"
-            for key, value in messages[0]["headers"]
-        )
+        assert any(key == b"retry-after" and value == b"1" for key, value in messages[0]["headers"])
         body = messages[1]["body"].decode()
         assert "database password" not in body
         assert "serving request is unavailable" in body

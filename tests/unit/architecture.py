@@ -245,9 +245,13 @@ class Checker:
         with pytest.raises(Cfg):
             register_codebook("external-bad-codebook", lambda **_: object(), implementation=object)
         with pytest.raises(Cfg):
-            register_completer("external-bad-completer", lambda **_: object(), implementation=object)
+            register_completer(
+                "external-bad-completer", lambda **_: object(), implementation=object
+            )
         with pytest.raises(Cfg):
-            register_recommender("external-bad-recommender", lambda **_: object(), implementation=object)
+            register_recommender(
+                "external-bad-recommender", lambda **_: object(), implementation=object
+            )
         with pytest.raises(Cfg):
             register_router("external-bad-router", lambda wrong: object(), implementation=Top)
         with pytest.raises(Cfg):
