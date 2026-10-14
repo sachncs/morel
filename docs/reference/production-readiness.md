@@ -16,7 +16,7 @@ mypy morel/                       pass
 make lock-check                  pass
 pip-audit --strict ...            no known vulnerabilities
 make audit-artifact              built wheel installs and imports successfully
-make fault-injection              11 targeted failure-path tests pass
+make fault-injection              15 targeted failure-path tests pass
 make rollback-drill               updater rollback and divergence tests pass
 make serve-workers-smoke          two-worker lifecycle and fail-closed readiness pass
 make serve-model-smoke            two-worker real-checkpoint inference pass
