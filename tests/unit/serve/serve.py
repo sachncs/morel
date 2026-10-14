@@ -721,6 +721,22 @@ class Checker:
         )
         assert "backend credential" not in r.text
 
+    async def recommend_programmer_failure_is_classified(self) -> None:
+        """Unexpected ordinary scoring errors become sanitized non-retryable 500s."""
+
+        class BrokenPipeline(StubPipeline):
+            def score(self, users, items):
+                raise ValueError("implementation detail must not escape")
+
+        loader = Loader()
+        loader.register("default", BrokenPipeline)
+        async with make(create(loader)) as client:
+            response = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
+        assert response.status_code == 500
+        assert response.json()["error"]["code"] == "http_500"
+        assert "implementation detail" not in response.text
+        assert response.headers.get("x-request-id")
+
     async def recommend_rejects_invalid_score_shape(self) -> None:
         """Malformed plugin score shapes fail closed before ranking."""
 

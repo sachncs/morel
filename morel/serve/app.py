@@ -435,7 +435,7 @@ def run(
         )
     except HTTPException:
         raise
-    except (Error, IndexError, OSError, RuntimeError, TypeError, TimeoutError, ValueError) as exc:
+    except Exception as exc:
         policy = classify(exc, operation="completion")
         log.exception(
             "completion failed",
@@ -506,7 +506,7 @@ def suggest(
             scores = pipeline.score(user_id, item_ids.squeeze(0)).squeeze(0)
     except HTTPException:
         raise
-    except (Error, IndexError, OSError, RuntimeError, TypeError, TimeoutError, ValueError) as exc:
+    except Exception as exc:
         policy = classify(exc)
         log.exception(
             "recommender scoring failed",
