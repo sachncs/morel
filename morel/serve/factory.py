@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import zipfile
 from pathlib import Path
 
 import numpy as np
@@ -36,7 +37,7 @@ def _load_mask(path: Path) -> Array:
         mask = np.load(path, allow_pickle=False)
     except Model:
         raise
-    except (OSError, EOFError, OverflowError, TypeError, ValueError) as exc:
+    except (OSError, EOFError, OverflowError, TypeError, ValueError, zipfile.BadZipFile) as exc:
         raise Model(f"invalid serving mask artifact: {path}") from exc
     if not isinstance(mask, np.ndarray) or mask.ndim != 2:
         raise Model("serving mask artifact must be a 2-D array")

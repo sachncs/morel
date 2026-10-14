@@ -130,6 +130,17 @@ class Checker:
             assert np.issubdtype(mask.dtype, np.number)
             assert np.isfinite(mask).all()
 
+    def malformed_zip_mask_is_typed(self) -> None:
+        """A truncated ZIP signature cannot escape the model boundary."""
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "truncated-mask.npy"
+            path.write_bytes(b"PK\\x03\\x04")
+            try:
+                _load_mask(path)
+            except Model:
+                return
+            raise AssertionError("truncated ZIP mask was accepted")
+
     @given(st.integers(min_value=MAX_GRAPH_NODES + 1, max_value=MAX_GRAPH_NODES + 1024))
     @settings(max_examples=20, deadline=None)
     def oversized_graph_metadata_fails_before_allocation(self, oversized: int) -> None:
