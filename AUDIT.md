@@ -88,8 +88,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - The serving protocol now requires explicit `user_count`, `item_count`, and
   `score()` capabilities; incomplete structural implementations are rejected
   before caching instead of falling back to reflective dispatch.
-- `make audit-critical`: passes with per-subsystem coverage floors for serving
-  (79%), pipeline (77%), CLI (71%), and checkpoint loading (84%).
+- `make audit-critical`: passes with current per-subsystem coverage of serving
+  (85%), pipeline (85%), CLI (73%), and checkpoint loading (86%), all above
+  their configured floors.
 - The refreshed forward benchmark at commit `0386e12` uses a bounded 32-query
   batch and measures 1k items at **216.70 ms mean** and 10k items at
   **7.464 s mean** on the recorded local environment. A separate compiled-ACS
