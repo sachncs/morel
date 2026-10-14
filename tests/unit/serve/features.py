@@ -189,6 +189,8 @@ class Checker:
 
     def resolver_secret_provider(self) -> None:
         """The external resolver adapter bounds and sanitizes backend output."""
+        import asyncio
+
         from morel.core.errors import Cfg
         from morel.serve.auth import ResolverSecretProvider
 
@@ -207,6 +209,12 @@ class Checker:
             ResolverSecretProvider(lambda name: "x" * 4097).get("read")
         with pytest.raises(Cfg, match="unknown secret name"):
             ResolverSecretProvider(lambda name: None).get("unknown")
+
+        def cancel(name: str) -> str:
+            raise asyncio.CancelledError
+
+        with pytest.raises(asyncio.CancelledError):
+            ResolverSecretProvider(cancel).get("read")
 
     def missing_secret_file(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         from morel.core.errors import Cfg
