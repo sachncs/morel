@@ -10,6 +10,7 @@ implementation is enough to drive any standard Prometheus server.
 
 from __future__ import annotations
 
+import math
 import threading
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
@@ -82,6 +83,7 @@ class Registry:
 
     def counter_inc(self, name: str, labels: dict[str, str], value: float = 1.0) -> None:
         """Increment a counter under ``name`` and ``labels``."""
+        _validate_metric_value(value, nonnegative=True)
         key = tuple(sorted(labels.items()))
         with self._lock:
             bucket = self.counters.setdefault(name, {})
@@ -89,6 +91,7 @@ class Registry:
 
     def gauge_set(self, name: str, labels: dict[str, str], value: float) -> None:
         """Set a gauge to ``value`` under ``name`` and ``labels``."""
+        _validate_metric_value(value)
         key = tuple(sorted(labels.items()))
         with self._lock:
             bucket = self.gauges.setdefault(name, {})
@@ -103,6 +106,7 @@ class Registry:
         buckets: tuple[float, ...] = DEFAULT_BUCKETS,
     ) -> None:
         """Observe one sample against the named histogram."""
+        _validate_metric_value(value, nonnegative=True)
         key = tuple(sorted(labels.items()))
         with self._lock:
             bucket = self.histograms.setdefault(name, {})
@@ -121,6 +125,7 @@ class Registry:
         elapsed: float = 0.0,
     ) -> None:
         """Record one HTTP request, with an optional latency sample."""
+        _validate_metric_value(elapsed, nonnegative=True)
         labels = {"endpoint": endpoint, "method": method, "status": str(int(status))}
         self.counter_inc("morel_requests_total", labels)
         if elapsed > 0:
@@ -179,6 +184,19 @@ def _format_line(name: str, label_key: tuple[tuple[str, str], ...], value: float
 def _escape(value: str) -> str:
     """Escape label values per the Prometheus exposition spec."""
     return str(value).replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+def _validate_metric_value(value: float, *, nonnegative: bool = False) -> None:
+    """Reject values that would produce invalid Prometheus exposition."""
+    if isinstance(value, bool):
+        raise ValueError("metric values must be real numbers")
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("metric values must be real numbers") from exc
+    if not math.isfinite(numeric) or (nonnegative and numeric < 0):
+        qualifier = "non-negative finite" if nonnegative else "finite"
+        raise ValueError(f"metric values must be {qualifier} numbers")
 
 
 REGISTRY = Registry()
