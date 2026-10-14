@@ -78,3 +78,13 @@ class Checker:
         assert graph[0, 1] == 1
         assert graph[1, 2] == 1
         assert graph[0, 2] == 0
+
+    def malformed_graph_inputs_are_rejected(self) -> None:
+        """Graph builders convert malformed inputs into domain errors."""
+        with pytest.raises(Datum, match="dimensions must be integers"):
+            bipartite(np.array([0]), np.array([0]), 2.0, 2)  # type: ignore[arg-type]
+        with pytest.raises(Datum, match="must be sparse"):
+            cooccurrence(np.zeros((2, 2), dtype=np.float32))  # type: ignore[arg-type]
+        invalid = sp.csr_matrix(np.array([[0.0, np.nan], [np.nan, 0.0]]))
+        with pytest.raises(Datum, match="finite numeric"):
+            cooccurrence(invalid)

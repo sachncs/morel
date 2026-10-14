@@ -28,6 +28,13 @@ def bipartite(user: Array, item: Array, users: int, items: int) -> sp.csr_matrix
     Returns:
         Sparse CSR matrix of shape ``(users, items)`` with float32 ones.
     """
+    if (
+        isinstance(users, bool)
+        or isinstance(items, bool)
+        or not isinstance(users, int)
+        or not isinstance(items, int)
+    ):
+        raise Datum("graph dimensions must be integers")
     if user.ndim != 1 or item.ndim != 1:
         raise Datum("user and item ids must be 1-D arrays")
     if user.shape != item.shape:
@@ -57,8 +64,13 @@ def cooccurrence(graph: sp.csr_matrix) -> sp.csr_matrix:
     Returns:
         Symmetric item-item CSR matrix with no self-loops.
     """
+    if not sp.issparse(graph):
+        raise Datum("bipartite graph must be sparse")
+    graph = graph.tocsr(copy=True)
     if graph.ndim != 2:
         raise Datum(f"bipartite must be 2-D, got {graph.ndim}-D")
+    if not np.issubdtype(graph.data.dtype, np.number) or not np.isfinite(graph.data).all():
+        raise Datum("bipartite graph must contain finite numeric values")
     cooc = graph.T @ graph
     cooc = cooc.sign()
     cooc.setdiag(0)
