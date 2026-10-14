@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **631 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **633 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -43,6 +43,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Data validators now reject non-integer interaction IDs, non-numeric or
   non-finite feature/mask values, invalid graph weights, and non-positive
   corpus bounds with typed errors before NumPy comparisons can leak failures.
+- Graph invariant helpers now enforce sparse square inputs, finite values,
+  non-negative tolerances, and valid degree controls through typed `Net`
+  failures instead of leaking shape/type exceptions.
 - Retrieval strategy resolution now validates the registered callable against
   the runtime `RetrievalStrategy` protocol before execution, closing another
   untyped plugin boundary.
@@ -332,7 +335,7 @@ history. This status map prevents historical findings from being mistaken for
 open defects:
 
 - **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
-  50–69, and the local/deployed portions of 43–48.
+  50–70, and the local/deployed portions of 43–48.
 - **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
@@ -566,6 +569,11 @@ and release operations.
     IDs, invalid corpus bounds, and non-finite graph/mask values could leak raw
     NumPy exceptions or pass inconsistent state downstream. Validators now
     reject these cases with typed `Datum`/`Shape` failures.
+
+70. **Closed in this worktree:** Graph invariant helpers could leak raw errors
+    for dense or non-square inputs, invalid symmetry tolerances, negative degree
+    thresholds, and non-numeric values. The helpers now enforce their sparse
+    square contract and normalize malformed controls/values to `Net` failures.
 
 ### P3 — testing and quality gates
 

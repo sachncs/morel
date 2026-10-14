@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 import scipy.sparse as sp
 
-from morel.graph import Bipartite, Item, connected
+from morel.core.errors import Net
+from morel.graph import Bipartite, Item, connected, invariants
 
 
 class Checker:
@@ -99,3 +100,21 @@ class Checker:
             item.neighbors(-1)
         with pytest.raises(ValueError, match="item index must be in"):
             item.neighbors(2)
+
+    def invariant_boundaries(self) -> None:
+        """Graph invariants reject malformed shapes and controls with Net."""
+        with pytest.raises(Net, match="sparse"):
+            invariants.symmetric(np.eye(2))  # type: ignore[arg-type]
+        with pytest.raises(Net, match="square"):
+            invariants.symmetric(sp.csr_matrix(np.zeros((2, 3))))
+        with pytest.raises(Net, match="minimum degree"):
+            invariants.isoless(sp.csr_matrix(np.zeros((2, 2))), min_degree=-1)
+        with pytest.raises(Net, match="tolerance"):
+            invariants.symmetric(sp.eye(2), atol=-1)
+
+    def invariant_values(self) -> None:
+        """Non-numeric and non-finite graph values stay inside Net."""
+        with pytest.raises(Net, match="numeric"):
+            invariants.finite(np.asarray([["x"]], dtype=object))  # type: ignore[arg-type]
+        with pytest.raises(Net, match="non-finite"):
+            invariants.finite(sp.csr_matrix(np.array([[np.nan]], dtype=np.float32)))
