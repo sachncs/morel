@@ -223,6 +223,43 @@ class Checker:
             with pytest.raises(TypeError):
                 registry["untrusted"] = object()
 
+    def external_extension_contracts(self) -> None:
+        """Every public plugin entry point rejects incompatible registrations."""
+        from morel.codebook import KIND as CODEBOOKS
+        from morel.codebook import register as register_codebook
+        from morel.complete import KIND as COMPLETERS
+        from morel.complete import register as register_completer
+        from morel.core.errors import Cfg
+        from morel.encode import KIND as ENCODERS
+        from morel.encode import register as register_encoder
+        from morel.recommend import KIND as RECOMMENDERS
+        from morel.recommend import register as register_recommender
+        from morel.retrieve import KIND as STRATEGIES
+        from morel.retrieve import register as register_strategy
+        from morel.route import KIND as ROUTERS
+        from morel.route import Top
+        from morel.route import register as register_router
+
+        with pytest.raises(Cfg):
+            register_encoder("external-bad-encoder", lambda **_: object(), implementation=object)
+        with pytest.raises(Cfg):
+            register_codebook("external-bad-codebook", lambda **_: object(), implementation=object)
+        with pytest.raises(Cfg):
+            register_completer("external-bad-completer", lambda **_: object(), implementation=object)
+        with pytest.raises(Cfg):
+            register_recommender("external-bad-recommender", lambda **_: object(), implementation=object)
+        with pytest.raises(Cfg):
+            register_router("external-bad-router", lambda wrong: object(), implementation=Top)
+        with pytest.raises(Cfg):
+            register_strategy("external-bad-strategy", lambda wrong: set())
+
+        assert "external-bad-encoder" not in ENCODERS
+        assert "external-bad-codebook" not in CODEBOOKS
+        assert "external-bad-completer" not in COMPLETERS
+        assert "external-bad-recommender" not in RECOMMENDERS
+        assert "external-bad-router" not in ROUTERS
+        assert "external-bad-strategy" not in STRATEGIES
+
     def named_protocols(self) -> None:
         """Raw-feature and graph-encoder protocols remain distinct and usable."""
         from morel.complete import Completer, Decoders

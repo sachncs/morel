@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **644 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **645 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -487,9 +487,10 @@ and release operations.
     `score`, `user_count`, and `item_count` before caching a model. A shared
     `FactoryRegistry[T]` now validates built-in encoder, router, codebook,
     completer, recommender, and retrieval strategy contracts at composition
-    time. Optional capabilities elsewhere still use `getattr`; third-party
-    extension registration and the remaining protocol boundaries need a typed
-    plugin surface.
+    time. Optional capabilities elsewhere still use `getattr`; a cross-surface
+    contract matrix now proves incompatible third-party registrations are
+    rejected before publication. The remaining protocol boundaries still need
+    a typed capability/plugin surface.
 20. **Closed in this worktree:** `Pipeline.attach()` stores mutable corpus dictionaries/arrays by reference.
     Callers can mutate data after attachment and change inference behavior
     without invalidation or a clear lifecycle boundary.
