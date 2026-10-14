@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
+
 import numpy as np
 import pytest
 import scipy.sparse as sp
@@ -9,8 +11,10 @@ import torch
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
+from morel.core.errors import Net
 from morel.data.build import bipartite, cooccurrence
 from morel.data.mask import bernoulli
+from morel.graph import invariants
 from morel.retrieve.acs import compute
 from morel.retrieve.bfs import path
 from morel.route import Dense, Gumbel, Top
@@ -136,3 +140,59 @@ class Checker:
         end = end % graph.shape[0]
         p = path(graph, start, end)
         assert all(0 <= n < graph.shape[0] for n in p)
+
+    @given(
+        st.integers(min_value=0, max_value=12),
+        st.lists(
+            st.tuples(
+                st.integers(min_value=-2, max_value=14),
+                st.integers(min_value=-2, max_value=14),
+                st.floats(allow_nan=True, allow_infinity=True, width=32),
+            ),
+            max_size=32,
+        ),
+    )
+    @settings(max_examples=40, deadline=None)
+    def sparse_invariants_never_leak_internal_errors(
+        self,
+        size: int,
+        entries: list[tuple[int, int, float]],
+    ) -> None:
+        """Arbitrary sparse graphs become ``Net`` errors or valid results."""
+        if size == 0:
+            graph = sp.csr_matrix((0, 0), dtype=np.float32)
+        else:
+            rows = [row % size for row, _, _ in entries]
+            cols = [col % size for _, col, _ in entries]
+            values = [value for _, _, value in entries]
+            graph = sp.coo_matrix(
+                (np.asarray(values, dtype=np.float32), (rows, cols)),
+                shape=(size, size),
+            ).tocsr()
+
+        for check in (invariants.finite, invariants.loopless, invariants.symmetric):
+            with suppress(Net):
+                check(graph)
+
+        with suppress(Net):
+            invariants.isoless(graph, min_degree=0)
+
+    @given(
+        st.one_of(
+            st.floats(min_value=-10, max_value=-0.001),
+            st.sampled_from([float("nan"), float("inf"), float("-inf")]),
+        ),
+        st.one_of(
+            st.integers(min_value=-3, max_value=-1),
+            st.floats(min_value=0.1, max_value=2.9),
+            st.sampled_from([float("nan"), float("inf"), float("-inf")]),
+        ),
+    )
+    @settings(max_examples=20, deadline=None)
+    def invalid_invariant_controls_are_typed(self, atol: float, min_degree: int | float) -> None:
+        """Invalid tolerance and degree controls never leak comparison errors."""
+        graph = sp.eye(2, format="csr", dtype=np.float32)
+        with pytest.raises(Net):
+            invariants.symmetric(graph, atol=atol)
+        with pytest.raises(Net):
+            invariants.isoless(graph, min_degree=min_degree)

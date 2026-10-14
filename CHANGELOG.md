@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Strict mypy mode for `morel/`.
 
 ### Added
+- Sparse graph invariant property coverage for arbitrary values, empty and
+  degenerate graphs, self-loops, non-finite data, and invalid controls.
 - `morel.core` runtime primitives: `Config`, `seed`, `Device`, `Log`, `Fidelity` registry.
 - `morel.data` lifecycle: `acquire`, `validate`, `extract`, `build`, `mask`, `store`, `Manifest`.
 - `morel.graph` polymorphism: `Graph`, `Bipartite`, `Item`, `Subgraph`, `Laplace`.
