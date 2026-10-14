@@ -160,7 +160,7 @@ jobs:
       - name: Build runtime image
         run: docker build --tag morel:ci .
       - name: Scan runtime image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: morel:ci
           format: table
