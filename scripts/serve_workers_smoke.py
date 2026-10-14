@@ -39,11 +39,17 @@ def wait_for_health(base: str, *, timeout: float = 15.0) -> tuple[int, str]:
 
 
 def environment(source: Mapping[str, str] | None = None) -> dict[str, str]:
-    """Build an isolated production-like environment for the smoke process."""
+    """Build an isolated authenticated development environment for smoke tests.
+
+    These lifecycle checks intentionally omit a model bundle so they can verify
+    liveness and fail-closed readiness. Production mode correctly rejects that
+    configuration before opening a socket; development mode lets the smoke
+    process exercise the readiness response instead.
+    """
     values = dict(os.environ if source is None else source)
     values.update(
         {
-            "MOREL_ENV": "production",
+            "MOREL_ENV": "development",
             "MOREL_AUTH_TOKEN_READ": "smoke-read-token-123456",
             "MOREL_AUTH_TOKEN_ADMIN": "smoke-admin-token-654321",
         }
