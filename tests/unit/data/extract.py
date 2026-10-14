@@ -25,7 +25,7 @@ from morel.core.config import Config
 from morel.core.errors import Cfg, Datum
 from morel.data import EXTRACTORS, assemble
 from morel.data.__main__ import main
-from morel.data.extract import Random
+from morel.data.extract import Random, Vision
 
 
 def write(tmp_path: Path, **payload: Any) -> Path:
@@ -71,6 +71,13 @@ class Checker:
     def rejects(self) -> None:
         with pytest.raises(Datum, match="dim must be positive"):
             Random(0)
+
+    def vision_rejects_invalid_backbone_names(self) -> None:
+        """Malformed or non-callable torchvision attributes fail as data errors."""
+        with pytest.raises(Datum, match="invalid torchvision model name"):
+            Vision("not-a-model-name")
+        with pytest.raises(Datum, match="invalid torchvision model name"):
+            Vision("__dict__")
 
     def synthetic(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.chdir(tmp_path)

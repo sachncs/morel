@@ -226,8 +226,10 @@ class Vision:
 
     def __init__(self, model: str, *, batch: int = 32) -> None:
         """Load ``model`` with default pretrained weights; requires ``vision``."""
+        if not isinstance(model, str) or not model.isidentifier() or model.startswith("_"):
+            raise Datum(f"invalid torchvision model name {model!r}")
         builder = getattr(tv_models, model, None)
-        if builder is None:
+        if not callable(builder):
             raise Datum(f"torchvision has no model named {model!r}")
         self.name = model
         self.batch = batch
@@ -236,7 +238,12 @@ class Vision:
         # extra constructor call but is the only way to learn the
         # dimension for arbitrary backbones; the temporary probe is not
         # retained after reading ``fc.in_features``.
-        feature_dim = int(builder(weights=None).fc.in_features)
+        probe = builder(weights=None)
+        classifier = getattr(probe, "fc", None)
+        feature_dim = getattr(classifier, "in_features", None)
+        if not isinstance(feature_dim, int) or feature_dim <= 0:
+            raise Datum(f"torchvision model {model!r} has no supported fc feature dimension")
+        feature_dim = int(feature_dim)
         self.model = builder(weights="DEFAULT")
         self.model.fc = torch.nn.Identity()
         self.model.eval()
