@@ -113,8 +113,8 @@ against a Pages-shaped `/morel/` artifact.
 - The retrieval encoder uses batched gathers for padded subgraphs; MAGE shares
   one relevance and anchor-normalization index across a batch and lazily
   materializes active neighbor rows. ACS uses compiled SciPy shortest-path
-  traversal. The refreshed bounded forward benchmark measures 387.23 ms mean
-  for 1k items and 7.087 s mean for 10k items at commit `0718e4d`; a separate
+  traversal. The refreshed bounded forward benchmark measures 233.15 ms mean
+  for 1k items and 6.920 s mean for 10k items at commit `02e6917`; a separate
   10k-item/32-query end-to-end smoke remains approximately 7.9 s locally
   after the ACS change. These are capacity signals, not production SLOs:
   representative hardware thresholds and CPU transformer capacity planning
