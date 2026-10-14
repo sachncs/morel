@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
+import numpy as np
 import scipy.sparse as sp
 
 from morel.core.types import Array
@@ -22,10 +23,18 @@ class Bipartite:
 
     def __post_init__(self) -> None:
         """Validate that the matrix is 2-D and sparse."""
-        if self.matrix.ndim != 2:
-            raise ValueError("bipartite matrix must be 2-D")
         if not sp.issparse(self.matrix):
             raise ValueError("bipartite matrix must be sparse")
+        matrix = self.matrix.tocsr(copy=True)
+        if matrix.ndim != 2:
+            raise ValueError("bipartite matrix must be 2-D")
+        if not np.issubdtype(matrix.data.dtype, np.number) or not np.isfinite(matrix.data).all():
+            raise ValueError("bipartite matrix must contain finite numeric values")
+        matrix.sum_duplicates()
+        matrix.sort_indices()
+        for values in (matrix.data, matrix.indices, matrix.indptr):
+            values.setflags(write=False)
+        object.__setattr__(self, "matrix", matrix)
 
     @property
     def users(self) -> int:
@@ -43,8 +52,8 @@ class Bipartite:
         return int(self.matrix.nnz)
 
     def adjacency(self) -> sp.csr_matrix:
-        """Return the underlying sparse adjacency."""
-        return self.matrix
+        """Return a writable copy of the sparse adjacency."""
+        return self.matrix.copy()
 
     def dense(self) -> Array:
         """Return a dense copy as a numpy array."""
@@ -70,6 +79,7 @@ class Bipartite:
                 shape=state["shape"],
             ),
         )
+        self.__post_init__()
 
 
 __all__ = ["Bipartite"]

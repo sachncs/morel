@@ -33,11 +33,12 @@ def isoless(adj: sp.spmatrix, *, min_degree: int = 1) -> None:
 
 def finite(adj: sp.spmatrix) -> None:
     """Raise if the adjacency contains non-finite values."""
-    if sp.issparse(adj):
-        if not np.isfinite(adj.data).all():
+    try:
+        values = adj.data if sp.issparse(adj) else adj
+        if not np.isfinite(values).all():
             raise Net("graph contains non-finite values")
-    elif not np.isfinite(adj).all():
-        raise Net("graph contains non-finite values")
+    except TypeError as exc:
+        raise Net("graph values must be numeric") from exc
 
 
 def verify_all(adj: sp.spmatrix) -> None:

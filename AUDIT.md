@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **588 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **589 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -476,6 +476,12 @@ and release operations.
     the redesigned site with `scrollable-region-focusable`. Both blocks now
     expose a keyboard focus target and accessible label; desktop and
     `/morel/` base-path browser gates pass locally.
+
+61. **Closed in this worktree:** Frozen graph value objects still exposed
+    mutable sparse matrices by reference, allowing callers to change graph
+    state after validation. `Bipartite` and `Item` now snapshot and freeze
+    their CSR buffers, return copy-on-read adjacency values, and revalidate
+    unpickled state.
 
 ### P3 — testing and quality gates
 

@@ -30,9 +30,15 @@ class Item:
 
     def __post_init__(self) -> None:
         """Enforce graph invariants on construction."""
-        invariants.loopless(self.matrix)
-        invariants.symmetric(self.matrix)
-        invariants.finite(self.matrix)
+        matrix = self.matrix.tocsr(copy=True)
+        invariants.loopless(matrix)
+        invariants.symmetric(matrix)
+        invariants.finite(matrix)
+        matrix.sum_duplicates()
+        matrix.sort_indices()
+        for values in (matrix.data, matrix.indices, matrix.indptr):
+            values.setflags(write=False)
+        object.__setattr__(self, "matrix", matrix)
 
     @classmethod
     def bip(cls, bipartite: Bipartite) -> Item:
@@ -54,8 +60,8 @@ class Item:
         return int(self.matrix.nnz)
 
     def adjacency(self) -> sp.csr_matrix:
-        """Return the underlying sparse adjacency."""
-        return self.matrix
+        """Return a writable copy of the sparse adjacency."""
+        return self.matrix.copy()
 
     def neighbors(self, item: int) -> Array:
         """Return the sorted list of item indices connected to ``item``."""
@@ -82,6 +88,7 @@ class Item:
                 shape=state["shape"],
             ),
         )
+        self.__post_init__()
 
 
 __all__ = ["Item"]

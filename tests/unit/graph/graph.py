@@ -44,3 +44,21 @@ class Checker:
         nodes = np.array([0, 2])
         parent = {0: np.array([1]), 1: np.array([0, 2]), 2: np.array([1])}
         assert not connected(nodes, parent)
+
+    def ownership(self) -> None:
+        """Graph value objects isolate and protect their sparse inputs."""
+        source = sp.csr_matrix(np.array([[1, 0], [0, 1]], dtype=np.float32))
+        graph = Bipartite(source)
+        source[0, 0] = 2
+        assert graph.edges == 2
+        copy = graph.adjacency()
+        copy[0, 0] = 2
+        assert graph.edges == 2
+
+        item_source = sp.csr_matrix(np.array([[0, 1], [1, 0]], dtype=np.float32))
+        item = Item(item_source)
+        item_source[0, 1] = 0
+        assert item.edges == 2
+        item_copy = item.adjacency()
+        item_copy[0, 1] = 0
+        assert item.edges == 2
