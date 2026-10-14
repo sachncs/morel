@@ -398,10 +398,11 @@ and release operations.
 16. **Partially addressed:** CLI logging now catches only expected
     configuration/YAML/filesystem failures and preserves cancellation.
     Distributed initialization and API generation now catch only expected
-    runtime/import failures; the loader and HTTP boundary still intentionally
-    catch broad ordinary exceptions to clean up or sanitize third-party
-    failures. The remaining boundaries need continued fault-injection coverage
-    and an explicit exception taxonomy.
+    runtime/import failures. Loader factory failures and expected recommender
+    dependency failures now use typed/sanitized serving errors; the global HTTP
+    middleware remains a final defensive boundary for unknown programmer or
+    dependency failures. The remaining boundaries need continued
+    fault-injection coverage and an explicit exception taxonomy.
 
 ### P2 — architecture and API design
 
