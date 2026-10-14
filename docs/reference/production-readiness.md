@@ -80,8 +80,9 @@ against a Pages-shaped `/morel/` artifact.
   passes with four concurrent clients; production-scale full-load
   characterization and external rollback/alert drills remain open.
 - `make serve-model-smoke` now reports p50/p95/p99 recommendation latency and
-  fails on the configured p95 budget (`MOREL_MODEL_SMOKE_P95_SECONDS`, default
-  30 seconds); production hardware-specific budgets still need calibration.
+  fails on the configured p95 and p99 budgets (`MOREL_MODEL_SMOKE_P95_SECONDS`
+  and `MOREL_MODEL_SMOKE_P99_SECONDS`, both defaulting to 30 seconds);
+  production hardware-specific budgets still need calibration.
 - The serving failure-policy matrix is directly tested for timeout, domain,
   dependency, programmer, and cancellation behavior; completion,
   recommendation, and readiness use the same sanitized policy, while

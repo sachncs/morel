@@ -51,10 +51,13 @@ def main() -> int:
     model_dir = os.environ.get("MOREL_MODEL_SMOKE_DIR", "runs/completion")
     requests = int(os.environ.get("MOREL_MODEL_SMOKE_REQUESTS", "3"))
     p95_budget = float(os.environ.get("MOREL_MODEL_SMOKE_P95_SECONDS", "30"))
+    p99_budget = float(os.environ.get("MOREL_MODEL_SMOKE_P99_SECONDS", "30"))
     if requests < 1:
         raise ValueError("MOREL_MODEL_SMOKE_REQUESTS must be positive")
     if p95_budget <= 0:
         raise ValueError("MOREL_MODEL_SMOKE_P95_SECONDS must be positive")
+    if p99_budget <= 0:
+        raise ValueError("MOREL_MODEL_SMOKE_P99_SECONDS must be positive")
     base = f"http://127.0.0.1:{port}"
     command = [
         sys.executable,
@@ -122,10 +125,12 @@ def main() -> int:
                 "p95": round(percentile(latencies, 0.95), 4),
                 "p99": round(percentile(latencies, 0.99), 4),
                 "budget_p95": p95_budget,
+                "budget_p99": p99_budget,
             },
         }
-        if summary["recommendation_latency_seconds"]["p95"] > p95_budget:
-            raise RuntimeError(f"recommendation p95 exceeded budget: {summary}")
+        latency = summary["recommendation_latency_seconds"]
+        if latency["p95"] > p95_budget or latency["p99"] > p99_budget:
+            raise RuntimeError(f"recommendation latency budget exceeded: {summary}")
         print(json.dumps(summary))
         return 0
     finally:

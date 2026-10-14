@@ -41,7 +41,7 @@ make serve-model-smoke
 ```
 
 It measured three synthetic recommendation requests at p50 `1.0 ms`, p95
-`1.2 ms`, and p99 `1.2 ms` under the default 30-second smoke budget. This
+`1.2 ms`, and p99 `1.2 ms` under the default 30-second p95/p99 smoke budgets. This
 measures the small bundled smoke model, not a representative production
 catalog or hardware deployment.
 
