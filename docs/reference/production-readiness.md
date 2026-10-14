@@ -9,7 +9,7 @@ The complete issue register and staged remediation plan live in
 The following commands pass in the repository's supported local environment:
 
 ```text
-pytest -q                         611 passed, at least 84.57% coverage
+pytest -q                         613 passed, at least 84.57% coverage
 ruff check .                      pass
 ruff format --check .             pass
 mypy morel/                       pass
@@ -46,6 +46,8 @@ against a Pages-shaped `/morel/` artifact.
   error when the configured retrieval budget is exceeded.
 - Serving bundle loading warms graph positional encodings before readiness,
   preventing the first live request from paying the graph eigensolver cost.
+- Serving bundle masks and feature arrays are validated for bounded size, numeric
+  finiteness, dimensionality, and consistent corpus rows before pipeline assembly.
 - Serving loads checkpoints with `weights_only=True` and validates their
   schema and configuration hash.
 - The legacy arbitrary-pickle loader is isolated in
