@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from types import MappingProxyType
 from typing import Protocol, runtime_checkable
 
 import numpy as np
@@ -203,17 +204,18 @@ def none(
     return {int(query)}
 
 
-#: Map from config name to strategy function. Module-local; no global registry.
-KIND: dict[str, Callable[..., set[int]]] = {
+#: Internal strategy metadata for the read-only public view.
+_KIND: dict[str, Callable[..., set[int]]] = {
     "mage": mage,
     "acs": acs,
     "anchor": anchor,
     "bfs": bfs,
     "none": none,
 }
+KIND = MappingProxyType(_KIND)
 _STRATEGIES = FactoryRegistry[set[int]](
     "retrieval strategy",
-    KIND,
+    _KIND,
     factory_validator=lambda value: (
         isinstance(value, RetrievalStrategy)
         and _accepts_keywords(
@@ -242,7 +244,7 @@ def register(kind: str, strategy: Callable[..., set[int]]) -> None:
     names cannot be replaced in a live process.
     """
     _STRATEGIES.register(kind, strategy)
-    KIND[kind] = strategy
+    _KIND[kind] = strategy
 
 
 def retrieve(

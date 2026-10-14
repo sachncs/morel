@@ -1,6 +1,7 @@
 """Public API for the morel.codebook package."""
 
 from collections.abc import Callable
+from types import MappingProxyType
 
 from morel.codebook.codebook import (
     VQ,
@@ -40,12 +41,13 @@ def build(
     return _FACTORIES.build(kind, dim=dim, size=size, router=router, seed=seed)
 
 
-#: Map from config name to codebook class for introspection.
-KIND: dict[str, type[Codebook]] = {
+#: Internal implementation metadata for the read-only public view.
+_KIND: dict[str, type[Codebook]] = {
     "gumbel": Soft,
     "vq": VQ,
     "identity": Noop,
 }
+KIND = MappingProxyType(_KIND)
 
 
 def register(
@@ -54,7 +56,7 @@ def register(
     """Register an additive codebook implementation under a new config name."""
     _validate_implementation(implementation, Codebook, "codebook")
     _FACTORIES.register(kind, factory)
-    KIND[kind] = implementation
+    _KIND[kind] = implementation
 
 
 def _build_soft(*, dim: int, size: int, router: Router, seed: int | None) -> Codebook:

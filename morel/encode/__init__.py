@@ -1,6 +1,7 @@
 """Public API for the morel.encode package."""
 
 from collections.abc import Callable
+from types import MappingProxyType
 
 import torch.nn as nn
 
@@ -50,11 +51,12 @@ def build(
     )
 
 
-#: Map from config name to encoder class for introspection.
-KIND: dict[str, type[nn.Module]] = {
+#: Internal implementation metadata for the read-only public view.
+_KIND: dict[str, type[nn.Module]] = {
     "transformer": Transformer,
     "identity": Identity,
 }
+KIND = MappingProxyType(_KIND)
 
 
 def register(
@@ -63,7 +65,7 @@ def register(
     """Register an additive encoder implementation under a new config name."""
     _validate_implementation(implementation, GraphEncoder, "encoder")
     _FACTORIES.register(kind, factory)
-    KIND[kind] = implementation
+    _KIND[kind] = implementation
 
 
 def _build_transformer(

@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **637 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **638 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -51,6 +51,8 @@ Scope: repository, local Python package, local React site, and the deployed
   boundaries.
 - Secret-provider adapters now reject unknown runtime scope names instead of
   silently mapping them to a legacy credential.
+- Public extension metadata maps are read-only views; additive registration
+  updates the validated internal registry and metadata together.
 - Graph invariant helpers now enforce sparse square inputs, finite values,
   non-negative tolerances, and valid degree controls through typed `Net`
   failures instead of leaking shape/type exceptions.

@@ -21,6 +21,8 @@ import ast
 import pathlib
 from collections import defaultdict
 
+import pytest
+
 #: Package layers, lowest (most foundational) first. A package may import from
 #: its own layer's siblings only if that does not create a cycle; the layer
 #: check below allows same-layer imports and the cycle check catches the rest.
@@ -207,6 +209,19 @@ class Checker:
             assert doc[name] == set(registry), (
                 f"{name}: docs list {sorted(doc[name])}, code registers {sorted(set(registry))}"
             )
+
+    def readonly_extension_views(self) -> None:
+        """Public extension metadata cannot diverge from construction registries."""
+        from morel.codebook import KIND as CODEBOOKS
+        from morel.complete import KIND as COMPLETERS
+        from morel.encode import KIND as ENCODERS
+        from morel.recommend import KIND as RECOMMENDERS
+        from morel.retrieve import KIND as STRATEGIES
+        from morel.route import KIND as ROUTERS
+
+        for registry in (CODEBOOKS, COMPLETERS, ENCODERS, RECOMMENDERS, STRATEGIES, ROUTERS):
+            with pytest.raises(TypeError):
+                registry["untrusted"] = object()
 
     def named_protocols(self) -> None:
         """Raw-feature and graph-encoder protocols remain distinct and usable."""

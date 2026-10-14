@@ -1,6 +1,7 @@
 """Public API for the morel.complete package."""
 
 from collections.abc import Callable
+from types import MappingProxyType
 
 import torch.nn as nn
 
@@ -27,11 +28,12 @@ def build(kind: str, *, latent_dim: int, dims: dict[str, int], hidden: int) -> n
     return _FACTORIES.build(kind, latent_dim=latent_dim, dims=dims, hidden=hidden)
 
 
-#: Map from config name to completer class for introspection.
-KIND: dict[str, type[nn.Module]] = {"mlp": Decoders}
+#: Internal implementation metadata for the read-only public view.
+_KIND: dict[str, type[nn.Module]] = {"mlp": Decoders}
+KIND = MappingProxyType(_KIND)
 _FACTORIES = FactoryRegistry[nn.Module](
     "completer",
-    KIND,
+    _KIND,
     validator=lambda value: isinstance(value, Completer),
     factory_validator=lambda value: _accepts_keywords(value, ("latent_dim", "dims", "hidden")),
 )
@@ -43,7 +45,7 @@ def register(
     """Register an additive completer implementation under a new config name."""
     _validate_implementation(implementation, Completer, "completer")
     _FACTORIES.register(kind, factory)
-    KIND[kind] = implementation
+    _KIND[kind] = implementation
 
 
 __all__ = ["KIND", "Completer", "Decoders", "build", "register"]
