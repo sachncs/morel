@@ -583,64 +583,73 @@ and release operations.
 
 ## Fix plan
 
-### Phase 0 — establish truth and gates
+This is the execution plan for the issues that remain after the closed items
+above. Each item has an evidence-producing gate; a passing unit test alone is
+not sufficient for the production claims.
 
-1. Add `pytest-asyncio`; normalize the supported Python/pytest versions.
-2. Add `make audit` that runs tests, coverage, Ruff lint/format, mypy, package
-   build, built-wheel install/entry-point verification, dependency audits, site
-   build, and link checks.
-3. Replace static site metrics with generated release data or label them as
-   illustrative; fail the site build when required links return 4xx.
-4. Add frontend unit coverage and extend the browser smoke/axe/visual suite with
-   cross-browser and full-page visual baselines.
+### Phase 0 — completed foundations
 
-### Phase 1 — serving correctness and safety
+The repository now has a reproducible local environment, a pinned dependency
+lock, Python 3.10–3.13 CI, strict Ruff/mypy gates, built-wheel and image audits,
+property/boundary tests, frontend/browser/axe checks, generated verification
+metrics, fail-closed serving, and the redesigned deployed site. These are
+regression gates and must remain green while the open work proceeds.
 
-1. Define a real serving contract for catalog features, masks, item graph, user
-   graph, and recommender state.
-2. Make `/v1/recommend` and `/v1/complete` fail closed when required state is
-   absent; remove the uniform fallback.
-3. Wire completion output into ranking, or explicitly separate demo endpoints
-   from production inference endpoints.
-4. Fix request timing, correlation IDs, structured errors, trusted-proxy
-   handling, startup configuration validation, and bounded payloads.
-5. Keep safe checkpoint loading as the default; isolate trusted legacy loading
-   and validate checkpoint schemas.
+### Phase 1 — finish the serving error contract
 
-### Phase 2 — contracts and architecture
+1. Replace the remaining ordinary `except Exception` boundaries in loader,
+   HTTP middleware, and recommender execution with a documented taxonomy for
+   expected domain, dependency, timeout, cancellation, and programmer errors.
+2. Preserve cancellation and process-interrupt semantics; sanitize dependency
+   failures into stable 5xx envelopes with correlation IDs and structured
+   operator logs.
+3. Add fault-injection tests for each taxonomy branch, including factory,
+   checkpoint, tensor, network, timeout, and request-cancellation failures.
 
-1. Rename colliding types and codify public/private/semi-private conventions.
-2. Introduce typed ABC/protocol contracts for each pluggable stage, with typed
-   registry factories and capability checks at construction time.
-3. Define pipeline/corpus ownership and cache invalidation semantics.
-4. Add contract tests that run every registered implementation through the same
-   interface and exercise real `Pipeline` → trainer → serve flows.
+Evidence: a contract test matrix mapping exception class to HTTP status, public
+error code, log fields, and retry/no-retry behavior.
 
-### Phase 3 — performance and resilience
+### Phase 2 — complete typed extension architecture
 
-1. Vectorize retrieval relevance, batching, negative sampling, MRR, and
-   subgraph feature assembly where profiling shows material wins.
-2. Add sparse-graph edge-case tests: empty batches, isolated nodes, duplicate
-   edges, self loops, zero modalities, malformed shapes, CPU/MPS/CUDA moves.
-3. Add load/concurrency tests for loader, rate limiting, updater, rollback, and
-   request cancellation.
-4. Benchmark before/after with thresholds tied to representative catalog sizes.
+1. Define typed ABC/protocol contracts and capability declarations for every
+   pluggable encoder, router, codebook, completer, recommender, and retrieval
+   strategy, including optional capabilities currently accessed with `getattr`.
+2. Require validators for third-party factory registrations and reject an
+   incompatible plugin at registration/startup rather than first request.
+3. Document public, semi-private, and private naming; import boundaries;
+   deprecation policy; ownership; immutability; and cache invalidation rules.
+4. Run every built-in and test plugin through the same contract suite, including
+   real pipeline → trainer → checkpoint → serving flows.
 
-### Phase 4 — site redesign and logo
+Evidence: typed plugin fixtures, registration-time failures, mypy coverage of
+the extension surface, and compatibility tests for documented aliases.
 
-1. Reframe the landing page around one message: “complete missing item signals
-   before ranking.” Use a restrained mushroom/graph palette: warm ivory,
-   charcoal, mycelium gold, and one restrained signal color; reserve gradients
-   for data-flow emphasis.
-2. Redesign the logo as a simple two-part mark: a compact morel cap/mycelium
-   silhouette whose gills become connected graph nodes. Provide SVG mark,
-   monochrome mark, favicon, wordmark lockup, and usage-safe clear space.
-3. Simplify the first viewport, keep one primary CTA, expose the code path and
-   proof points early, and move decorative sections lower.
-4. Repair all links, add proper docs routing, implement an accessible mobile
-   navigation dialog, and remove duplicate SVG IDs.
-5. Validate at 360px, 768px, 1024px, and 1440px with keyboard-only and reduced
-   motion checks before publishing.
+### Phase 3 — production capacity and operations
+
+1. Benchmark representative catalog sizes and hardware for retrieval, graph
+   encoding, CPU transformer inference, startup warm-up, and concurrent HTTP
+   traffic; turn measured p95/p99 budgets into configuration gates.
+2. Complete malformed-artifact and broad configuration fuzzing, plus sparse
+   graph edge cases across empty, isolated, duplicate, self-loop, zero-modality,
+   malformed-shape, and device-transfer inputs.
+3. Add a vendor `SecretProvider` adapter seam, exercise external rollback and
+   restore procedures, and run alert/metric drillbooks against a deployed
+   multi-worker topology.
+
+Evidence: reproducible benchmark artifacts, SLO thresholds in CI/release checks,
+fuzz corpus reports, vendor adapter contract tests, and timestamped rollback and
+alert drill results.
+
+### Phase 4 — documentation and release closure
+
+1. Keep the issue register, production-readiness page, generated site metrics,
+   API examples, and deployment instructions synchronized in one verification
+   gate.
+2. Verify the deployed Pages route, compatibility redirects, external docs
+   hosting, release artifacts, SBOM, and rollback instructions after each
+   release.
+3. Reassess all “closed” findings at each dependency, Python, runner, or
+   frontend major-version upgrade.
 
 ### Definition of done
 
@@ -653,3 +662,6 @@ and release operations.
   documented and enforced.
 - The deployed site links resolve, claims are traceable to generated evidence,
   the mobile experience is accessible, and the new logo is used consistently.
+- The open Phase 1–4 evidence exists for the target deployment environment;
+  until then, the system remains audited and hardened but is not declared
+  production-ready by default.
