@@ -507,7 +507,7 @@ def suggest(
             scores = pipeline.score(user_id, item_ids.squeeze(0)).squeeze(0)
     except HTTPException:
         raise
-    except Exception as exc:  # pragma: no cover - recommender-specific
+    except (Error, IndexError, OSError, RuntimeError, TypeError, ValueError) as exc:
         log.exception(
             "recommender scoring failed",
             extra={"request_id": request_id, "user": payload.user, "top": top},

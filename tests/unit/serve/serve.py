@@ -665,6 +665,23 @@ class Checker:
         assert r.status_code == 422
         assert r.json()["error"]["code"] == "http_422"
 
+    async def recommend_dependency_failure(self) -> None:
+        """Expected scoring failures become retryable, sanitized 503 responses."""
+
+        class FailingPipeline(StubPipeline):
+            def score(self, users, items):
+                raise RuntimeError("backend credential must not escape")
+
+        loader = Loader()
+        loader.register("default", lambda: FailingPipeline())
+        async with make(create(loader)) as client:
+            r = await post(client, "/v1/recommend", json={"user": 0, "top": 3})
+        assert r.status_code == 503
+        assert r.json()["error"]["message"] == (
+            "recommender scoring failed; see server logs with the request id"
+        )
+        assert "backend credential" not in r.text
+
     async def recommend_without_ranker(self) -> None:
         """A loaded pipeline without a ranker fails closed instead of fabricating scores."""
         loader = Loader()
