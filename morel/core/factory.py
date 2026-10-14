@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterable, Mapping
 from typing import Generic, TypeVar
 
-from morel.core.errors import Cfg
+from morel.core.errors import Cfg, Error
 
 T = TypeVar("T")
 
@@ -48,9 +48,14 @@ class FactoryRegistry(Generic[T]):
         self._validator = validator
         self._factory_validator = factory_validator
         if factory_validator is not None:
-            invalid = [
-                kind for kind, factory in self._factories.items() if not factory_validator(factory)
-            ]
+            invalid: list[str] = []
+            for kind, factory in self._factories.items():
+                try:
+                    valid = factory_validator(factory)
+                except Exception as exc:
+                    raise Cfg(f"{name} factory contract validation failed") from exc
+                if not valid:
+                    invalid.append(kind)
             if invalid:
                 names = ", ".join(repr(kind) for kind in invalid)
                 raise Cfg(f"{name} registry has incompatible factory registration: {names}")
@@ -77,8 +82,17 @@ class FactoryRegistry(Generic[T]):
 
     def build(self, kind: str, **kwargs: object) -> T:
         """Construct and validate one named component."""
-        value = self.resolve(kind)(**kwargs)
-        if self._validator is not None and not self._validator(value):
+        try:
+            value = self.resolve(kind)(**kwargs)
+        except Error:
+            raise
+        except Exception as exc:
+            raise Cfg(f"{self.name} '{kind}' factory failed") from exc
+        try:
+            valid = self._validator is None or self._validator(value)
+        except Exception as exc:
+            raise Cfg(f"{self.name} '{kind}' result validation failed") from exc
+        if not valid:
             raise Cfg(f"{self.name} '{kind}' does not satisfy its runtime contract")
         return value
 

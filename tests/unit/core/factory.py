@@ -41,6 +41,27 @@ class Checker:
                 factory_validator=lambda value: callable(value) and hasattr(value, "required"),
             )
 
+    def validator_failure_is_typed(self) -> None:
+        """A broken plugin validator cannot leak backend details."""
+
+        def broken(_: object) -> bool:
+            raise RuntimeError("plugin secret")
+
+        with pytest.raises(Cfg, match="factory contract validation failed") as caught:
+            FactoryRegistry[int]("number", {"one": lambda: 1}, factory_validator=broken)
+        assert "plugin secret" not in str(caught.value)
+
+    def factory_failure_is_typed(self) -> None:
+        """A plugin constructor failure becomes a stable configuration error."""
+
+        def broken() -> int:
+            raise RuntimeError("backend secret")
+
+        registry = FactoryRegistry[int]("number", {"broken": broken})
+        with pytest.raises(Cfg, match="factory failed") as caught:
+            registry.build("broken")
+        assert "backend secret" not in str(caught.value)
+
     def snapshots(self) -> None:
         """Mutating the source mapping does not mutate the registry."""
         factories = {"one": lambda: 1}
