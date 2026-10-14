@@ -45,7 +45,7 @@ class Checker:
         assert isinstance(parsed, Manifest)
 
     @given(st.binary(max_size=4096))
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=100, deadline=None)
     def malformed_sidecar_bytes_never_leak_internal_errors(self, payload: bytes) -> None:
         """Arbitrary persisted sidecar bytes reject as ``Datum`` or load safely."""
         with TemporaryDirectory() as directory:

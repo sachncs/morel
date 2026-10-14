@@ -48,7 +48,7 @@ class Checker:
             assert isinstance(loaded, dict)
 
     @given(st.binary(max_size=512))
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=100, deadline=None)
     def malformed_bytes_never_leak_internal_errors(self, payload: bytes) -> None:
         """Arbitrary checkpoint bytes reject as a typed model failure."""
         with TemporaryDirectory() as directory:

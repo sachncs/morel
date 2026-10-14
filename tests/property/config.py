@@ -42,7 +42,7 @@ class Checker:
             return
 
     @given(st.binary(max_size=2048))
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=100, deadline=None)
     def malformed_file_never_leaks_internal_errors(self, payload: bytes) -> None:
         """Arbitrary configuration bytes reject as ``Cfg`` or load safely."""
         with TemporaryDirectory() as directory:

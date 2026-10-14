@@ -24,7 +24,7 @@ class Checker:
         st.lists(st.floats(allow_nan=True, allow_infinity=True, width=32), max_size=8),
         st.lists(st.integers(min_value=-2, max_value=8), min_size=0, max_size=3),
     )
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=100, deadline=None)
     def malformed_graph_never_leaks_internal_errors(
         self,
         rows: list[int],
@@ -58,7 +58,7 @@ class Checker:
             st.floats(min_value=-2, max_value=2, allow_nan=False, allow_infinity=False), max_size=16
         ),
     )
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=100, deadline=None)
     def sparse_roundtrip_edge_matrix(
         self,
         size: int,
@@ -83,7 +83,7 @@ class Checker:
         assert np.array_equal(loaded.toarray(), graph.toarray())
 
     @given(st.binary(max_size=512))
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=100, deadline=None)
     def malformed_npz_never_leaks_internal_errors(self, payload: bytes) -> None:
         """Arbitrary artifact bytes reject as ``Datum`` or load as mappings."""
         with TemporaryDirectory() as directory:
@@ -102,7 +102,7 @@ class Checker:
             assert graph.ndim == 2
 
     @given(st.binary(max_size=4096))
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=100, deadline=None)
     def malformed_manifest_sidecar_never_leaks_internal_errors(self, payload: bytes) -> None:
         """Corrupt sidecars reject as ``Datum`` or preserve a valid artifact load."""
         with TemporaryDirectory() as directory:
@@ -116,7 +116,7 @@ class Checker:
             assert isinstance(arrays, dict)
 
     @given(st.binary(max_size=512))
-    @settings(max_examples=30, deadline=None)
+    @settings(max_examples=100, deadline=None)
     def malformed_mask_never_leaks_internal_errors(self, payload: bytes) -> None:
         """Arbitrary mask bytes reject as ``Model`` or load as valid arrays."""
         with TemporaryDirectory() as directory:
