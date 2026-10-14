@@ -52,3 +52,14 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v5
+      - name: Verify live Pages routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://sachncs.github.io/morel"
+          root="$(curl --fail --silent --show-error --location \
+            --retry 10 --retry-delay 3 --retry-all-errors "$base/")"
+          grep -q 'Robust multimodal recommendation' <<<"$root"
+          docs="$(curl --fail --silent --show-error --location \
+            --retry 10 --retry-delay 3 --retry-all-errors "$base/docs/")"
+          grep -q 'github.com/sachncs/morel/tree/master/docs' <<<"$docs"
