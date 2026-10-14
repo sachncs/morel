@@ -83,8 +83,9 @@ against a Pages-shaped `/morel/` artifact.
   fails on the configured p95 budget (`MOREL_MODEL_SMOKE_P95_SECONDS`, default
   30 seconds); production hardware-specific budgets still need calibration.
 - The serving failure-policy matrix is directly tested for timeout, domain,
-  dependency, programmer, and cancellation behavior; cancellation remains
-  outside the HTTP 500 boundary.
+  dependency, programmer, and cancellation behavior; completion,
+  recommendation, and readiness use the same sanitized policy, while
+  cancellation remains outside the HTTP 500 boundary.
 - Critical-module coverage is gated separately for serving, pipeline, CLI, and
   checkpoint loading via `make audit-critical`; the latest local run measured
   85%, 85%, 73%, and 86% respectively, above each configured floor.

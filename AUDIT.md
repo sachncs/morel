@@ -467,9 +467,10 @@ and release operations.
     middleware remains a final defensive boundary for unknown programmer or
     dependency failures. A cancellation regression test now proves that
     request cancellation is not converted into a false 500. The remaining
-    boundaries now route unexpected ordinary exceptions from completion and
-    recommendation execution through the typed failure policy while preserving
-    cancellation and process-interrupt semantics. Loader and middleware
+    boundaries now route unexpected ordinary exceptions from completion,
+    recommendation, and readiness execution through the typed failure policy
+    while preserving cancellation and process-interrupt semantics. The global
+    middleware and loader taxonomy matrix remain in the staged plan.
     taxonomy coverage remains in the staged plan.
 
 ### P2 — architecture and API design
