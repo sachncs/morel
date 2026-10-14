@@ -144,6 +144,8 @@ def save_graph(
     """
     final = Path(target).resolve()
     coo = sp.coo_matrix(graph)
+    if not np.issubdtype(coo.data.dtype, np.number) or not np.isfinite(coo.data).all():
+        raise Datum("graph weights must be finite numeric values")
     graph_shape = (int(coo.shape[0]), int(coo.shape[1]))
     _check_graph_bounds(graph_shape, int(coo.nnz), final)
 

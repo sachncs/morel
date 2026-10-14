@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **635 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **636 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -43,6 +43,9 @@ Scope: repository, local Python package, local React site, and the deployed
 - Data validators now reject non-integer interaction IDs, non-numeric or
   non-finite feature/mask values, invalid graph weights, and non-positive
   corpus bounds with typed errors before NumPy comparisons can leak failures.
+- Sparse graph writers now reject non-finite or non-numeric weights before
+  creating an artifact, keeping invalid state from entering the persistence
+  layer.
 - Graph invariant helpers now enforce sparse square inputs, finite values,
   non-negative tolerances, and valid degree controls through typed `Net`
   failures instead of leaking shape/type exceptions.

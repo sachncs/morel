@@ -98,6 +98,13 @@ class Checker:
         with pytest.raises(Datum, match="integer arrays"):
             load_graph(target)
 
+    def invalid_graph_save_values(self, tmp_path: Path) -> None:
+        """Graph writers reject invalid weights before creating artifacts."""
+        with pytest.raises(Datum, match="finite numeric"):
+            save_graph(tmp_path / "nan.npz", sp.csr_matrix([[np.nan]]))
+        with pytest.raises(Datum, match="finite numeric"):
+            save_graph(tmp_path / "bool.npz", sp.csr_matrix([[True]]))
+
     def graph_bounds(self, tmp_path: Path) -> None:
         """Declared sparse dimensions and edge counts are bounded."""
         too_wide = tmp_path / "too-wide.npz"
