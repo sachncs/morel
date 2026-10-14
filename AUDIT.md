@@ -357,8 +357,9 @@ open defects:
   50–70, and the local/deployed portions of 43–48.
 - **Partially addressed:** 16, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
-  portions of 43–53 are verified by Pages run `38620447253` and the live URL
-  check.
+  portions of 43–53 are verified by Pages run `38622702541` and the live URL
+  check. The full CI matrix for this audit update passed in run
+  `38622702406`.
 
 The local pipeline boundary now validates modality names and shapes and stores
 defensive snapshots of feature, mask, and adjacency inputs; this closes the

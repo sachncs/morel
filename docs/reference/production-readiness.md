@@ -62,7 +62,7 @@ against a Pages-shaped `/morel/` artifact.
 - Model serving fails closed when a real pipeline, corpus, graph, or
   recommender is unavailable.
 
-## Not yet verified or published
+## Verified deployment evidence and remaining limitations
 
 - The redesigned site is deployed from `master`; the live Pages route and its
   `/morel/` base-path browser gate are verified in CI.
