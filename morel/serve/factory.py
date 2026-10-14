@@ -8,12 +8,13 @@ import numpy as np
 
 from morel.core.config import Config
 from morel.core.errors import Error, Model
+from morel.core.types import Array
 from morel.data.store import MAX_ARTIFACT_BYTES, load_graph, load_npz
 from morel.pipeline import Pipeline
 from morel.train.checkpoint import State
 
 
-def _load_mask(path: Path) -> np.ndarray:
+def _load_mask(path: Path) -> Array:
     """Load a serving mask while keeping corruption inside the model boundary.
 
     Args:
@@ -44,7 +45,7 @@ def _load_mask(path: Path) -> np.ndarray:
     return mask
 
 
-def _validate_features(features: dict[str, np.ndarray]) -> None:
+def _validate_features(features: dict[str, Array]) -> None:
     """Validate serving feature arrays before their shapes reach the pipeline."""
     if not features:
         raise Model("serving feature artifact is empty")
