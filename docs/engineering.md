@@ -31,7 +31,11 @@ Python has no enforced private keyword, so visibility is a naming contract:
 Semi-private extension points use a leading underscore plus a typed protocol,
 for example `_ComponentFactory` or `_score_batch`. They must not be exported
 from `__init__.py` or documented as stable user APIs. Public registries must
-validate the factory's output at registration time.
+validate the factory signature and declared implementation before publication,
+then validate the constructed value against the runtime protocol before it is
+returned or cached. Parameterized factories cannot be safely constructed at
+registration time because doing so may allocate model state or require runtime
+resources.
 
 ## Objects, contracts, and polymorphism
 
