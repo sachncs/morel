@@ -385,7 +385,7 @@ class Checker:
         app = create()
 
         async def explode() -> None:
-            raise RuntimeError("database password=do-not-leak")
+            raise ValueError("database password=do-not-leak")
 
         app.add_api_route("/explode", explode, methods=["GET"])
         async with make(app) as client:
@@ -393,7 +393,7 @@ class Checker:
         assert r.status_code == 500
         assert "database password" not in r.text
         assert r.json()["error"] == {
-            "code": "internal_error",
+            "code": "http_500",
             "message": "unexpected serving failure; see server logs with the request id",
             "request_id": "internal-123",
         }
@@ -430,6 +430,45 @@ class Checker:
                 send,
             )
         assert [message["type"] for message in messages] == ["http.response.start"]
+
+    async def middleware_failure_uses_typed_policy(self) -> None:
+        """An uncaught pre-response dependency failure is sanitized and retryable."""
+
+        class Failing:
+            async def __call__(self, scope, receive, send) -> None:
+                raise RuntimeError("database password=do-not-leak")
+
+        app = create()
+        from morel.serve.observe import ObserveMiddleware
+
+        messages: list[dict[str, object]] = []
+
+        async def receive() -> dict[str, object]:
+            return {"type": "http.request", "body": b"", "more_body": False}
+
+        async def send(message: dict[str, object]) -> None:
+            messages.append(message)
+
+        middleware = ObserveMiddleware(
+            Failing(),
+            metrics_enabled=False,
+            metrics_path="/metrics",
+            request_id_factory=lambda supplied: supplied or "request-id",
+        )
+        await middleware(
+            {"type": "http", "path": "/failing", "method": "GET", "headers": [], "app": app},
+            receive,
+            send,
+        )
+        assert messages[0]["status"] == 503
+        assert messages[0]["headers"]
+        assert any(
+            key == b"retry-after" and value == b"1"
+            for key, value in messages[0]["headers"]
+        )
+        body = messages[1]["body"].decode()
+        assert "database password" not in body
+        assert "serving request is unavailable" in body
 
     async def cancellation_is_not_converted(self) -> None:
         """Request cancellation propagates instead of becoming a false 500."""

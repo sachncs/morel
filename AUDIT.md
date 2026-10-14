@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **643 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **644 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -468,9 +468,9 @@ and release operations.
     dependency failures. A cancellation regression test now proves that
     request cancellation is not converted into a false 500. The remaining
     boundaries now route unexpected ordinary exceptions from completion,
-    recommendation, and readiness execution through the typed failure policy
-    while preserving cancellation and process-interrupt semantics. The global
-    middleware and loader taxonomy matrix remain in the staged plan.
+    recommendation, readiness, and the final ASGI middleware boundary through
+    the typed failure policy while preserving cancellation and process-interrupt
+    semantics. The loader taxonomy matrix remains in the staged plan.
     taxonomy coverage remains in the staged plan.
 
 ### P2 — architecture and API design

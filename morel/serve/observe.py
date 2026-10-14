@@ -10,6 +10,7 @@ from collections.abc import Callable
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+from morel.serve.failures import classify
 from morel.serve.metrics import Registry, metrics_response
 
 log = logging.getLogger("morel.serve.app")
@@ -70,24 +71,32 @@ class ObserveMiddleware:
                 await self.app(scope, receive, observed_send)
         except asyncio.CancelledError:
             raise
-        except Exception:
+        except Exception as exc:
+            policy = classify(exc, operation="serving request")
             log.exception(
                 "unexpected serving failure",
-                extra={"request_id": request_id, "path": scope.get("path", "")},
+                extra={
+                    "request_id": request_id,
+                    "path": scope.get("path", ""),
+                    "failure_kind": policy.kind.value,
+                    "retryable": policy.retryable,
+                },
             )
             if response_started:
                 raise
+            response_headers = {}
+            if policy.retryable:
+                response_headers["Retry-After"] = "1"
             response = JSONResponse(
-                status_code=500,
+                status_code=policy.status_code,
                 content={
                     "error": {
-                        "code": "internal_error",
-                        "message": (
-                            "unexpected serving failure; see server logs with the request id"
-                        ),
+                        "code": f"http_{policy.status_code}",
+                        "message": policy.detail,
                         "request_id": request_id,
                     }
                 },
+                headers=response_headers,
             )
             await response(scope, receive, observed_send)
         finally:
