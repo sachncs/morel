@@ -300,7 +300,7 @@ open defects:
   50–60, and the local/deployed portions of 43–48.
 - **Partially addressed:** 6, 16, 19, 21, 22, 24, and 25.
 - **Still open:** the partially addressed items listed below; the deployment
-  portions of 43–53 are verified by Pages run `38451394978` and the live URL
+  portions of 43–53 are verified by Pages run `38520161516` and the live URL
   check.
 
 The local pipeline boundary now validates modality names and shapes and stores
@@ -416,10 +416,10 @@ and release operations.
     and the CLI/runtime register an explicit serving contract requiring
     `score`, `user_count`, and `item_count` before caching a model. A shared
     `FactoryRegistry[T]` now validates built-in encoder, router, codebook,
-    completer, and recommender adapters at composition time. Retrieval still
-    resolves a string-keyed strategy map directly, and optional capabilities
-    elsewhere still use `getattr`; third-party extension registration and the
-    remaining protocol boundaries need a typed plugin surface.
+    completer, recommender, and retrieval strategy contracts at composition
+    time. Optional capabilities elsewhere still use `getattr`; third-party
+    extension registration and the remaining protocol boundaries need a typed
+    plugin surface.
 20. **Closed in this worktree:** `Pipeline.attach()` stores mutable corpus dictionaries/arrays by reference.
     Callers can mutate data after attachment and change inference behavior
     without invalidation or a clear lifecycle boundary.
