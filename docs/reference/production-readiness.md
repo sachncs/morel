@@ -104,7 +104,9 @@ against a Pages-shaped `/morel/` artifact.
   self-loop sparse graph cases are covered; arbitrary checkpoint and serving
   mask and persisted manifest-sidecar bytes are covered; oversized sparse-graph node metadata and caller-
   defined edge budgets are rejected before sparse construction; invariant
-  controls and arbitrary sparse values now have a 40-example property matrix.
+  controls and arbitrary sparse values now have a 40-example property matrix;
+  raw persisted artifact boundaries run up to 100 generated examples per case
+  in the standard suite.
   Broader artifact fuzz coverage remains
   incomplete.
 - Streaming co-occurrence construction groups records by user and enforces a

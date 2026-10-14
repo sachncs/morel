@@ -639,7 +639,8 @@ browser-content checks.
     are now covered; oversized
     sparse-graph node metadata and caller-defined edge budgets are rejected
     before sparse construction; invariant controls and arbitrary sparse values
-    now have a 40-example property matrix.
+    now have a 40-example property matrix; raw persisted artifact boundaries
+    run up to 100 generated examples per case in the standard suite.
     Broader artifact fuzzing remains open.
     Persisted sparse graphs now enforce explicit node and edge budgets at save
     and load boundaries, including caller-selectable lower limits for services.
