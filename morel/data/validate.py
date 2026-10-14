@@ -21,12 +21,16 @@ def interactions(user: Array, item: Array, users: int, items: int) -> None:
     Raises:
         Datum: On shape, dtype, or range violations.
     """
+    if users <= 0 or items <= 0:
+        raise Datum("users and items must be positive")
     if user.ndim != 1 or item.ndim != 1:
         raise Shape("user and item must be 1-D")
     if user.shape != item.shape:
         raise Shape(f"shape mismatch: user {user.shape} vs item {item.shape}")
     if user.size == 0:
         raise Datum("interactions are empty")
+    if not np.issubdtype(user.dtype, np.integer) or not np.issubdtype(item.dtype, np.integer):
+        raise Datum("user and item indices must be integer arrays")
     if user.min() < 0 or item.min() < 0:
         raise Datum("negative indices not allowed")
     if user.max() >= users:
@@ -52,6 +56,8 @@ def features(payload: dict[str, Array], *, items: int) -> None:
             raise Shape(f"feature {name!r} must be 2-D, got {array.ndim}-D")
         if array.shape[0] != items:
             raise Shape(f"feature {name!r} row count {array.shape[0]} != items ({items})")
+        if not np.issubdtype(array.dtype, np.number):
+            raise Datum(f"feature {name!r} must be numeric")
         if not np.isfinite(array).all():
             raise Datum(f"feature {name!r} contains NaN or Inf")
         if array.dtype != np.float32:
@@ -72,6 +78,10 @@ def graph(adj: sp.spmatrix) -> None:
     rows, cols = adj.shape
     if rows != cols:
         raise Datum(f"graph must be square, got {adj.shape}")
+    if not np.issubdtype(adj.dtype, np.number):
+        raise Datum("graph edge weights must be numeric")
+    if not np.isfinite(adj.data).all():
+        raise Datum("graph has NaN or Inf edge weights")
     diag = adj.diagonal()
     if (diag != 0).any():
         raise Datum("graph has self-loops")
@@ -93,6 +103,8 @@ def mask(mask: Array) -> None:
         raise Shape(f"mask must be 2-D, got {mask.ndim}-D")
     if mask.shape[0] == 0:
         raise Datum("mask has no items")
+    if not np.issubdtype(mask.dtype, np.number) or not np.isfinite(mask).all():
+        raise Datum("mask values must be finite numeric values")
     unique = np.unique(mask)
     if not np.all(np.isin(unique, [0.0, 1.0])):
         raise Datum(f"mask values must be 0 or 1, got {unique}")

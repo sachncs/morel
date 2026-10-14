@@ -21,6 +21,12 @@ class Checker:
         with pytest.raises(Datum):
             interactions(np.array([5]), np.array([0]), 2, 2)
 
+    def indices(self) -> None:
+        with pytest.raises(Datum, match="integer"):
+            interactions(np.array([0.0]), np.array([0]), 2, 2)
+        with pytest.raises(Datum, match="positive"):
+            interactions(np.array([0]), np.array([0]), 0, 2)
+
     def nan(self) -> None:
         arr = np.array([[1.0, 2.0], [np.nan, 0.0]], dtype=np.float32)
         with pytest.raises(Datum):
@@ -31,6 +37,10 @@ class Checker:
         with pytest.raises(Datum):
             features({"a": arr}, items=2)
 
+    def object_values(self) -> None:
+        with pytest.raises(Datum, match="numeric"):
+            features({"a": np.asarray([["x"]], dtype=object)}, items=1)
+
     def loops(self) -> None:
         g = sp.csr_matrix(np.array([[1, 1], [1, 0]], dtype=np.float32))
         with pytest.raises(Datum):
@@ -39,6 +49,11 @@ class Checker:
     def negative(self) -> None:
         g = sp.csr_matrix(np.array([[0, -1], [-1, 0]], dtype=np.float32))
         with pytest.raises(Datum):
+            graph(g)
+
+    def graph_values(self) -> None:
+        g = sp.csr_matrix(np.array([[0.0, np.nan], [0.0, 0.0]], dtype=np.float32))
+        with pytest.raises(Datum, match="NaN"):
             graph(g)
 
     def kept(self) -> None:
