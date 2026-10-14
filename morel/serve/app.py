@@ -38,6 +38,8 @@ from morel.serve.schema import (
 # matrix; the handler bodies remain strictly checked below.
 # mypy: disable-error-code=unused-ignore
 log = logging.getLogger("morel.serve.app")
+_REQUEST_ID_CHARS = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.:")
+_REQUEST_ID_MAX_LENGTH = 128
 
 if TYPE_CHECKING:
     pass
@@ -225,8 +227,7 @@ def create(
     @app.middleware("http")  # type: ignore[untyped-decorator]
     async def observe(request: Request, call_next: Any) -> Any:
         """Count every request and serve Prometheus-formatted /metrics."""
-        incoming = request.headers.get("X-Request-ID", "").strip()
-        request_id = incoming if 0 < len(incoming) <= 128 else uuid.uuid4().hex
+        request_id = _request_id(request.headers.get("X-Request-ID", ""))
         request.state.request_id = request_id
         registry: Registry = request.app.state.metrics_registry
         if metrics_enabled and request.url.path == metrics_path:
@@ -527,6 +528,23 @@ def suggest(
 def count(app: FastAPI) -> int:
     """Return the current request count from the in-app counter."""
     return int(getattr(app.state, "request_count", 0))
+
+
+def _request_id(value: str) -> str:
+    """Return a safe request correlation id or generate one.
+
+    Client-provided ids are retained only when they are short, ASCII, and
+    limited to header/log-safe token characters. This prevents control
+    characters from reaching response headers or structured log fields.
+    """
+    candidate = value.strip()
+    if (
+        0 < len(candidate) <= _REQUEST_ID_MAX_LENGTH
+        and candidate.isascii()
+        and all(character in _REQUEST_ID_CHARS for character in candidate)
+    ):
+        return candidate
+    return uuid.uuid4().hex
 
 
 __all__ = [

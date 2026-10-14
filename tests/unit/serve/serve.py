@@ -346,6 +346,16 @@ class Checker:
         assert body["code"] == "http_503"
         assert body["request_id"] == "audit-123"
 
+    async def unsafe_request_id_is_replaced(self) -> None:
+        """Control characters in client ids cannot reach response headers."""
+        async with make(create()) as client:
+            r = await get(client, "/health", headers={"X-Request-ID": "bad request"})
+        request_id = r.headers["x-request-id"]
+        assert request_id != "bad request"
+        assert request_id.isascii()
+        assert len(request_id) == 32
+        assert all(character in "0123456789abcdef" for character in request_id)
+
     async def validation_error_envelope(self) -> None:
         """Validation errors expose safe field metadata, not raw input."""
         async with make(create()) as client:
