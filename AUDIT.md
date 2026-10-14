@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **589 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **590 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -401,8 +401,10 @@ and release operations.
     runtime/import failures. Loader factory failures and expected recommender
     dependency failures now use typed/sanitized serving errors; the global HTTP
     middleware remains a final defensive boundary for unknown programmer or
-    dependency failures. The remaining boundaries need continued
-    fault-injection coverage and an explicit exception taxonomy.
+    dependency failures. A cancellation regression test now proves that
+    request cancellation is not converted into a false 500. The remaining
+    boundaries need continued fault-injection coverage and an explicit
+    exception taxonomy.
 
 ### P2 — architecture and API design
 

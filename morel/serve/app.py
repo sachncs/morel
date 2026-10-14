@@ -5,7 +5,6 @@ from __future__ import annotations
 import logging
 import math
 import os
-import time
 import uuid
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -20,6 +19,7 @@ from morel.core.errors import Error
 from morel.serve import auth
 from morel.serve.loader import Loader
 from morel.serve.metrics import Registry, metrics_response
+from morel.serve.observe import ObserveMiddleware
 from morel.serve.protocol import ServingPipeline, is_serving_pipeline
 from morel.serve.ratelimit import Limiter, ratelimit_dependency
 from morel.serve.schema import (
@@ -143,6 +143,12 @@ def create(
     app.state.loader = loader or Loader()
     app.state.updater_enabled = True
     app.state.pipeline_factory = None
+    app.add_middleware(
+        ObserveMiddleware,
+        metrics_enabled=metrics_enabled,
+        metrics_path=metrics_path,
+        request_id_factory=_request_id,
+    )
     proxy_cidrs = (
         trusted_proxy_cidrs
         if trusted_proxy_cidrs is not None
@@ -223,45 +229,6 @@ def create(
             },
             headers={"X-Request-ID": request_id},
         )
-
-    @app.middleware("http")  # type: ignore[untyped-decorator]
-    async def observe(request: Request, call_next: Any) -> Any:
-        """Count every request and serve Prometheus-formatted /metrics."""
-        request_id = _request_id(request.headers.get("X-Request-ID", ""))
-        request.state.request_id = request_id
-        registry: Registry = request.app.state.metrics_registry
-        if metrics_enabled and request.url.path == metrics_path:
-            response = metrics_response(registry)
-            response.headers["X-Request-ID"] = request_id
-            return response
-        started = time.perf_counter()
-        try:
-            response = await call_next(request)
-        except Exception:
-            log.exception(
-                "unexpected serving failure",
-                extra={"request_id": request_id, "path": request.url.path},
-            )
-            response = JSONResponse(
-                status_code=500,
-                content={
-                    "error": {
-                        "code": "internal_error",
-                        "message": (
-                            "unexpected serving failure; see server logs with the request id"
-                        ),
-                        "request_id": request_id,
-                    }
-                },
-            )
-        response.headers["X-Request-ID"] = request_id
-        registry.observe_request(
-            endpoint=request.url.path,
-            method=request.method,
-            status=response.status_code,
-            elapsed=max(0.0, time.perf_counter() - started),
-        )
-        return response
 
     @app.get("/health", response_model=Health)  # type: ignore[untyped-decorator]
     def health() -> Health:

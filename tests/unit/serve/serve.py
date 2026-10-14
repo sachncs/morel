@@ -384,6 +384,18 @@ class Checker:
             "request_id": "internal-123",
         }
 
+    async def cancellation_is_not_converted(self) -> None:
+        """Request cancellation propagates instead of becoming a false 500."""
+        app = create()
+
+        async def cancel() -> None:
+            raise asyncio.CancelledError
+
+        app.add_api_route("/cancel", cancel, methods=["GET"])
+        async with make(app) as client:
+            with pytest.raises(asyncio.CancelledError):
+                await get(client, "/cancel")
+
     async def health_ready_with_factory(self) -> None:
         """A registered factory yields a 200 ready response."""
         app, _, _ = make_app_with_factory()
