@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from morel import __version__
-from morel.core.errors import Error
+from morel.core.errors import Error, Model
 from morel.serve import auth
 from morel.serve.failures import classify
 from morel.serve.loader import Loader
@@ -478,6 +478,16 @@ def run(
             index=torch.from_numpy(indices),
             training=False,
         )
+        completed = getattr(output, "completed", None)
+        if not isinstance(completed, dict) or any(
+            not isinstance(name, str)
+            or not isinstance(tensor, torch.Tensor)
+            or tensor.ndim != 2
+            or tensor.shape[0] != len(items)
+            or not bool(torch.isfinite(tensor).all())
+            for name, tensor in completed.items()
+        ):
+            raise Model("completion output must contain finite 2-D tensors")
     except HTTPException:
         raise
     except Exception as exc:
@@ -498,10 +508,7 @@ def run(
             headers=headers,
         ) from exc
     if payload.modalities:
-        return {
-            name: tensor for name, tensor in output.completed.items() if name in payload.modalities
-        }
-    completed: dict[str, Any] = output.completed
+        return {name: tensor for name, tensor in completed.items() if name in payload.modalities}
     return completed
 
 

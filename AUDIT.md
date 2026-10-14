@@ -6,7 +6,7 @@ Scope: repository, local Python package, local React site, and the deployed
 
 ## Verification snapshot
 
-- `./.venv-audit/bin/python -m pytest -q`: **625 passed**, at least 84.57% coverage,
+- `./.venv-audit/bin/python -m pytest -q`: **626 passed**, at least 84.57% coverage,
   no warnings.
 - A clean dev install initially aborted before collection because
   `pytest-asyncio` was missing from `pyproject.toml`; it is now declared.
@@ -32,6 +32,9 @@ Scope: repository, local Python package, local React site, and the deployed
   mutated behind the value object's back.
 - Completion validates every loaded feature array and its modality mask before
   tensor indexing, rejecting malformed plugin corpora with a sanitized 503.
+- Completion validates returned payloads for named, finite 2-D tensors with the
+  requested batch width before serialization, rejecting malformed plugin
+  outputs as typed model failures.
 - Retrieval strategy resolution now validates the registered callable against
   the runtime `RetrievalStrategy` protocol before execution, closing another
   untyped plugin boundary.
@@ -321,7 +324,7 @@ history. This status map prevents historical findings from being mistaken for
 open defects:
 
 - **Closed in this worktree:** 1–5, 7–15, 17–20, 23, 26–32, 34–42, 49,
-  50–65, and the local/deployed portions of 43–48.
+  50–66, and the local/deployed portions of 43–48.
 - **Partially addressed:** 6, 16, 19, 21, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38520161516` and the live URL
@@ -533,6 +536,12 @@ and release operations.
     inconsistent, or non-finite feature and mask artifacts could therefore
     escape as unclassified exceptions. The endpoint now validates dimensions,
     row counts, numeric values, and mask shape before tensor conversion.
+
+66. **Closed in this worktree:** `/v1/complete` trusted a plugin's returned
+    `completed` attribute during response serialization. Missing, malformed,
+    shape-incompatible, or non-finite tensors could escape the typed failure
+    policy. The endpoint now validates output names, tensor rank, batch width,
+    and finiteness before filtering requested modalities.
 
 ### P3 — testing and quality gates
 

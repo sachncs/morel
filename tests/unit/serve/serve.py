@@ -542,6 +542,24 @@ class Checker:
         assert response.status_code == 503
         assert "feature corpus is invalid" in response.json()["error"]["message"]
 
+    async def complete_rejects_malformed_output(self) -> None:
+        """Non-finite completion tensors fail closed before serialization."""
+
+        class MalformedPipeline(StubPipeline):
+            def __call__(self, *args, **kwargs):
+                import torch
+
+                output = super().__call__(*args, **kwargs)
+                output.completed["visual"] = torch.full((1, 4), float("nan"))
+                return output
+
+        loader = Loader()
+        loader.register("default", MalformedPipeline)
+        async with make(create(loader)) as client:
+            response = await post(client, "/v1/complete", json={"items": [0]})
+        assert response.status_code == 503
+        assert "completion is unavailable" in response.json()["error"]["message"]
+
     async def complete_oversize(self) -> None:
         """Oversized item lists are rejected before the handler runs."""
         app, _, _ = make_app_with_factory()
