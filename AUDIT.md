@@ -355,7 +355,7 @@ open defects:
 
 - **Closed in this worktree:** 1–6, 7–15, 17–20, 23, 26–32, 34–42, 49,
   50–70, and the local/deployed portions of 43–48.
-- **Partially addressed:** 16, 19, 22, 24, 25, and 33.
+- **Partially addressed:** 16, 22, 24, 25, and 33.
 - **Still open:** the partially addressed items listed below; the deployment
   portions of 43–53 are verified by Pages run `38620447253` and the live URL
   check.
@@ -485,17 +485,15 @@ browser-content checks.
     `Light`, `MF`, and `Pop` are selected through registries and recommender
     implementations now share a documented runtime protocol with typed capability
     declarations and polymorphic optional interfaces.
-19. **Partially addressed:** Serving factories now accept runtime validators,
+19. **Closed in this worktree:** Serving factories accept runtime validators,
     and the CLI/runtime register an explicit serving contract requiring
     `score`, `user_count`, and `item_count` before caching a model. A shared
-    `FactoryRegistry[T]` now validates built-in encoder, router, codebook,
-    completer, recommender, and retrieval strategy contracts at composition
-    time. A shared typed recommender-capability verifier is now used by both
-    registry construction and pipeline wiring; a cross-surface contract matrix
-    proves incompatible third-party registrations are rejected before
-    publication, including malformed or exception-raising capability
-    declarations. The remaining protocol boundaries still need equivalent
-    capability surfaces.
+    `FactoryRegistry[T]` validates every built-in encoder, router, codebook,
+    completer, recommender, and retrieval strategy contract at composition
+    time. A shared typed recommender-capability verifier is used by both
+    registry construction and pipeline wiring; the cross-surface contract
+    matrix rejects incompatible third-party registrations before publication,
+    including malformed or exception-raising capability declarations.
 20. **Closed in this worktree:** `Pipeline.attach()` stores mutable corpus dictionaries/arrays by reference.
     Callers can mutate data after attachment and change inference behavior
     without invalidation or a clear lifecycle boundary.
