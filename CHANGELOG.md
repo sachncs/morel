@@ -13,8 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Site visual contracts now use strict 2% pixel-diff thresholds with refreshed
   Linux and macOS baselines, preventing palette regressions from passing as
   acceptable visual drift.
-- Pages visual checks use a documented cross-runner raster tolerance while the
-  semantic teal-brand contract remains strict.
+- Hosted site visual checks use a documented cross-renderer raster tolerance
+  while the semantic teal-brand contract remains strict.
 - Social preview artwork now uses the teal graph/tetrahedral brand mark used by
   the deployed product site.
 - Rebrand: `rmr` → `morel` (MOdality-REcommended Links).
