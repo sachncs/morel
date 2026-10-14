@@ -531,8 +531,9 @@ and release operations.
    per-worker registry and scrape behavior. Auth accepts bounded mounted-secret
    file references for both scopes and rejects ambiguous direct/file
    configuration. A typed `SecretProvider` seam now supports vendor secret
-   managers through `create(secret_provider=...)`; a vendor-specific adapter,
-   rollback exercises, and alert drills remain deployment work.
+   managers through `create(secret_provider=...)`; the repository now includes
+   Prometheus alert starters and a rollback runbook, while a vendor-specific
+   adapter and external rollback/alert drills remain deployment work.
 
 59. **Closed in this worktree:** The streaming co-occurrence builders treated
     every record in a chunk as belonging to one user, creating false

@@ -110,6 +110,7 @@ nav:
       - reference/config.md
       - reference/fidelity.md
       - reference/benchmarks.md
+      - reference/capacity-baseline.md
       - reference/production-readiness.md
       - reference/limitations.md
   - Operations:
@@ -118,6 +119,7 @@ nav:
       - operations/reproduce.md
       - operations/deploy.md
       - operations/observability.md
+      - operations/alerts.md
       - operations/pages.md
   - Project:
       - project/index.md

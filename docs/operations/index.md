@@ -25,6 +25,11 @@ audience is operators and engineers shipping morel in production.
     server exports.</p>
   </div>
   <div class="morel-feature">
+    <h3><a href="alerts/">Alerts and rollback</a></h3>
+    <p>Prometheus alert starters, triage guidance, and a repeatable
+    model-bundle rollback procedure.</p>
+  </div>
+  <div class="morel-feature">
     <h3><a href="pages/">GitHub Pages</a></h3>
     <p>One-time Pages setup, deployment workflow, and the URL
     hygiene story.</p>

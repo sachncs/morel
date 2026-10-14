@@ -113,5 +113,7 @@ against a Pages-shaped `/morel/` artifact.
   the cache is invalidated on corpus attachment and when training mode begins.
 - The in-process Prometheus exporter is now required in production and its
   per-worker scrape behavior is documented. `ResolverSecretProvider` provides
-  a bounded, sanitized adapter seam for vendor secret managers; a concrete
-  provider integration, rollback exercises, and alert drills remain open.
+  a bounded, sanitized adapter seam for vendor secret managers; the repository
+  now includes alert starters and a rollback runbook at
+  `operations/alerts.md`. A concrete provider integration and external
+  rollback/alert drills remain open.
