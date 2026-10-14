@@ -14,10 +14,11 @@ the pipeline.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import replace
 
 from morel.core.config import Config
-from morel.core.errors import Cfg
+from morel.core.factory import FactoryRegistry
 
 #: Name used for the unmodified configuration in an ablation sweep.
 BASELINE = "baseline"
@@ -39,11 +40,13 @@ def nobook(config: Config) -> Config:
 
 
 #: Map from ablation name to transform function. Module-local; no global registry.
-KIND: dict[str, object] = {
+KIND: dict[str, Callable[[Config], Config]] = {
     "noretry": noretry,
     "nope": nope,
     "nobook": nobook,
 }
+
+_ABLATION_REGISTRY = FactoryRegistry[Config]("ablation", KIND)
 
 
 def ablate(config: Config, name: str) -> Config:
@@ -61,9 +64,7 @@ def ablate(config: Config, name: str) -> Config:
     """
     if name == BASELINE:
         return config
-    if name not in KIND:
-        raise Cfg(f"unknown ablation {name!r}; available: {', '.join(sorted(KIND)) or '(none)'}")
-    return KIND[name](config)  # type: ignore[operator,no-any-return]
+    return _ABLATION_REGISTRY.resolve(name)(config)
 
 
 def conditions(config: Config) -> tuple[str, ...]:
