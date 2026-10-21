@@ -44,7 +44,7 @@ jobs:
           test -f site/dist/docs/project/license/index.html
           grep -q 'Documentation' site/dist/docs/index.html
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site/dist
   deploy:
